@@ -10,3 +10,7 @@ git checkout -b jan/dement-x-2
 ```
 Nasledne zmeny potom posunut do pull requestu, kde ich prejdeme a nasledne mergnem do development branchu.
 **Nerobte žiadne commity/merge do master a develop branchu!!**
+
+----
+
+Projekt využíva [EditorConfig](http://editorconfig.org/#download)
