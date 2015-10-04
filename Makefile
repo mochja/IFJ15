@@ -1,8 +1,8 @@
 CC=gcc
-CFLAGS=
+CFLAGS=-std=c11
 LDFLAGS=
 
-SOURCES=main.cc
+SOURCES=main.c
 OBJECTS=$(SOURCES:.cc=.o)
 EXECUTABLE=ifj15
 
