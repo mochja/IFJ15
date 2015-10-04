@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-std=c11 -c
 LDFLAGS=
 
-SOURCES=main.c
+SOURCES=main.c ial.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=ifj15
 
