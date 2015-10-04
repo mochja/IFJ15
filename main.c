@@ -1,3 +1,5 @@
+#include "ial.h"
+
 int main() {
-	return 0;
+	return length("test") == 4;
 }
