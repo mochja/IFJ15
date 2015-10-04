@@ -217,3 +217,9 @@ pip-log.txt
 
 # Sublime Text
 *.sublime-workspace
+
+# C
+*.o
+*.a
+*.out
+/ifj15
