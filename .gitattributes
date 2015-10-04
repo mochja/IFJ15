@@ -1,0 +1,10 @@
+* text=auto
+
+*.cc text eol=lf
+*.h text eol=lf
+*.md text eol=lf
+Makefile text eol=lf
+
+*.sublime-project text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
