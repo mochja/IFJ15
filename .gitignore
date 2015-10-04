@@ -223,3 +223,4 @@ pip-log.txt
 *.a
 *.out
 /ifj15
+/check_ifj15
