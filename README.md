@@ -1,5 +1,7 @@
 # IFJ15
 
+HipChat room — https://unknown-team.hipchat.com/chat
+
 Naštudovať [branching model](http://nvie.com/posts/a-successful-git-branching-model/) a taktiež ako písať [commit messages](http://chris.beams.io/posts/git-commit/).
 
 ----
