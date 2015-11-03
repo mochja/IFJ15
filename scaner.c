@@ -68,6 +68,7 @@ struct T_Token nextToken()
 	
 	struct T_Token token;
 	token.type = BASIC;
+	token.result = EOK;
 
 	while(1){
 
@@ -76,6 +77,7 @@ struct T_Token nextToken()
 		/**************koniec suboru *********************/
 		if(c == EOF){	
 			token.type = END_OF_FILE;
+			token.result = EEOF;
 			return token;
 		}
 
@@ -94,11 +96,15 @@ struct T_Token nextToken()
 				/*************Pismeno alebo znak '_'***********/
 				else if( isalpha(c) || c == '_') 
 					{
-						if(initString(&arr) ==  SYS_ERROR) 
+						if(initString(&arr) ==  SYS_ERROR){
+							token.result = ESYS; 
 							token.type = SYS_ERROR;
+						}
 						
-						if(strAdd(&arr,c) == SYS_ERROR)
+						if(strAdd(&arr,c) == SYS_ERROR){
 							token.type = SYS_ERROR;
+							token.result = ESYS;
+						}
 
 						state = STATE_K_OR_ID;
 					}
@@ -106,19 +112,25 @@ struct T_Token nextToken()
 				/************cislo *****************************/
 				else if(isdigit(c))
 					{
-						if(initString(&arr) == SYS_ERROR) 
+						if(initString(&arr) == SYS_ERROR){ 
 							token.type = SYS_ERROR;
+							token.result = ESYS;
+						}
 						
-						if(strAdd(&arr,c) == SYS_ERROR)
+						if(strAdd(&arr,c) == SYS_ERROR){
 							token.type = SYS_ERROR;
+							token.result = ESYS;
+						}
 
 						state = STATE_NUMBER;
 					}
 				/*******************string*************************/
 				else if(c == '"')
 					{
-						if(initString(&arr) == SYS_ERROR) 
+						if(initString(&arr) == SYS_ERROR){ 
 							token.type = SYS_ERROR;
+							token.result = ESYS;
+						}
 
 						state = STATE_STRING;
 					}
@@ -189,6 +201,7 @@ struct T_Token nextToken()
 				else {
 					fprintf(stderr,"LEX Error: Line: %d , Unknown token: '%c'\n", c,lineNumber);
 					token.type = LEX_ERROR;
+					token.result = ELEX;
 				}
 
 			break;
@@ -198,6 +211,7 @@ struct T_Token nextToken()
 				if(isalnum(c) || c == '_'){  // ak je c pismeno, cislo alebo znak _ prida sa do retazca
 					if(strAdd(&arr,c) == SYS_ERROR)
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 				}
 
 				/*ak je c niektory z povolenych znakov*/
@@ -238,6 +252,7 @@ struct T_Token nextToken()
 				else{ // v pripade nepovoleneho znaku dochadza k chybe
 					fprintf(stderr,"LEX Error: Line: %d , Unknown token: '%c'\n", c, lineNumber);
 					token.type = LEX_ERROR;
+					token.result = ELEX;
 				};
 			break;
 
@@ -265,6 +280,7 @@ struct T_Token nextToken()
 				}
 				else if(c == EOF){
 					token.type = END_OF_FILE;
+					token.result = EEOF;
 				}
 			break;
 
@@ -276,6 +292,7 @@ struct T_Token nextToken()
 				}
 				else if(c == EOF){
 					token.type = END_OF_FILE;
+					token.result = EEOF;
 				}	
 			break;
 
@@ -287,6 +304,7 @@ struct T_Token nextToken()
 				else 
 				if(c == EOF){
 					token.type = END_OF_FILE;
+					token.result = EEOF;
 				}
 				else{
 					if(c == '\n'){
@@ -345,8 +363,10 @@ struct T_Token nextToken()
 			case STATE_NOT: 
 				if( c == '=')
 					token.type = NOT_EQUAL;
-				else 
+				else{ 
 					token.type = LEX_ERROR;
+					token.result = ELEX;
+				}
 			break;
 
 			/*************************cislo******************************/
@@ -355,12 +375,14 @@ struct T_Token nextToken()
 				if(isdigit(c)){							//ak je znak cislo prida sa do retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 				}
 
 				else if(c == '.'){						//ak je znak '.' prechadza sa do stavu cisla double, pridame ro retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					state = STATE_D_NUMBER;
 				}
@@ -368,6 +390,7 @@ struct T_Token nextToken()
 				else if(c == 'E' || c == 'e'){			// ak je c E alebo e prechadza sa do stavu cisla s exp , pridame do retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					state = STATE_E;
 				}
@@ -386,6 +409,7 @@ struct T_Token nextToken()
 					if(sscanf(arr.str, "%d" , &token.data.i) != 1){ // konverzia retazca na cislo typu int
 						fprintf(stderr,"Converting error: cant convert %s to Int\n", arr.str);
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					else{
 						token.type = INT_NUM;
@@ -396,6 +420,7 @@ struct T_Token nextToken()
 					fprintf(stderr,"LEX Error: Line: %d , Unknown token: '%c'\n", c, lineNumber);
 					free(arr.str);
 					token.type = LEX_ERROR;
+					token.result = ELEX;
 				}
 			break;
 
@@ -405,12 +430,14 @@ struct T_Token nextToken()
 				if(isdigit(c)){			// ak je znak c cislo pokracujeme do stavu STATE_D_NUMBER2 , pridame do retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					state = STATE_D_NUMBER2;
 				}
 				else{					// ak je c nieje cislo jedna sa o Lex. chybu
 					fprintf(stderr,"LEX Error: Line: %d , Unknown token: '%c'\n", c , lineNumber);
 					token.type = LEX_ERROR;
+					token.result = ELEX;
 					free(arr.str);
 				}
 			break;
@@ -420,6 +447,7 @@ struct T_Token nextToken()
 				if(c == 'E' || c == 'e'){		// znak c je pismeno e alebo E - cislo double s exponentom , pridame do retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					state = STATE_E;
 				}
@@ -427,6 +455,7 @@ struct T_Token nextToken()
 				else if(isdigit(c)){			// znak c je cislo - prida sa do retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 				}
 
@@ -444,6 +473,7 @@ struct T_Token nextToken()
 					if(sscanf(arr.str, "%lf" , &token.data.d) != 1){ // konverzia retazca na cislo typu double
 						fprintf(stderr,"Converting error: cant convert %s to Double\n", arr.str);
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					else{
 						token.type = DOUBLE_NUM;
@@ -453,6 +483,7 @@ struct T_Token nextToken()
 				else{  //ak je c nepovoleny znak - Lex chyba
 					fprintf(stderr,"LEX Error: Line: %d , Unknown token: '%c'\n", c, lineNumber);
 					token.type = LEX_ERROR;
+					token.result = ELEX;
 					free(arr.str);
 				}
 			break;
@@ -462,12 +493,14 @@ struct T_Token nextToken()
 				if(c == '-' || c == '+' || isdigit(c)){	//nasledujuci znak musi byt bud cislo, + alebo -
 					if(strAdd(&arr,c) == SYS_ERROR){	//prida sa do retazca
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					state = STATE_E2;
 				}
 				else{	//v pripade nepovoleneho znaku - Lex. chyba
 					fprintf(stderr, "LEX Error: Line: %d , Unknown token: '%c'\n", c, lineNumber);
 					token.type = LEX_ERROR;
+					token.result = ELEX;
 					free(arr.str);
 				}
 			break;
@@ -477,6 +510,7 @@ struct T_Token nextToken()
 				if(isdigit(c)){		//ak je c cislo prida sa do retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 
 				}
@@ -495,6 +529,7 @@ struct T_Token nextToken()
 					if(sscanf(arr.str, "%lf" , &token.data.d) != 1){ // konverzia retazca na cislo typu double s exp
 						fprintf(stderr,"Converting error: cant convert %s to Double\n", arr.str);
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					else{
 						token.type = DOUBLE_NUM;
@@ -505,6 +540,7 @@ struct T_Token nextToken()
 					fprintf(stderr, "LEX Error: Line: %d , Unknown token: '%c'\n", c, lineNumber);
 					free(arr.str);
 					token.type = LEX_ERROR;
+					token.result = ELEX;
 				}	
 			break;
 
@@ -522,10 +558,12 @@ struct T_Token nextToken()
 					fprintf(stderr, "LEX Error: Line: %d , Unknown token: '%c'\n", c,lineNumber);
 					free(arr.str);
 					token.type = LEX_ERROR;
+					token.result = ELEX;
 				}
 				else{           // prida znak do retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 				}	
 			break;
@@ -538,6 +576,7 @@ struct T_Token nextToken()
 				else if(c == 'n'){	//c je znak n pridame do retazca '\n'
 					if(strAdd(&arr,'\n') == SYS_ERROR){
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					state = STATE_STRING;
 				}
@@ -545,6 +584,7 @@ struct T_Token nextToken()
 				else if(c == 't'){	//c je znak t pridame do retazca '\t'
 					if(strAdd(&arr,'\t') == SYS_ERROR){
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					state = STATE_STRING;
 				}
@@ -552,6 +592,7 @@ struct T_Token nextToken()
 				else if(c == '\\'){	//c je znak \ pridame do retazca '\\'
 					if(strAdd(&arr,'\\') == SYS_ERROR){
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					state = STATE_STRING;
 				}
@@ -559,6 +600,7 @@ struct T_Token nextToken()
 				else if(c == '\"'){	//c je znak " pridame do retazca '\"'
 					if(strAdd(&arr,'\"') == SYS_ERROR){
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					state = STATE_STRING;
 				}
@@ -566,6 +608,7 @@ struct T_Token nextToken()
 					fprintf(stderr, "LEX Error: Line: %d , Unknown token: '%c'\n", c, lineNumber);
 					free(arr.str);
 					token.type = LEX_ERROR;
+					token.result = ELEX;
 				}
 			break;
 
@@ -582,6 +625,7 @@ struct T_Token nextToken()
 							fprintf(stderr, "LEX Error: Line: %d , Unknown token: '%c'\n", c, lineNumber);
 							free(arr.str);
 							token.type = LEX_ERROR;
+							token.result = ELEX;
 						}
 						else{//ak bol znak spravny prida sa do pola ascii[];
 							ascii[counter] = c;
@@ -600,6 +644,7 @@ struct T_Token nextToken()
 
 					if(strAdd(&arr,s) == SYS_ERROR){ //znak s sa vlozi do retazca
 						token.type = SYS_ERROR;
+						token.result = ESYS;
 					}
 					state = STATE_STRING;}
 			break;
@@ -610,56 +655,3 @@ struct T_Token nextToken()
 		return token;
 	}
 }
-
-
-
-
-
-
-int main()
-{
-
-	
-	struct T_Token token;
-
-
-
-	source = fopen("test.txt","r");
-
-	int i;
-	do
-	{
-		token = nextToken();
-		if(token.type == INT_NUM)
-			printf("{%d}", token.data.i );
-		if(token.type == DOUBLE_NUM)
-			printf("{%.2f}", token.data.d);
-
-		if(token.type == TEXT){
-			printf("%s\n", token.data.s);
-		}
-		
-		printf("%d " ,token.type);
-
-	}
-	while(token.type != END_OF_FILE);
-		
-
-	
-	///free(s.str);
-	fclose(source);
-/*
-	char string[2];
-
-	string[0] = '3';
-	string[1] = 'b';
-
-	int i = 0;
-	i = strtol(string,NULL, 16);
-	char c = i;
-
-	printf("%c\n", c);*/
-
-}
-
-

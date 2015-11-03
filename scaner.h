@@ -1,3 +1,13 @@
+typedef enum Result
+{
+	EOK,
+	ESYN,
+	ELEX,
+	ESYS,
+	EEOF,
+}tresult;
+
+
 typedef struct
 {
   char* str;		
@@ -14,7 +24,9 @@ struct T_Token
 		int   	i;
 		double 	d;
 	}data;
+	tresult result;
 };
+
 
 #define BASIC 	2
 
@@ -77,4 +89,4 @@ struct T_Token
 #define SYS_ERROR 99
 #define LEX_ERROR 1
 
-int getNextToken(string *arr);
+struct T_Token nextToken();
