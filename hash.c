@@ -2,79 +2,120 @@
 /**
     HASH TABLE INITIALIZATION
 **/
-void initHashTable(tList t)
+tTable * initHashTable(int size)
 {
-    if ((t = malloc (sizeof(struct hItem*)*MAX_HTSIZE)) == NULL)
+    tTable *t = NULL;
+    if((t = malloc(sizeof(tTable))) == NULL)
     {
-        printf("ERR\n");
+        printf("ERRk\n");
     }
-    for (int i = 0; i < MAX_HTSIZE; ++i)
+    t->size = size;
+    if ((t->array = malloc(sizeof(struct hItem ) * size )) == NULL)
     {
-        if ((t[i]=malloc(sizeof(struct hItem))) == NULL)
-        {
-            printf("ERR\n");
-        }
-        t[i]->isFree=true;
-        t[i]->next =NULL;
-        t[i]->key =NULL;
-        t[i]->d =NULL;
+        printf("ERRa\n");
     }
-    return ;
+    for (int i = 0; i < size; ++i)
+    {
+        t->array[i].isFree = true;
+        t->array[i].next = NULL;
+    }
+    return t;
 }
 /**
     HASH TABLE FREE
 **/
-/*void freeHashTable(tList t)
+    /*
+void freeHashTable(tTable *t)
 {
-    for (int i = 0; i < MAX_HTSIZE; ++i)
+   /for (int i = 0; i < t->size; ++i)
     {
-        free(t[i]);
+        if (t->array[i].isFree)
+        {   printf("HEY\n");
+            tHItem *temp;
+            temp=t->array[i].next;
+            while(1){
+                if (temp == NULL)
+                {
+                    break;
+                }
+                else
+                {
+                    tHItem *freedom;
+                    freedom = temp;
+                    free(freedom);
+                    temp=temp->next;
+                }
+            }
+        }
     }
-    printf("CLEANED\n");
+    free(t->array);
+    free(t);
     return ;
 }*/
-
 /**
     Hash Function
 **/
-unsigned int hash_function(const char *str) {
-          unsigned int h=0;
+unsigned int getIndex(const char *str) {    //hash funkction return index value calculated for
+          unsigned int h=0;                 //selected string
           const unsigned char *p;
           for(p=(const unsigned char*)str; *p!='\0'; p++)
               h = 65599*h + *p;
           return h % MAX_HTSIZE;
 }
-
-void tableInsert(tList t, char *k){
-    int index = hash_function(k);
-    if (t[index]->isFree)
+/**
+    Insert into table
+**/
+void insertHashTable(tTable *t, char *k){
+    static int counter = 0;
+    int index = getIndex(k);
+    ++counter;
+    if (t->array[index].isFree)
     {
-        t[index]->isFree = false;
-        t[index]->key = k;
-        if ((t[index]->d = malloc(sizeof(struct data))) == NULL)
-        {
-            printf("ERR\n");
-        }
+        t->array[index].isFree = false;
+        t->array[index].key = k;
     }
     else
     {
-        for (tHItem *i = t[index]; i != NULL ; i=i->next)
-        {
-            if (i->next == NULL)
+        tHItem *temp;
+        temp=t->array[index].next;
+        while(1){
+            if (temp == NULL)
             {
-                if((i->next = malloc(sizeof(struct tHItem *))) == NULL) printf("ERR\n");
-                if((i->next->d = malloc(sizeof(struct data))) == NULL) printf("ERR\n");
-
+                if ((temp = malloc(sizeof(tHItem*))) == NULL)
+                {
+                    printf("ERRw\n");
+                }
+                temp->name = k;
+                temp->key= k;
+                printf("%s\n",temp->name);
+                printf("c:%d index:%d\n",counter,index );
+                free(temp);
+                break;
+            }
+            else
+            {
+                temp=temp->next;
             }
         }
     }
-
 }
+
+
 int main()
 {
-    tList t;
-    initHashTable(t);
-    //freeHashTable(t);
+
+    tTable *r = NULL;
+    r = initHashTable(10);
+
+    /*insertHashTable(&t,"lel");
+    insertHashTable(&t,"lol");
+    */
+    insertHashTable(r,"Martin");
+    insertHashTable(r,"Martin");
+
+    insertHashTable(r,"Martin");
+    insertHashTable(r,"Martin");
+    //freeHashTable(r);
     printf("lel\n");
     return 0;
 }
