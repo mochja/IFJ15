@@ -4,54 +4,48 @@
 **/
 tTable * initHashTable(int size)
 {
-    tTable *t = NULL;
-    if((t = malloc(sizeof(tTable))) == NULL)
+    tTable *temp = NULL;
+    if((temp =(tTable *)malloc( (sizeof(tTable)) + (sizeof(tHItem *) * size) )) == NULL)
     {
         printf("ERRk\n");
     }
-    t->size = size;
-    if ((t->array = malloc(sizeof(struct hItem ) * size )) == NULL)
+    temp->size = size;
+    printf("%d\n",temp->size );
+    for (int i = 0; i < temp->size; ++i)
     {
-        printf("ERRa\n");
+        hTabItem *e = NULL;
+        e =(hTabItem*) malloc ( sizeof(hTabItem) );
+        temp->array[0] = e;
     }
-    for (int i = 0; i < size; ++i)
-    {
-        t->array[i].isFree = true;
-        t->array[i].next = NULL;
-    }
-    return t;
+/*    hTabItem *e;
+    e =(hTabItem*) malloc ( sizeof(hTabItem) );
+    temp->array[0] =e;
+
+    temp->array[0]->value = 5;
+    temp->array[0]->name  = "Martin";
+    printf("%s\n", temp->array[0]->name);
+    free(e);
+    printf("lel\n" );*/
+    return temp;
 }
 /**
     HASH TABLE FREE
 **/
-    /*
-void freeHashTable(tTable *t)
+void freeHashTable(tTable *temp)
 {
-   /for (int i = 0; i < t->size; ++i)
+    if (temp == NULL) return;
+
+    free(temp->array[10]);
+    /*for (int i = 0; i < temp->size; ++i)
     {
-        if (t->array[i].isFree)
-        {   printf("HEY\n");
-            tHItem *temp;
-            temp=t->array[i].next;
-            while(1){
-                if (temp == NULL)
-                {
-                    break;
-                }
-                else
-                {
-                    tHItem *freedom;
-                    freedom = temp;
-                    free(freedom);
-                    temp=temp->next;
-                }
-            }
-        }
-    }
-    free(t->array);
-    free(t);
+        hTabItem *e = NULL;
+        e = temp->array[i];
+        free(e);
+
+    }*/
+    free(temp);
     return ;
-}*/
+}
 /**
     Hash Function
 **/
@@ -65,7 +59,7 @@ unsigned int getIndex(const char *str) {    //hash funkction return index value 
 /**
     Insert into table
 **/
-void insertHashTable(tTable *t, char *k){
+/*void insertHashTable(tTable *t, char *k){
     static int counter = 0;
     int index = getIndex(k);
     ++counter;
@@ -99,23 +93,23 @@ void insertHashTable(tTable *t, char *k){
         }
     }
 }
-
+*/
 
 int main()
 {
 
     tTable *r = NULL;
     r = initHashTable(10);
-
+    //printf("%d\n",r->size);
     /*insertHashTable(&t,"lel");
     insertHashTable(&t,"lol");
-    */
+
     insertHashTable(r,"Martin");
     insertHashTable(r,"Martin");
 
     insertHashTable(r,"Martin");
     insertHashTable(r,"Martin");
-    //freeHashTable(r);
+    */freeHashTable(r);
     printf("lel\n");
     return 0;
 }

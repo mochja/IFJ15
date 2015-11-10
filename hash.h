@@ -18,13 +18,15 @@
     char* function;
 }tHItem;
 
+typedef struct hItem hTabItem;
+
 typedef struct {
     int size;
-    tHItem *array;
+    hTabItem *array[];
 }tTable;
 
 tTable * initHashTable(int size );
 void insertHashTable(tTable *t, char *k);
-void freeHashTable(tTable *t);
+void freeHashTable(tTable * t);
 
 
