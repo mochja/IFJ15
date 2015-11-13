@@ -4,55 +4,41 @@
 **/
 tTable * initHashTable(int size)
 {
-    tTable *temp = NULL;
-    if((temp =(tTable *)malloc( (sizeof(tTable)) + (sizeof(tHItem *) * size) )) == NULL)
+    tTable *t = NULL;   //initialization of table itself
+    if((t =(tTable *)malloc( (sizeof(tTable)) + (sizeof(tHItem *) * size) )) == NULL)
     {
         printf("ERRk\n");
     }
-    temp->size = size;
-    printf("%d\n",temp->size );
-    for (int i = 0; i < temp->size; ++i)
-    {
-        hTabItem *e = NULL;
-        e =(hTabItem*) malloc ( sizeof(hTabItem) );
-        e->isFree = true;
-        e->next = NULL;
-        temp->array[i] = e;
+    t->size = size;
+    for (int i = 0; i < t->size; ++i)   //setting up startup values for correct
+    {                                   //evaluation of conditions
+        t->array[i] = NULL;
     }
-    /*temp->array[5]->name = "Hell";
-    temp->array[5]->value = 9;
-    temp->array[5]->function= "Hell";
-*/
-
-/*    hTabItem *e;
-    e =(hTabItem*) malloc ( sizeof(hTabItem) );
-    temp->array[0] =e;
-
-    temp->array[0]->value = 5;
-    temp->array[0]->name  = "Martin";
-    printf("%s\n", temp->array[0]->name);
-    free(e);
-    printf("lel\n" );*/
-    return temp;
+    return t;                           //returning pointer to new table
 }
 /**
     HASH TABLE FREE
 **/
-void freeHashTable(tTable *temp)
+void freeHashTable(tTable *t)
 {
-    if (temp == NULL) return;
-    for (int i = 0; i < temp->size; ++i)
+   /* static int x =0;
+    ++x;
+    if (t == NULL) return;              //check is table is initialized
+    for (int i = 0; i < t->size; ++i)   //run through table to check all fields of array
     {
+        if (t->array[i] == NULL) continue;
+
         hTabItem *freeItem;
-        while(temp->array[i]->next != NULL)
+        hTabItem *i = t->first;
+        while( i != NULL )
         {
-            freeItem = temp->array[i]->next;
-            temp->array[i]->next = freeItem->next;
+            freeItem = i;
+            i = i->next;
             free(freeItem);
         }
-        free(temp->array[i]);
-    }
-    free(temp);
+        free(t->array[i]);
+    }*/
+    free(t);
     return ;
 }
 /**
@@ -72,38 +58,35 @@ void insertHashTable(tTable *t, char *k){
     static int counter = 0;
     int index = getIndex(k,t->size);
     ++counter;
-    if (t->array[index]->isFree)
+
+    hTabItem *newItem;
+    if( (newItem =(hTabItem*) malloc ( sizeof(hTabItem) ) ) == NULL)
     {
-        t->array[index]->isFree = false;
-        t->array[index]->key = k;
-        t->array[index]->name = k;
+        fprintf(stderr, "Could not allocate new item \n");
+    }
+    newItem->next = NULL;
+    newItem->key = k;
+    newItem->name = k;
+    newItem->value = counter;
+
+    if (t->array[index] == NULL)
+    {
+        t->array[index] = newItem;
     }
     else
     {
-        hTabItem *newItem;
-        if( (newItem =(hTabItem*) malloc ( sizeof(hTabItem) ) ) == NULL)
+        hTabItem *i;
+        i = t->array[index];
+        while( i != NULL )
         {
-            fprintf(stderr, "Could not allocate new item \n");
+            i = i->next;
         }
-        newItem->next = NULL;
-        newItem->isFree = false;
-        newItem->key = k;
-        if (t->array[index]->next == NULL)
+        if (t->array[3] == NULL)
         {
-            t->array[index]->next = newItem;
+            printf("OMG\n");
         }
-        else
-        {
-            while (t->array[index]->next != NULL)
-            {
-                printf("%d\n",counter);
-                hTabItem *i;
-                i = t->array[index]->next;
-                t->array[index]->next = i->next;
-            }
-            t->array[index]->next = newItem;
-        }
-
+        i = newItem;
+        printf("1:%d \t%s\n",i->value,i->key );
     }
     return;
 }
@@ -114,18 +97,21 @@ int main()
 
     tTable *r = NULL;
     r = initHashTable(10);
+
+    insertHashTable(r,"Martin");
+    insertHashTable(r,"Martin");
+
     insertHashTable(r,"Martin");
     insertHashTable(r,"Martin");
     insertHashTable(r,"Martin");
     insertHashTable(r,"Martin");
+    for (hTabItem *i = r->array[3]; i != NULL; i = i->next)
+    {
+        printf("1:%d \t%s\n",i->value,i->key );
+    }
 
-    //printf("%d\n",r->size);
-    /*insertHashTable(&t,"lel");
-    insertHashTable(&t,"lol");
 
+    //freeHashTable(r);
 
-
-    */freeHashTable(r);
-    printf("lel\n");
     return 0;
 }
