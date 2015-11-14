@@ -57,9 +57,9 @@ unsigned int getIndex(const char *str,int tableSize) {    //hash funkction retur
               h = 65599*h + *p;
           return h % tableSize;
 }
-/*
+/**
     Creating new item in hash table
-*/
+**/
 hTabItem * createNewItem()
 {
     static int counter = 0;
@@ -69,7 +69,7 @@ hTabItem * createNewItem()
     {
         return NULL;
     }
-    newItem->key = NULL;
+    newItem->key = NULL;        // setting default values
     newItem->next = NULL;
 
     newItem->id = NULL;
@@ -83,21 +83,20 @@ hTabItem * createNewItem()
 
     return newItem;
 }
-/*
+/**
     Insert into table
 **/
 void insertHashTable(tTable *t, hTabItem *newItem){
 
-    int index = getIndex(newItem->id,t->size);
+    int index = getIndex(newItem->id,t->size);          //get index of key
 
-    printf("%d\n",index );
-    if (t->array[index] == NULL)
+    if (t->array[index] == NULL)                        // first item on position
     {
         t->array[index] = newItem;
     }
-    else
-    {
-        hTabItem *i;
+    else                                                //item is already in position
+    {                                                   // going through list to find
+        hTabItem *i;                                    // nnext free position
         i = t->array[index];
         while(true)
         {
@@ -114,30 +113,28 @@ void insertHashTable(tTable *t, hTabItem *newItem){
     }
     return;
 }
-/*
-
-*/
+/**
+    search in table and return pointer to item
+**/
 hTabItem * searchItem(tTable *t, char *id)
 {
     int index = getIndex(id,t->size);
-    printf("%d\n",index );
-    if(t->array[index] == NULL )
+    if(t->array[index] == NULL )                    // checking if Item exists
     {
         return NULL;
     }
-    else if ((strcmp(t->array[index]->id,id) == 0) && (t->array[index]->value.i == 2) )
+    else if ( strcmp(t->array[index]->id,id) == 0 )
     {
 
-        return t->array[index];
+        return t->array[index];                     //item found in first place
     }
-    else
+    else                                            //item not found going through list
     {
         hTabItem *i;
         i = t->array[index];
         while(i != NULL)
         {
-            printf("e%d\n",i->value.i );
-            if(((strcmp(i->id,id)) == 0) && (i->value.i == 2))
+            if( strcmp(i->id,id)) == 0 )
             {
                 return i;
             }
