@@ -21,23 +21,29 @@ tTable * initHashTable(int size)
 **/
 void freeHashTable(tTable *t)
 {
-   /* static int x =0;
+    static int x =0;
     ++x;
     if (t == NULL) return;              //check is table is initialized
+
     for (int i = 0; i < t->size; ++i)   //run through table to check all fields of array
     {
-        if (t->array[i] == NULL) continue;
-
         hTabItem *freeItem;
-        hTabItem *i = t->first;
-        while( i != NULL )
+        freeItem = t->array[i];
+        while(true)
         {
-            freeItem = i;
-            i = i->next;
-            free(freeItem);
+            if (t->array[i] == NULL || t->array[i]->next == NULL)
+            {
+                break;
+            }
+            else
+            {
+                freeItem = t->array[i]->next;
+                t->array[i]->next = freeItem->next;
+                free(freeItem);
+            }
         }
         free(t->array[i]);
-    }*/
+    }
     free(t);
     return ;
 }
@@ -77,16 +83,18 @@ void insertHashTable(tTable *t, char *k){
     {
         hTabItem *i;
         i = t->array[index];
-        while( i != NULL )
+        while(true)
         {
-            i = i->next;
+            if (i->next == NULL)
+            {
+                i->next = newItem;
+                break;
+            }
+            else
+            {
+                i=i->next;
+            }
         }
-        if (t->array[3] == NULL)
-        {
-            printf("OMG\n");
-        }
-        i = newItem;
-        printf("1:%d \t%s\n",i->value,i->key );
     }
     return;
 }
@@ -111,7 +119,9 @@ int main()
     }
 
 
-    //freeHashTable(r);
+     //printf("1:%d \t%s\n",r->array[3]->value,r->array[3]->key );
+
+    freeHashTable(r);
 
     return 0;
 }
