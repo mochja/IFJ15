@@ -134,7 +134,7 @@ hTabItem * searchItem(tTable *t, char *id)
         i = t->array[index];
         while(i != NULL)
         {
-            if( strcmp(i->id,id)) == 0 )
+            if( strcmp(i->id,id) == 0 )
             {
                 return i;
             }
