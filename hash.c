@@ -69,8 +69,7 @@ hTabItem * createNewItem()
     {
         return NULL;
     }
-    newItem->key = NULL;        // setting default values
-    newItem->next = NULL;
+    newItem->next = NULL;       // setting default values
 
     newItem->id = NULL;
     newItem->name = NULL;
