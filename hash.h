@@ -1,3 +1,6 @@
+#ifndef HASH_H_
+#define HASH_H_
+
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
@@ -5,8 +8,7 @@
 
 #define MAX_HTSIZE 101
 
-
- typedef struct hItem{
+typedef struct hItem{
     bool isFree;
     char *key;
     struct hItem *next;
@@ -29,4 +31,4 @@ tTable * initHashTable(int size );
 void insertHashTable(tTable *t, char *k);
 void freeHashTable(tTable * t);
 
-
+#endif  // HASH_H_
