@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=c11 -c
+CFLAGS=-std=c11 -c -g
 LDFLAGS=
 
 SOURCES=main.c ial.c
