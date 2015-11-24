@@ -4,6 +4,7 @@
 *.h text eol=lf
 *.md text eol=lf
 Makefile text eol=lf
+rozdeleni text eol=lf
 
 *.sublime-project text eol=lf
 .editorconfig text eol=lf
