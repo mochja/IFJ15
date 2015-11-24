@@ -14,7 +14,7 @@ int length(char* input)
 
 char* substr(char* input, size_t start, size_t count)
 {
-    char* output = malloc((count+END)*sizeof(char));
+    char *output = malloc((count+END)*sizeof(char));
     if ( length(input) != 0 )
     {
         for (int i = 0; i < count; ++i)
@@ -25,7 +25,7 @@ char* substr(char* input, size_t start, size_t count)
         return output;
     }
     else
-        return output;
+        return input;
 }
 
 char* concat(char* input1 , char* input2)
@@ -40,10 +40,9 @@ char* concat(char* input1 , char* input2)
             output[i] = input2[i - length(input1)];
         i++;
     }
-    output[output_lenght] = '\0';
+    output[output_lenght-END] = '\0';
     return output;
 }
-
 /*int find(char*, char*)
 {
 

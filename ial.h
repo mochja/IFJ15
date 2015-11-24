@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
 #ifndef IAL_H_
 #define IAL_H_
 
