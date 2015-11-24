@@ -71,7 +71,6 @@ hTabItem * createNewItem()
     }
     newItem->next = NULL;       // setting default values
 
-    newItem->id = NULL;
     newItem->name = NULL;
     newItem->function = NULL;
     newItem->dataType = -1;
@@ -87,7 +86,7 @@ hTabItem * createNewItem()
 **/
 void insertHashTable(tTable *t, hTabItem *newItem){
 
-    int index = getIndex(newItem->id,t->size);          //get index of key
+    int index = getIndex(newItem->name, t->size);          //get index of key
 
     if (t->array[index] == NULL)                        // first item on position
     {
@@ -122,7 +121,7 @@ hTabItem * searchItem(tTable *t, char *id)
     {
         return NULL;
     }
-    else if ( strcmp(t->array[index]->id,id) == 0 )
+    else if ( strcmp(t->array[index]->name,id) == 0 )
     {
 
         return t->array[index];                     //item found in first place
@@ -133,7 +132,7 @@ hTabItem * searchItem(tTable *t, char *id)
         i = t->array[index];
         while(i != NULL)
         {
-            if( strcmp(i->id,id) == 0 )
+            if( strcmp(i->name,id) == 0 )
             {
                 return i;
             }
@@ -160,25 +159,28 @@ Main for testing purposes
 
     temp = createNewItem();
     if (temp == NULL) return 1;
-    temp->id = "martin";
-    temp->value.i = 0;
+    temp->name = "martin";
+    temp->value.i = 9;
+    temp->dataType = 16;
     insertHashTable(r,temp);
 
     temp = createNewItem();
     if (temp == NULL) return 1;
-    temp->id = "martin";
-    temp->value.i = 1;
+    temp->name = "daniel";
+    temp->value.c = "bubacik";
+    temp->dataType = 18;
     insertHashTable(r,temp);
 
     temp = createNewItem();
     if (temp == NULL) return 1;
-    temp->id = "martin";
-    temp->value.i = 2;
+    temp->name = "martin";
+    temp->dataType = 17;
+    temp->value.d = 2.8;
     insertHashTable(r,temp);
 
     for (hTabItem *i = r->array[7]; i != NULL; i = i->next)
     {
-        printf("1:%d \t%s\n",i->value.i,i->id);
+        printItem(i);
     }
     hTabItem *f;
     char *e;
@@ -186,12 +188,23 @@ Main for testing purposes
     f=searchItem(r,e);
     if (f != NULL)
     {
-        printf("1:%d \t%s\n",f->value.i,f->id);
+        printItem(f);
     }
     else
         printf("Not found\n");
     freeHashTable(r);
 
     return 0;
+}
+
+void printItem(tHItem *i)
+{
+    if( i->dataType == 17)
+        printf("->:%lf\t%s\n",i->value.d,i->name);
+    if( i->dataType == 16)
+        printf("->:%d\t%s\n",i->value.i,i->name);
+    if( i->dataType == 18)
+        printf("->:%s\t%s\n",i->value.c,i->name);
+    return;
 }
 */

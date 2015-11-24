@@ -13,11 +13,19 @@ typedef struct hItem{
     char *key;
     struct hItem *next;
 
-    signed int Id;
     char* name;
     int dataType;
-    int value;
+    union
+    {
+        int i;
+        double d;
+        char *c;
+    }value;
     char* function;
+
+    bool isDefined;
+    int params;
+    int paramPosition;
 }tHItem;
 
 typedef struct hItem hTabItem;
@@ -28,7 +36,9 @@ typedef struct {
 }tTable;
 
 tTable * initHashTable(int size );
-void insertHashTable(tTable *t, char *k);
+hTabItem * createNewItem();
+void insertHashTable(tTable *t, hTabItem *newItem);
 void freeHashTable(tTable * t);
+//void printItem(tHItem *i);
 
 #endif  // HASH_H_
