@@ -9,6 +9,25 @@ START_TEST(test_ial_length)
 }
 END_TEST
 
+START_TEST(test_ial_substr)
+{
+    char* strng = substr("streptokok",6,5);
+    ck_assert_str_eq(strng, "tokok" );
+    free(strng);
+    char* strng2 = substr("streptokok",9,5);
+    ck_assert_str_eq(strng2,"streptokok" );
+    free(strng2);
+}
+END_TEST
+
+START_TEST(test_ial_concat)
+{
+    char* strng =concat("test", "_is_rhododendron");
+    ck_assert_str_eq( strng, "test_is_rhododendron" );
+    free(strng);
+}
+END_TEST
+
 Suite* ial_suite(void)
 {
     Suite* s;
@@ -19,6 +38,9 @@ Suite* ial_suite(void)
     tc_internals = tcase_create("ial_internals");
 
     tcase_add_test(tc_internals, test_ial_length);
+    tcase_add_test(tc_internals, test_ial_concat);
+    tcase_add_test(tc_internals, test_ial_substr);
+
     suite_add_tcase(s, tc_internals);
 
     return s;
