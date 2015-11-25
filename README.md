@@ -1,5 +1,7 @@
 # IFJ15
 
+[![Build Status](https://travis-ci.com/mochja/IFJ15.svg?token=R1xPH8Tds42vtS3xNggs&branch=develop)](https://travis-ci.com/mochja/IFJ15)
+
 ## Style Guide
 
 HipChat room — https://unknown-team.hipchat.com/chat
