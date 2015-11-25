@@ -2,12 +2,12 @@
 #include <check.h>
 #include "ial.h"
 
-/*START_TEST(test_ial_length)
+START_TEST(test_ial_length)
 {
     ck_assert_int_eq(length("asdf"), 4);
     ck_assert_int_eq(length("x\nz"), 3);
 }
-END_TEST*/
+END_TEST
 
 START_TEST(test_ial_substr)
 {
@@ -37,7 +37,6 @@ Suite* ial_suite(void)
 
     tc_internals = tcase_create("ial_internals");
 
-    //tcase_add_test(tc_internals, test_ial_length);
     tcase_add_test(tc_internals, test_ial_concat);
     tcase_add_test(tc_internals, test_ial_substr);
 

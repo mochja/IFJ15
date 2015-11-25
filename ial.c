@@ -1,15 +1,5 @@
 #include "ial.h"
 
-/*int length(char* input_str)
-{
-    int result_lenght=0;
-    while (input_str[result_lenght] != '\0')        // prechadzanie pola charov pokial neporovnavam ukoncovaci znak /0
-    {
-        result_lenght++;                            // inkrementacia premennej ktora drzi dlzku retazca
-    }
-    return result_lenght;
-}*/
-
 char* substr(char* input_str, int start, int size)
 {
     //   ak dlzka retazca je vacsia ako sucet parametrov, nieje nula    a sucet parametrov je vacsi ako 1
@@ -46,12 +36,3 @@ char* concat(char* str1 , char* str2)
     result_str[result_str_lenght-1] = '\0';                                 // na konci pridame /0
     return result_str;                                                      // volajuca funkcia musi pouzit free();
 }
-/*int find(char*, char*)
-{
-    BY_DAVID_DEVAD
-}
-
-char* sort(char*)
-{
-    BY_DAVID_DEVAD
-}*/
