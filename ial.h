@@ -1,13 +1,15 @@
+#ifndef IAL_H_
+#define IAL_H_
+# define length(x) strlen(x)
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-#ifndef IAL_H_
-#define IAL_H_
 
-int length(char* input);
-char* substr(char* input, size_t start, size_t stop);
-char* concat(char* input1 , char* input2);
+char* substr(char* input, int start, int size);
+char* concat(char* str1 , char* str2);
 /*int find(char*, char*);
 char* sort(char*);*/
 

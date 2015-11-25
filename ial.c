@@ -1,52 +1,50 @@
 #include "ial.h"
 
-#define END 1
-
-int length(char* input)
+/*int length(char* input_str)
 {
-    int input_lenght=0;
-    while (input[input_lenght] != '\0')     // prechadzanie pola charov pokial neporovnavam ukoncovaci znak /0
+    int result_lenght=0;
+    while (input_str[result_lenght] != '\0')        // prechadzanie pola charov pokial neporovnavam ukoncovaci znak /0
     {
-        input_lenght++;                     // inkrementacia premennej ktora drzi dlzku retazca
+        result_lenght++;                            // inkrementacia premennej ktora drzi dlzku retazca
     }
-    return input_lenght;
-}
+    return result_lenght;
+}*/
 
-char* substr(char* input, size_t start, size_t count)
+char* substr(char* input_str, int start, int size)
 {
     //   ak dlzka retazca je vacsia ako sucet parametrov, nieje nula    a sucet parametrov je vacsi ako 1
-    if ( ( start+count > 1 ) && ( length(input) + END >= start + count ) )
+    if ( ( start+size > 1 ) && ( length(input_str) + 1 >= start + size ) )
     {
-        char *output = malloc( (count + END) *sizeof(char) );                // alokacia pamate pre pomocnu premennu
-        for (int i = 0; i < count; ++i)
+        char *result_str = malloc( (size + 1) *sizeof(char) );                 // alokacia pamate pre pomocnu premennu
+        for (int i = 0; i < size; ++i)
         {
-            output[i] = input[start - END + i];                         // prechadzanie pola podla parametrov od start po start+count
+            result_str[i] = input_str[start - 1 + i];                           // prechadzanie pola podla parametrov od start po start+size
         }
-        output[count]='\0';                                             // pridanie koncoveho znaku do pola znakov
-        return output;
+        result_str[size]='\0';                                                 // pridanie koncoveho znaku do pola znakov
+        return result_str;
     }
-    else                                                                // ak neplati podmienka vraciame vstup
+    else                                                                        // ak neplati podmienka vraciame vstup
     {
-        char *output = malloc( (length(input) + END) *sizeof(char) );   // teda alokujeme premennu taku velku ako je vstup
-        strcpy(output, input);                                          // prekopirovanie obsahov - ide aj cez for
-        return output;
+        char *result_str = malloc( (length(input_str) + 1) *sizeof(char) );     // teda alokujeme premennu taku velku ako je vstup
+        strcpy(result_str, input_str);                                          // prekopirovanie obsahov - ide aj cez for
+        return result_str;
     }   // vraciame stale naalokovanu pamat aby volajuca funkcia mohla v oboch pripadoch po zavolani spravit free();
 }
 
-char* concat(char* input1 , char* input2)
+char* concat(char* str1 , char* str2)
 {
-    int i = 0, output_lenght = (length(input1) + length(input2) + END); // inicializacia pomocnych premennych
-    char* output = malloc(output_lenght * sizeof(char));                // naalokovanie potrebneho miesta premennej, ktoru vraciame
-    while (i != output_lenght)                                          // pokial neprekrocime dlzku vysledneho retazca
+    int i = 0, result_str_lenght = (length(str1) + length(str2) + 1);       // inicializacia pomocnych premennych
+    char* result_str = malloc(result_str_lenght * sizeof(char));            // naalokovanie potrebneho miesta premennej, ktoru vraciame
+    while (i != result_str_lenght)                                          // pokial neprekrocime dlzku vysledneho retazca
     {
-        if ( i < length(input1) )
-            output[i] = input1[i];                                      // priradime tam hodnotu z prveho stringu ak je i < ako dlzka prveho
+        if ( i < length(str1) )
+            result_str[i] = str1[i];                                        // priradime tam hodnotu z prveho stringu ak je i < ako dlzka prveho
         else
-            output[i] = input2[i - length(input1)];                     // naopak hodnotu z druheho z pozicie i-dlzka prveho
+            result_str[i] = str2[i - length(str1)];                         // naopak hodnotu z druheho z pozicie i-dlzka prveho
         i++;
     }
-    output[output_lenght-END] = '\0';                                   // na konci pridame /0
-    return output;                                                      // volajuca funkcia musi pouzit free();
+    result_str[result_str_lenght-1] = '\0';                                 // na konci pridame /0
+    return result_str;                                                      // volajuca funkcia musi pouzit free();
 }
 /*int find(char*, char*)
 {
