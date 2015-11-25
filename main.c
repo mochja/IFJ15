@@ -1,5 +1,7 @@
 #include "ial.h"
-
-int main() {
-	return length("test") == 4;
+#include <string.h>
+int main()
+{
+    printf("Heloooo\n");
+    return 0;
 }
