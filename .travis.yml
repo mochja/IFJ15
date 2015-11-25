@@ -1,0 +1,19 @@
+---
+language: c
+install:
+  - export CC=gcc-4.9
+script: >
+  make
+  && make check
+  && ./ifj15
+  && ./check_ifj15
+  && CK_FORK=no valgrind --tool=memcheck --track-origins=yes --leak-check=full --error-exitcode=1 ./check_ifj15
+  && CK_FORK=no valgrind --tool=memcheck --track-origins=yes --leak-check=full --error-exitcode=1 ./ifj15
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - check
+      - gcc-4.9
+      - valgrind
