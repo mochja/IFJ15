@@ -31,30 +31,22 @@ char* substr(const char *str, int pos, int count)
     return result_str;
 }
 
-
-char* concat(char *str1 , char *str2)
+char* concat(const char *str1 , const char *str2)
 {
     char *result_str;
 
-    const int result_len = length(str1) + length(str2);
+    const int str1_len = length(str1);
+    const int str2_len = length(str2);
 
-    result_str = malloc((result_len + 1) * sizeof(char));
+    result_str = malloc((str1_len + str2_len + 1) * sizeof(char));
 
     if (result_str == NULL) {
         // TODO: proper error handling
         exit(1);
     }
 
-    for (int i = 0; i < result_len; i++) {
-        if ( i < length(str1) ) {
-            result_str[i] = str1[i];
-        } else {
-            result_str[i] = str2[i - length(str1)];
-        }
-    }
-
-    result_str[result_len] = '\0';
+    memcpy(result_str, str1, str1_len);
+    memcpy(result_str + str1_len, str2, str2_len + 1);
 
     return result_str;
 }
-
