@@ -1,6 +1,33 @@
 # IFJ15
 
+## Style Guide
+
 HipChat room — https://unknown-team.hipchat.com/chat
+
+```C
+#define ONE 1
+
+typedef struct {
+    int a;
+} my_type_t; // alebo namespacovane tu_my_type_t;
+
+void my_function(const char *s) {
+  char *c; // * pred nazov premennej, dovoluje potom char *c, *d, *e; miesto char* c, *d, *e;
+  if (true) {
+    for (int i = 0; i < 10; i++) {
+        while (1) {
+            break;
+        }
+    }
+  } else if ((1 > 2) && (3 == 2)) {
+    // ...
+  }
+}
+
+void __some_internal_fn() {
+  // ...
+}
+```
 
 Naštudovať [branching model](http://nvie.com/posts/a-successful-git-branching-model/) a taktiež ako písať [commit messages](http://chris.beams.io/posts/git-commit/).
 
