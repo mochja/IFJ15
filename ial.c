@@ -1,38 +1,60 @@
 #include "ial.h"
 
-char* substr(char* input_str, int start, int size)
+/*
+ * Returns a substring [pos, pos+count). If the requested substring
+ * extends past the end of the string, or if count == npos, the returned substring is [pos, size()).
+ */
+char* substr(const char *str, int pos, int count)
 {
-    //   ak dlzka retazca je vacsia ako sucet parametrov, nieje nula    a sucet parametrov je vacsi ako 1
-    if ( ( start+size > 1 ) && ( length(input_str) + 1 >= start + size ) )
-    {
-        char *result_str = malloc( (size + 1) *sizeof(char) );                 // alokacia pamate pre pomocnu premennu
-        for (int i = 0; i < size; ++i)
-        {
-            result_str[i] = input_str[start - 1 + i];                           // prechadzanie pola podla parametrov od start po start+size
-        }
-        result_str[size]='\0';                                                 // pridanie koncoveho znaku do pola znakov
-        return result_str;
+    char *result_str;
+    const int str_len = length(str);
+
+    if (pos < 0 || count < 0 || pos > str_len) {
+        // TODO: proper error handling
+        exit(1);
     }
-    else                                                                        // ak neplati podmienka vraciame vstup
-    {
-        char *result_str = malloc( (length(input_str) + 1) *sizeof(char) );     // teda alokujeme premennu taku velku ako je vstup
-        strcpy(result_str, input_str);                                          // prekopirovanie obsahov - ide aj cez for
-        return result_str;
-    }   // vraciame stale naalokovanu pamat aby volajuca funkcia mohla v oboch pripadoch po zavolani spravit free();
+
+    const int result_len = (count > str_len - pos) ? str_len - pos : count;
+    result_str = malloc((result_len + 1) * sizeof(char));
+
+    if (result_str == NULL) {
+        // TODO: proper error handling
+        exit(1);
+    }
+
+    if (pos < str_len) {
+        memcpy(result_str, str + pos, result_len);
+    }
+
+    result_str[result_len] = '\0';
+
+    return result_str;
 }
 
-char* concat(char* str1 , char* str2)
+
+char* concat(char *str1 , char *str2)
 {
-    int i = 0, result_lenght = (length(str1) + length(str2) + 1);       // inicializacia pomocnych premennych
-    char* result_str = malloc(result_str_lenght * sizeof(char));            // naalokovanie potrebneho miesta premennej, ktoru vraciame
-    while (i != result_str_lenght)                                          // pokial neprekrocime dlzku vysledneho retazca
-    {
-        if ( i < length(str1) )
-            result_str[i] = str1[i];                                        // priradime tam hodnotu z prveho stringu ak je i < ako dlzka prveho
-        else
-            result_str[i] = str2[i - length(str1)];                         // naopak hodnotu z druheho z pozicie i-dlzka prveho
-        i++;
+    char *result_str;
+
+    const int result_len = length(str1) + length(str2);
+
+    result_str = malloc((result_len + 1) * sizeof(char));
+
+    if (result_str == NULL) {
+        // TODO: proper error handling
+        exit(1);
     }
-    result_str[result_lenght-1] = '\0';                                 // na konci pridame /0
-    return result_str;                                                      // volajuca funkcia musi pouzit free();
+
+    for (int i = 0; i < result_len; i++) {
+        if ( i < length(str1) ) {
+            result_str[i] = str1[i];
+        } else {
+            result_str[i] = str2[i - length(str1)];
+        }
+    }
+
+    result_str[result_len] = '\0';
+
+    return result_str;
 }
+

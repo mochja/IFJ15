@@ -1,5 +1,5 @@
-CC=gcc
-CFLAGS=-std=c11 -c -g
+CC?=gcc
+CFLAGS=-std=c11 -c -g -pedantic -Wall
 LDFLAGS=
 
 SOURCES=main.c ial.c
