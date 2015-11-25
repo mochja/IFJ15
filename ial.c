@@ -23,7 +23,7 @@ char* substr(char* input_str, int start, int size)
 
 char* concat(char* str1 , char* str2)
 {
-    int i = 0, result_str_lenght = (length(str1) + length(str2) + 1);       // inicializacia pomocnych premennych
+    int i = 0, result_lenght = (length(str1) + length(str2) + 1);       // inicializacia pomocnych premennych
     char* result_str = malloc(result_str_lenght * sizeof(char));            // naalokovanie potrebneho miesta premennej, ktoru vraciame
     while (i != result_str_lenght)                                          // pokial neprekrocime dlzku vysledneho retazca
     {
@@ -33,6 +33,6 @@ char* concat(char* str1 , char* str2)
             result_str[i] = str2[i - length(str1)];                         // naopak hodnotu z druheho z pozicie i-dlzka prveho
         i++;
     }
-    result_str[result_str_lenght-1] = '\0';                                 // na konci pridame /0
+    result_str[result_lenght-1] = '\0';                                 // na konci pridame /0
     return result_str;                                                      // volajuca funkcia musi pouzit free();
 }
