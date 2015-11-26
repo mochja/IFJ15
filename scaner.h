@@ -13,11 +13,14 @@
 typedef enum Result
 {
 	EOK,
-	ESYN,
 	ELEX,
-	ESYS,
-	EEOF,
+	ESYN,
 	ESEM,
+	ESEM2,
+	ESEM3,
+	ESEM4,
+	EEOF,
+	ESYS = 99,
 }tresult;
 
 

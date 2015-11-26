@@ -12,6 +12,7 @@ tvarList varList;
 tvarList paramList;
 char * fName;
 int argsCounter = 0;
+int argsCounter1 = 0;
 bool fDeclared = false;
 int hInt = 0;
 int label = 1;
@@ -37,6 +38,8 @@ tresult parse(){
 
 	result = EOK;
 	token = nextToken();
+	if(token.result != EOK)
+		return token.result;
 
 
 	if(token.type == END_OF_FILE)
@@ -72,11 +75,12 @@ tresult program(){
 
 	result = function();
 
-
 	if(result != EOK)
 		return result;
 
 	token = nextToken();
+	if(token.result != EOK && token.result!= EEOF)
+		return token.result;
 
 	if(token.type != END_OF_FILE)
 		return ESYN;
@@ -99,21 +103,22 @@ tresult function(){
 	int fType = token.type;
 
 	token = nextToken();
+	if(token.result != EOK)
+		return token.result;
 	if(token.type == MAIN && fType == INT){
 		/***********telo funkcie main**************/
-
-			char *fLabel = token.data.s;
 			fName = "main";
-			/********MISSSING: kontrola ts, vlozenie do ts **********************/
-
-
 
 			token = nextToken();
+			if(token.result != EOK)
+				return token.result;
 
 			if(token.type != LEFT_CULUM) // (
 				return ESYN;
 
 			token = nextToken();
+			if(token.result != EOK)
+				return token.result;
 
 			if(token.type != RIGHT_CULUM)	// )
 				return ESYN;
@@ -128,20 +133,26 @@ tresult function(){
 			insertLast(item,&paramList);
 
 			token = nextToken();	
+			if(token.result != EOK)
+				return token.result;
 
 			if(token.type != LEFT_VINCULUM) // {
 				return ESYN;
 
 			/********MISSING: vlozenie 3AK -- label zaciatku funkcie main********/
 			printf("LABEL MAIN\n");
-			token = nextToken();
 
+			token = nextToken();
 			if(token.result != EOK)
 				return token.result;
 
 			if(token.type != RIGHT_VINCULUM)		//ak nie je funkcia prazdna
 				result = body();
-													/// po main uz ziadne dalsie rekurzivne volanie ---- main je posledna funkcia v programe
+										
+			if(result != EOK)
+				return result;
+
+			return EOK;				/// po main uz ziadne dalsie rekurzivne volanie ---- main je posledna funkcia v programe
 	}
 	else if(token.type = ID){
 		/*****************telo funkcie*************/
@@ -173,7 +184,7 @@ tresult function(){
 					item=item->next;
 				}
 				if(item == NULL)
-					return ESYN;
+					return ESYS;
 
 			}
 			else if(!fDeclared){
@@ -192,7 +203,6 @@ tresult function(){
 			if(token.type != LEFT_CULUM)
 				return ESYN;
 
-			
 			token = nextToken();
 			if(token.result != EOK)
 				return token.result;
@@ -204,7 +214,7 @@ tresult function(){
 				return result;
 
 			if( (tableItem = searchItem(table, fName)) == NULL )
-				return ESYN;
+				return ESYS;
 
 			if(fDeclared){
 				if(tableItem->params != argsCounter)
@@ -219,8 +229,6 @@ tresult function(){
 			token=nextToken();
 			if(token.result != EOK)
 				return token.result;
-
-			
 
 			if(token.type == LEFT_VINCULUM && tableItem->isDefined==false)
 			{
@@ -242,25 +250,25 @@ tresult function(){
 				printf("LABEL ENDF %s\n", fLabel );
 			}
 			else if(token.type == LEFT_VINCULUM && tableItem->isDefined==true)
-				return ESYN;
+				return ESEM;
 			else if(token.type == SEMICOLON)
 				result=EOK;
 			else
 				return ESYN;
 
 			token=nextToken();
-
-
 			if(token.result != EOK)	//lexikalna alebo systemova chyba
 				return token.result;
 
 			if(token.type == INT || token.type == DOUBLE || token.type == STRING)	///mala by nasledovat dalsia funkcia
 				result = function();		//rekurzivne volanie pre spracovanie dalsej funkcie
+			else if(token.type == END_OF_FILE)
+				return ESEM;
 			else
 				return ESYN;	//ak nie je ziadna dalsia funkcia je to chyba
-	}
+	}else if(token.type == MAIN && fType != INT)
+		return ESEM;
 	else result = ESYN;
-
 
 return result;
 }
@@ -300,7 +308,7 @@ tresult list(){
 			char * hName=NULL;
 			if((hName = varSearch(&varList,token.data.s)) == NULL){
 				if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-					return ESYN;
+					return ESEM;
 			}
 			token=nextToken();
 			if(token.result != EOK)
@@ -313,10 +321,8 @@ tresult list(){
 			if(token.result != EOK)
 				return token.result;
 
-			//result=assign();
-			while(token.type != SEMICOLON){
-				token=nextToken();
-			}
+			assignVarName=hName;
+			result=assign();
 
 			if(result != EOK)
 				return result;
@@ -344,7 +350,7 @@ tresult list(){
 			if(result != EOK)
 				return result;
 			insertLast(varBlock,&varList);
-				printf(".....NEW BLOCK.....\n");
+			printf(".....NEW BLOCK.....\n");
 			result=list();
 
 			if(result != EOK)
@@ -371,11 +377,15 @@ tresult list(){
 			if(token.type != LEFT_CULUM)
 				return ESYN;
 			
-			
+
 			/*********hack vyrazu ******/
 			token=nextToken();
+			if(token.result != EOK)					///mala by sa volat precedencna analyza
+				return token.result;
 			while(token.type != RIGHT_CULUM){
 				token=nextToken();
+				if(token.result != EOK)
+					return token.result;
 			}
 			/********hack vyrazu********/
 
@@ -523,16 +533,21 @@ tresult list(){
 			if(token.type == ASSIGN){
 				token=nextToken();
 				if(token.result != EOK)
+					return token.result;
+
+			/*********hack vyrazu ******/
+			token=nextToken();
+			if(token.result != EOK)					///mala by sa volat precedencna analyza
 				return token.result;
-
-				/************hack*************/
-				while(token.type != SEMICOLON){
+			while(token.type != SEMICOLON){
 				token=nextToken();
-				}
-				//result=assign();
+				if(token.result != EOK)
+					return token.result;
+			}
+			/********hack vyrazu********/
 
-				/**vlozenie hodnoty riadiacej premennej podla vysledku assign()**/
-				/*******3AK, MV , #1, NULL, hName******/
+			/**vlozenie hodnoty riadiacej premennej podla vysledku assign()**/
+			/*******3AK, MV , #1, NULL, hName******/
 			}else if(token.type != SEMICOLON){
 				return ESYN;
 			}
@@ -547,9 +562,12 @@ tresult list(){
 			token=nextToken();
 			if(token.result != EOK)
 				return token.result;
-			while(token.type != SEMICOLON){
+			while(token.type != SEMICOLON){				///mala by sa volat precedencna analyza
 				token=nextToken();
+				if(token.result != EOK)
+					return token.result;
 			}
+
 
 			/**vyhodnotenie vyrazu**/
 			printf("JMPT BEGIN %d\n", beginLabel );
@@ -566,7 +584,7 @@ tresult list(){
 				return ESYN;
 			if((hNameID = varSearch(&varList,token.data.s)) == NULL){
 				if((hNameID = paramSearch(&paramList, fName, token.data.s)) == NULL)
-				return ESYN;
+				return ESEM;
 			}
 			token=nextToken();
 			if(token.result != EOK)
@@ -577,9 +595,11 @@ tresult list(){
 			if(token.result != EOK)
 				return token.result;
 			
-			/************hack*************/
-			while(token.type != RIGHT_CULUM){
+			/*****hack*********/
+			while(token.type != RIGHT_CULUM){				///mala by sa volat precedencna analyza
 				token=nextToken();
+				if(token.result != EOK)
+					return token.result;
 			}
 
 
@@ -596,7 +616,6 @@ tresult list(){
 				return token.result;
 			if(token.type != LEFT_VINCULUM)
 				return ESYN;
-			printf("....FOR BLOCK BEGIN....\n");
 
 			tItemPtr varBlock2;
 				if((varBlock2 = malloc(sizeof(struct tItem))) == NULL)
@@ -645,10 +664,10 @@ tresult list(){
 				if(token.result != EOK)
 					return token.result;
 				if(token.type != ID)
-					return ESYN;
+					return ESEM4;
 				if((hName = varSearch(&varList,token.data.s)) == NULL){
 					if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-						return ESYN;
+						return ESEM;
 				}
 				/**vygenerovanie 3AK - nacitanie zo SV do premennej hName**/
 				printf("\tCIN STDIN %s\n", hName);
@@ -680,7 +699,7 @@ tresult list(){
 				if(token.type == ID){
 					if((hName = varSearch(&varList,token.data.s)) == NULL){
 						if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-							return ESYN;
+							return ESEM;
 					}
 					/**vlozenie 3AK - vypis na STDOUT z premennej hName**/
 					printf("\tCOUNT STDOUT %s\n",hName);
@@ -691,7 +710,7 @@ tresult list(){
 					{printf("\tCOUNT STDOUT %f\n",token.data.d);}/**vlozenie 3AK - vypis na STDOUT cislo token.data.d**/
 				else if(token.type == TEXT)
 					{printf("\tCOUNT STDOUT %s\n",token.data.s);}/**vlozenie 3AK - vypis na STDOUT retazec token.data.s**/
-				else return ESYN;
+				else return ESEM4;
 
 
 				token=nextToken();
@@ -704,14 +723,18 @@ tresult list(){
 
 		/**return <EXP> ;**/
 		else if(token.type == RETURN){
+
+			/*********hack**********/
 			token=nextToken();
-
 			if(token.result != EOK)
-				return token.result;
-
+				return token.result;					///precedencna
 			while(token.type != SEMICOLON){
 				token=nextToken();
+				if(token.result != EOK)
+					return token.result;
 			}
+			/*********************/
+
 			printf("RETURN\n");
 			/****vyhdontenie vyrazu***/
 			/**vloznenie 3AK - skos s5**/
@@ -728,6 +751,7 @@ tresult list(){
 		if(token.result != EOK)
 			return token.result;
 		result=list();
+	return result;
 }
 
 tresult advDeclaration(){
@@ -777,12 +801,14 @@ tresult advDeclaration(){
 		if(token.type != ASSIGN)
 			return ESYN;
 
-		/***********hack***********/
-		token=nextToken();
-		while(token.type != SEMICOLON)
-			token=nextToken();
-		return EOK;
+		token = nextToken();
+		if(token.result != EOK)
+			return token.result;
+		assignVarName=hName;
+		result=assign();
 
+		if(result != EOK)
+			return result;
 		/*******3AK , MV , #1 ,NULL, hName******/
 
 	}else{
@@ -797,12 +823,12 @@ tresult advDeclaration(){
 				token = nextToken();
 				if(token.result != EOK)
 					return token.result;
-				//result=assign();
+				assignVarName=hName;
+				result=assign();
+				
+				if(result != EOK)
+					return result;
 
-				/*************hack************/
-				//token=nextToken();
-				while(token.type != SEMICOLON)
-					token=nextToken();
 				return EOK;
 
 		/*******3AK , MV , #1 ,NULL, hName******/
@@ -867,18 +893,22 @@ tresult declaration(tItemPtr varBlock){
 
 		if(token.type != ASSIGN)
 			return ESYN;
+		
+		token = nextToken();
+		if(token.result != EOK)
+			return token.result;
 		assignVarName=hName;
+		result=assign();
 
-		/***********hack***********/
+		if(result != EOK)
+			return result;
+		
 		token=nextToken();
-		while(token.type != SEMICOLON)
-			token=nextToken();
-		token=nextToken();
+		if(token.result != EOK)
+			return token.result;
 		result = declaration(varBlock);
-		//result=assign();
 
 		/*******3AK , MV , #1 ,NULL, hName******/
-
 
 	}else{ //typ int, double alebo string
 		
@@ -896,19 +926,21 @@ tresult declaration(tItemPtr varBlock){
 		}
 		else if(token.type == ASSIGN){
 				
-				assignVarName=hName;
-				token = nextToken();
-				if(token.result != EOK)
-					return token.result;
-				//result=assign();
+			token = nextToken();
+			if(token.result != EOK)
+				return token.result;
 
-				/*******3AK , MV , #1 ,NULL, hName******/
-				/*************hack************/
-				token=nextToken();
-				while(token.type != SEMICOLON)
-					token=nextToken();
-				token=nextToken();
-				result = declaration(varBlock);
+			assignVarName=hName;
+
+			result=assign();
+
+			if(result != EOK)
+				return result;
+				
+			token=nextToken();
+			if(token.result != EOK)
+				return token.result;
+			result = declaration(varBlock);
 
 		}else return ESYN;
 	}
@@ -921,7 +953,13 @@ tresult assign(){
 	else if(token.type == ID){
 	hTabItem *tableItem;
 		if((tableItem=searchItem(table,token.data.s)) == NULL){
-			/***spracovanie vyrazu**/
+			/*********hack**********/				///precedencna
+			while(token.type != SEMICOLON){
+				token=nextToken();
+				if(token.result != EOK)
+					return token.result;
+			}
+			/*********************/
 		}else{
 			/**volanie uzivatelskej funkcie**/
 		tItemPtr item;
@@ -932,19 +970,34 @@ tresult assign(){
 				item=item->next;
 			}
 			if(item == NULL)
-				return ESYN;
+				return ESYS;
+		hTabItem * tItem;
+
+
+		if((tItem = searchItem(table,assignVarName)) == NULL)
+			return ESYS;
+		if(tItem->dataType != tableItem->dataType && tItem->dataType!=AUTO)
+			return ESEM2;
+
+		token=nextToken();
+		if(token.result != EOK)
+			return token.result;
+		if(token.type != LEFT_CULUM)
+			return ESYN;
+
 		token=nextToken();
 		if(token.result != EOK)
 			return token.result;	
-		
+
 		if(token.type != RIGHT_CULUM)
 			result=params(item);
 		if(result != EOK)
 			return result;
 
-		if(tableItem->params != argsCounter)
-			return ESYN;
-		argsCounter=0;
+		if(tableItem->params != argsCounter1)
+			return ESEM3;
+		argsCounter1=0;
+
 
 		token=nextToken();
 		if(token.result != EOK)
@@ -955,9 +1008,16 @@ tresult assign(){
 		/***********3AK , JMP, LABEL, PARAMETRE, NULL***********/
 		}
 	}else if(token.type != SEMICOLON){
-		/**spracovanie vyrazu**/
+		
+		/*********hack**********/				///precedencna
+		while(token.type != SEMICOLON){
+			token=nextToken();
+			if(token.result != EOK)
+				return token.result;
+		}
+		/*********************/
 	}else return ESEM;
-
+return EOK;
 }
 
 tresult buildInF(){
@@ -973,9 +1033,9 @@ tresult buildInF(){
 		case LENGTH:
 			/******************Skontrolovat typ assignVarName v TS - musi byt INT**********************/
 			if((tItem = searchItem(table,assignVarName)) == NULL)
-				return ESYN;
+				return ESYS;
 			if(tItem->dataType != INT && tItem->dataType != AUTO)
-				return ESYN;
+				return ESEM2;
 			
 			token=nextToken();
 			if(token.result != EOK)
@@ -1001,14 +1061,14 @@ tresult buildInF(){
 				/****zkontroluje datovy typ --- musi byt string***/
 				if((hName = varSearch(&varList, token.data.s)) == NULL){
 					if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-						return ESYN;
+						return ESEM;
 				}
 				if((tItem1 = searchItem(table,hName)) == NULL)
-					return ESYN;
-				if(tItem1->dataType != STRING)
-					return ESYN;
+					return ESYS;
+				if(tItem1->dataType != STRING && tItem2->dataType!=AUTO)
+					return ESEM2;
 			}
-			else return ESYN;
+			else return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1024,6 +1084,7 @@ tresult buildInF(){
 			if(token.type != SEMICOLON)
 				return ESYN;
 
+			//printf("volanie funkcie length --- parameter: %s\n",  tItem1->value.c );
 			/*************3AK -- LENGTH , pointer na polozku v ts, NULL ,NULL,***************/
 			/********3AK --- MV , searchTS(#1), NULL, searchTS(assignVarName)******/
 
@@ -1033,9 +1094,9 @@ tresult buildInF(){
 		case SUBSTR:
 			/******************Skontrolovat typ assignVarName v TS - musi byt STRING**********************/
 			if((tItem = searchItem(table,assignVarName)) == NULL)
-				return ESYN;
+				return ESYS;
 			if(tItem->dataType != STRING && tItem->dataType != AUTO)
-				return ESYN;
+				return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1060,13 +1121,13 @@ tresult buildInF(){
 				/**********vyhladame polozku hName v TS*********/
 				if((hName = varSearch(&varList, token.data.s)) == NULL){
 					if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-						return ESYN;
+						return ESEM;
 				}
 				if((tItem1 = searchItem(table,hName)) == NULL)
-					return ESYN;
-				if(tItem1->dataType != STRING)
-					return ESYN;
-			}else return ESYN;
+					return ESYS;
+				if(tItem1->dataType != STRING && tItem2->dataType!=AUTO)
+					return ESEM2;
+			}else return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1091,13 +1152,14 @@ tresult buildInF(){
 			/**********vyhladame polozku hName v TS*********/
 				if((hName = varSearch(&varList, token.data.s)) == NULL){
 					if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-						return ESYN;
+						return ESEM;
 				}
+
 				if((tItem2 = searchItem(table,hName)) == NULL)
-					return ESYN;
-				if(tItem2->dataType != INT)
-					return ESYN;
-			}else return ESYN;
+					return ESYS;
+				if(tItem2->dataType != INT && tItem2->dataType!=AUTO)
+					return ESEM2;
+			}else return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1108,7 +1170,7 @@ tresult buildInF(){
 			token=nextToken();
 			if(token.result != EOK)
 				return token.result;
-
+	
 
 			if(token.type == INT_NUM){
 				hName = generateName(hInt);
@@ -1123,13 +1185,13 @@ tresult buildInF(){
 			/**********vyhladame polozku hName v TS*********/
 				if((hName = varSearch(&varList, token.data.s)) == NULL){
 					if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-						return ESYN;
+						return ESEM;
 				}
 				if((tItem2 = searchItem(table,hName)) == NULL)
-					return ESYN;
-				if(tItem2->dataType != INT)
-					return ESYN;
-			}else return ESYN;
+					return ESYS;
+				if(tItem2->dataType != INT && tItem2->dataType!=AUTO)
+					return ESEM2;
+			}else return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1141,7 +1203,10 @@ tresult buildInF(){
 			if(token.result != EOK)
 				return token.result;
 			if(token.type != SEMICOLON)
-				return ESYN;			
+				return ESYN;	
+
+			
+			//printf("volanie funkcie substr--- parameter 1: %s ,parameter 2: %d, parameter 3: %d\n",  tItem1->value.c, tItem2->value.i, tItem3->value.i );
 			/***********************3AK -- SUBSTR , p1 , p2 , p3******************************/
 			/***********************3AK -- MV , searchTS(#1),NULL,searchTS(assignVarName)******/
 		break;
@@ -1149,9 +1214,9 @@ tresult buildInF(){
 
 		/******************Skontrolovat typ assignVarName v TS - musi byt STRING**********************/
 			if((tItem = searchItem(table,assignVarName)) == NULL)
-				return ESYN;
+				return ESYS;
 			if(tItem->dataType != STRING && tItem->dataType != AUTO)
-				return ESYN;
+				return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1176,13 +1241,13 @@ tresult buildInF(){
 			/**********vyhladame polozku hName v TS*********/
 				if((hName = varSearch(&varList, token.data.s)) == NULL){
 					if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-						return ESYN;
+						return ESEM;
 				}
 				if((tItem1 = searchItem(table,hName)) == NULL)
-					return ESYN;
-				if(tItem1->dataType != STRING)
-					return ESYN;
-			}else return ESYN;
+					return ESYS;
+				if(tItem1->dataType != STRING && tItem2->dataType!=AUTO)
+					return ESEM2;
+			}else return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1207,13 +1272,13 @@ tresult buildInF(){
 			}else if(token.type == ID){
 				if((hName = varSearch(&varList, token.data.s)) == NULL){
 					if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-						return ESYN;
+						return ESEM;
 				}
 				if((tItem2 = searchItem(table,hName)) == NULL)
-					return ESYN;
-				if(tItem2->dataType != STRING)
-					return ESYN;
-			}else return ESYN;
+					return ESYS;
+				if(tItem2->dataType != STRING && tItem2->dataType!=AUTO)
+					return ESEM2;
+			}else return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1226,14 +1291,16 @@ tresult buildInF(){
 				return token.result;
 			if(token.type != SEMICOLON)
 				return ESYN;
+
+			//printf("volanie funkcie concat--- parameter 1: %s ,parameter 2: %s\n",  tItem1->value.c, tItem2->value.c);
 
 		break;
 		case FIND: 
 		/******************Skontrolovat typ assignVarName v TS - musi byt INT**********************/
 			if((tItem = searchItem(table,assignVarName)) == NULL)
-				return ESYN;
+				return ESYS;
 			if(tItem->dataType != INT && tItem->dataType != AUTO)
-				return ESYN;
+				return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1258,13 +1325,13 @@ tresult buildInF(){
 				/**********vyhladame polozku hName v TS*********/
 				if((hName = varSearch(&varList, token.data.s)) == NULL){
 					if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-						return ESYN;
+						return ESEM;
 				}
 				if((tItem1 = searchItem(table,hName)) == NULL)
-					return ESYN;
-				if(tItem1->dataType != STRING)
-					return ESYN;
-			}else return ESYN;
+					return ESYS;
+				if(tItem1->dataType != STRING && tItem2->dataType!=AUTO)
+					return ESEM2;
+			}else return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1289,13 +1356,13 @@ tresult buildInF(){
 				/**********vyhladame polozku hName v TS*********/
 				if((hName = varSearch(&varList, token.data.s)) == NULL){
 					if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-						return ESYN;
+						return ESEM;
 				}
 				if((tItem2 = searchItem(table,hName)) == NULL)
-					return ESYN;
-				if(tItem2->dataType != STRING)
-					return ESYN;
-			}else return ESYN;
+					return ESYS;
+				if(tItem2->dataType != STRING && tItem2->dataType!=AUTO)
+					return ESEM2;
+			}else return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1309,13 +1376,14 @@ tresult buildInF(){
 			if(token.type != SEMICOLON)
 				return ESYN;
 
+	//	printf("volanie funkcie find--- parameter 1: %s ,parameter 2: %s\n",  tItem1->value.c, tItem2->value.c);
 		break;
 		case SORT: 
 		/******************Skontrolovat typ assignVarName v TS - musi byt STRING**********************/
 			if((tItem = searchItem(table,assignVarName)) == NULL)
-				return ESYN;
+				return ESYS;
 			if(tItem->dataType != STRING && tItem->dataType != AUTO)
-				return ESYN;
+				return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1340,13 +1408,13 @@ tresult buildInF(){
 			/**********vyhladame polozku hName v TS*********/
 				if((hName = varSearch(&varList, token.data.s)) == NULL){
 					if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-						return ESYN;
+						return ESEM;
 				}
 				if((tItem1 = searchItem(table,hName)) == NULL)
-					return ESYN;
-				if(tItem1->dataType != STRING)
-					return ESYN;
-			}else return ESYN;
+					return ESYS;
+				if(tItem1->dataType != STRING && tItem2->dataType!=AUTO)
+					return ESEM2;
+			}else return ESEM2;
 
 			token=nextToken();
 			if(token.result != EOK)
@@ -1372,26 +1440,27 @@ hTabItem * tableItem;
 	if(token.type == ID){
 		hTabItem * tItem1;
 
-		if((tableItem=searchItem(table,item->data[argsCounter].hid)) == NULL)
-			return ESYN;
+		if((tableItem=searchItem(table,item->data[argsCounter1].hid)) == NULL)
+			return ESYS;
 		if((hName = varSearch(&varList,token.data.s)) == NULL){
 			if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
-				return ESYN;
+				return ESEM;
 		}
 		if((tItem1=searchItem(table,hName)) == NULL)
-			return ESYN;
+			return ESYS;
 
-		if(tableItem->dataType != AUTO && tableItem->dataType != tItem1->dataType)
-			return ESYN;
+		if(tableItem->dataType != AUTO && tableItem->dataType != tItem1->dataType && tItem1->dataType!=AUTO)
+			return ESEM2;
+		printf("ID ide\n");
 
 		/****************parameter tItem1*****************/
 	}
 	else if(token.type == INT_NUM){
-		if((tableItem=searchItem(table,item->data[argsCounter].hid)) == NULL)
-			return ESYN;
-
+		if((tableItem=searchItem(table,item->data[argsCounter1].hid)) == NULL)
+			return ESYS;
+		printf("sadsa\n");
 		if(tableItem->dataType != INT && tableItem->dataType != AUTO)
-			return ESYN;
+			return ESEM2;
 
 		hTabItem * tItem1 = createNewItem();
 		hName=generateName(hInt);
@@ -1406,11 +1475,11 @@ hTabItem * tableItem;
 
 	}
 	else if(token.type == DOUBLE_NUM){
-		if((tableItem=searchItem(table,item->data[argsCounter].hid)) == NULL)
-			return ESYN;
+		if((tableItem=searchItem(table,item->data[argsCounter1].hid)) == NULL)
+			return ESYS;
 
 		if(tableItem->dataType != DOUBLE && tableItem->dataType != AUTO)
-			return ESYN;
+			return ESEM2;
 
 		hTabItem * tItem1 = createNewItem();
 		hName=generateName(hInt);
@@ -1425,11 +1494,11 @@ hTabItem * tableItem;
 
 	}
 	else if(token.type == TEXT){
-		if((tableItem=searchItem(table,item->data[argsCounter].hid)) == NULL)
-			return ESYN;
+		if((tableItem=searchItem(table,item->data[argsCounter1].hid)) == NULL)
+			return ESYS;
 
 		if(tableItem->dataType != STRING && tableItem->dataType != AUTO)
-			return ESYN;
+			return ESEM2;
 
 		hTabItem * tItem1 = createNewItem();
 		hName=generateName(hInt);
@@ -1442,9 +1511,9 @@ hTabItem * tableItem;
 
 		/**************************************/
 	}
-	else return ESYN;
+	else return ESEM2;
 
-	argsCounter++;
+	argsCounter1++;
 
 	token=nextToken();
 	if(token.result != EOK)
@@ -1490,7 +1559,7 @@ tresult args(tItemPtr item){
 					return ESEM;
 
 				if((tItem=searchItem(table, hName)) == NULL){
-					return ESYN;
+					return ESYS;
 				}
 				/****kontrola typu a poradia parametru****/
 				if(tItem->dataType != varType)
