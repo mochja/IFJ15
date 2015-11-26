@@ -1,3 +1,16 @@
+/**
+ * Copyright (c) 2015, Team Unknown,
+ *                     Ján Mochňak,    <xmochn00@vutbr.cz>
+ *                     Tibor Dudlák,   <xdudla00@vutbr.cz>
+ *                     Dávid Prexta,   <xprext00@vutbr.cz>
+ *                     Martin Krajňák, <xkrajn02@vutbr.cz>
+ *                     Patrik Segedy,  <xseged00@vutbr.cz>
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #include <stdio.h>
 #include <stdbool.h>
 #include "scaner.h"
@@ -21,14 +34,14 @@ char * assignVarName=NULL;
 tTable *table = NULL;
 
 char * generateName(int number){
-	
+
 	sprintf(buffer, "$%d" , number);
 	return buffer;
 }
 
 tresult parse(){
 /**incializacia  ---- overenie prazdnosti zdrojaku */
- 
+
 	if((table = initHashTable(MAX_HTSIZE)) == NULL)
 			return ESYS;
 
@@ -52,7 +65,7 @@ tresult parse(){
 		result = program();
 
 
-	
+
 	if(result == EOK);
 	/******************MISSING: volanie interpreta*********************/
 
@@ -132,7 +145,7 @@ tresult function(){
 			item->functionId = fName;
 			insertLast(item,&paramList);
 
-			token = nextToken();	
+			token = nextToken();
 			if(token.result != EOK)
 				return token.result;
 
@@ -148,7 +161,7 @@ tresult function(){
 
 			if(token.type != RIGHT_VINCULUM)		//ak nie je funkcia prazdna
 				result = body();
-										
+
 			if(result != EOK)
 				return result;
 
@@ -236,16 +249,16 @@ tresult function(){
 				/********MISSING: vlozenie 3AK -- label zaciatku funkcie*******/
 				printf("LABEL F %s\n", fLabel);
 				token=nextToken();
-	
+
 				if(token.result != EOK)
 					return token.result;
-	
+
 				if(token.type != RIGHT_VINCULUM)		//ak nie je funkcia prazdna
 					result = body();
-	
+
 				if(result != EOK)
 					return result;
-				
+
 				/********MISSING: vlozenie 3AK -- navrat z funkcie*******/
 				printf("LABEL ENDF %s\n", fLabel );
 			}
@@ -302,7 +315,7 @@ tresult body(){
 /**********************prikazy v jednom bloku************************************/
 tresult list(){
 
-	
+
 		/*******************ID <priradenie> ; <list>************************/
 		if(token.type == ID){
 			char * hName=NULL;
@@ -340,7 +353,7 @@ tresult list(){
 				if((varBlock->data = malloc(sizeof(struct Data))) == NULL)
 					return ESYS;
 			token=nextToken();
-			
+
 			if(token.result != EOK)
 				return token.result;
 
@@ -358,10 +371,10 @@ tresult list(){
 		}
 
 		/*************** } <list> ***********************/
-		else if(token.type == RIGHT_VINCULUM){ 
-			printf("....END BLOCK....\n");	
+		else if(token.type == RIGHT_VINCULUM){
+			printf("....END BLOCK....\n");
 			deleteLast(&varList);
-				return EOK;	
+				return EOK;
 		}
 		/*********** if ( <EXP> ) { <list> } else { <list> }*******************/
 		else if(token.type == IF){
@@ -376,7 +389,7 @@ tresult list(){
 
 			if(token.type != LEFT_CULUM)
 				return ESYN;
-			
+
 
 			/*********hack vyrazu ******/
 			token=nextToken();
@@ -454,7 +467,7 @@ tresult list(){
 			if(token.result != EOK)
 				return token.result;
 
-			result=declaration(varBlock2);			
+			result=declaration(varBlock2);
 			argsCounter = 0;
 			if(result != EOK)
 				return result;
@@ -504,7 +517,7 @@ tresult list(){
 
 			if(token.type != ID)
 				return ESYN;
-			
+
 			tItemPtr varBlock;
 				if((varBlock = malloc(sizeof(struct tItem))) == NULL)
 					return ESYS;
@@ -594,7 +607,7 @@ tresult list(){
 			token=nextToken();
 			if(token.result != EOK)
 				return token.result;
-			
+
 			/*****hack*********/
 			while(token.type != RIGHT_CULUM){				///mala by sa volat precedencna analyza
 				token=nextToken();
@@ -603,7 +616,7 @@ tresult list(){
 			}
 
 
-			
+
 			printf("ASSING EXP\n");
 			/**vyhodnotenie vyrazu**/
 			printf("MV %s EXPRESULT\n",hNameID);
@@ -628,7 +641,7 @@ tresult list(){
 			if(token.result != EOK)
 				return token.result;
 
-			result=declaration(varBlock2);		
+			result=declaration(varBlock2);
 			argsCounter = 0;
 			if(result != EOK)
 				return result;
@@ -695,7 +708,7 @@ tresult list(){
 				token=nextToken();
 				if(token.result != EOK)
 					return token.result;
-				
+
 				if(token.type == ID){
 					if((hName = varSearch(&varList,token.data.s)) == NULL){
 						if((hName = paramSearch(&paramList, fName, token.data.s)) == NULL)
@@ -825,7 +838,7 @@ tresult advDeclaration(){
 					return token.result;
 				assignVarName=hName;
 				result=assign();
-				
+
 				if(result != EOK)
 					return result;
 
@@ -862,14 +875,14 @@ tresult declaration(tItemPtr varBlock){
 			return ESEM;
 		i++;
 	}
-	
+
 	if((hName = paramSearch(&paramList, fName, token.data.s)) != NULL)
 		return ESEM;
 
 	hName=generateName(hInt);
 	hInt++;
 
-	
+
 	if((varBlock->data = realloc(varBlock->data, sizeof(struct Data) * (argsCounter+1) )) == NULL)
 		return ESYS;
 	varBlock->data[argsCounter].id=token.data.s;
@@ -893,7 +906,7 @@ tresult declaration(tItemPtr varBlock){
 
 		if(token.type != ASSIGN)
 			return ESYN;
-		
+
 		token = nextToken();
 		if(token.result != EOK)
 			return token.result;
@@ -902,7 +915,7 @@ tresult declaration(tItemPtr varBlock){
 
 		if(result != EOK)
 			return result;
-		
+
 		token=nextToken();
 		if(token.result != EOK)
 			return token.result;
@@ -911,7 +924,7 @@ tresult declaration(tItemPtr varBlock){
 		/*******3AK , MV , #1 ,NULL, hName******/
 
 	}else{ //typ int, double alebo string
-		
+
 		token=nextToken();
 
 		if(token.result != EOK)
@@ -925,7 +938,7 @@ tresult declaration(tItemPtr varBlock){
 			result = declaration(varBlock);
 		}
 		else if(token.type == ASSIGN){
-				
+
 			token = nextToken();
 			if(token.result != EOK)
 				return token.result;
@@ -936,7 +949,7 @@ tresult declaration(tItemPtr varBlock){
 
 			if(result != EOK)
 				return result;
-				
+
 			token=nextToken();
 			if(token.result != EOK)
 				return token.result;
@@ -987,7 +1000,7 @@ tresult assign(){
 
 		token=nextToken();
 		if(token.result != EOK)
-			return token.result;	
+			return token.result;
 
 		if(token.type != RIGHT_CULUM)
 			result=params(item);
@@ -1008,7 +1021,7 @@ tresult assign(){
 		/***********3AK , JMP, LABEL, PARAMETRE, NULL***********/
 		}
 	}else if(token.type != SEMICOLON){
-		
+
 		/*********hack**********/				///precedencna
 		while(token.type != SEMICOLON){
 			token=nextToken();
@@ -1036,7 +1049,7 @@ tresult buildInF(){
 				return ESYS;
 			if(tItem->dataType != INT && tItem->dataType != AUTO)
 				return ESEM2;
-			
+
 			token=nextToken();
 			if(token.result != EOK)
 				return token.result;
@@ -1090,7 +1103,7 @@ tresult buildInF(){
 
 
 		break;
-		
+
 		case SUBSTR:
 			/******************Skontrolovat typ assignVarName v TS - musi byt STRING**********************/
 			if((tItem = searchItem(table,assignVarName)) == NULL)
@@ -1170,7 +1183,7 @@ tresult buildInF(){
 			token=nextToken();
 			if(token.result != EOK)
 				return token.result;
-	
+
 
 			if(token.type == INT_NUM){
 				hName = generateName(hInt);
@@ -1203,9 +1216,9 @@ tresult buildInF(){
 			if(token.result != EOK)
 				return token.result;
 			if(token.type != SEMICOLON)
-				return ESYN;	
+				return ESYN;
 
-			
+
 			//printf("volanie funkcie substr--- parameter 1: %s ,parameter 2: %d, parameter 3: %d\n",  tItem1->value.c, tItem2->value.i, tItem3->value.i );
 			/***********************3AK -- SUBSTR , p1 , p2 , p3******************************/
 			/***********************3AK -- MV , searchTS(#1),NULL,searchTS(assignVarName)******/
@@ -1295,7 +1308,7 @@ tresult buildInF(){
 			//printf("volanie funkcie concat--- parameter 1: %s ,parameter 2: %s\n",  tItem1->value.c, tItem2->value.c);
 
 		break;
-		case FIND: 
+		case FIND:
 		/******************Skontrolovat typ assignVarName v TS - musi byt INT**********************/
 			if((tItem = searchItem(table,assignVarName)) == NULL)
 				return ESYS;
@@ -1378,7 +1391,7 @@ tresult buildInF(){
 
 	//	printf("volanie funkcie find--- parameter 1: %s ,parameter 2: %s\n",  tItem1->value.c, tItem2->value.c);
 		break;
-		case SORT: 
+		case SORT:
 		/******************Skontrolovat typ assignVarName v TS - musi byt STRING**********************/
 			if((tItem = searchItem(table,assignVarName)) == NULL)
 				return ESYS;
@@ -1531,7 +1544,7 @@ hTabItem * tableItem;
 }
 
 tresult args(tItemPtr item){
-	/******spracovanie argumentov funkcii********/	
+	/******spracovanie argumentov funkcii********/
 		int varType = token.type;
 		hTabItem * tItem;
 		if(token.type != INT && token.type != DOUBLE && token.type != STRING)
@@ -1619,10 +1632,10 @@ tresult args(tItemPtr item){
 }
 
 int main(){
-	
+
 	source = fopen("src","r");
 	//printf("sadsa\n");
 
 	result = parse();
 	printf("err code: %d" , result);
-}	
+}

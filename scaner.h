@@ -1,3 +1,16 @@
+/**
+ * Copyright (c) 2015, Team Unknown,
+ *                     Ján Mochňak,    <xmochn00@vutbr.cz>
+ *                     Tibor Dudlák,   <xdudla00@vutbr.cz>
+ *                     Dávid Prexta,   <xprext00@vutbr.cz>
+ *                     Martin Krajňák, <xkrajn02@vutbr.cz>
+ *                     Patrik Segedy,  <xseged00@vutbr.cz>
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #ifndef SCANER_H_
 #define SCANER_H_
 
@@ -6,9 +19,6 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
-
-#endif // SCANER_H_
-
 
 typedef enum Result
 {
@@ -26,8 +36,8 @@ typedef enum Result
 
 typedef struct
 {
-  char* str;		
-  int length;		
+  char* str;
+  int length;
   int allocSize;
 } string;
 
@@ -53,7 +63,7 @@ struct T_Token nextToken();
 #define ID		4
 
 /********Key words ****************/
-#define AUTO	5 
+#define AUTO	5
 #define CIN 	6
 #define COUT	7
 #define DOUBLE	8
@@ -63,9 +73,9 @@ struct T_Token nextToken();
 #define INT		12
 #define RETURN	13
 #define STRING	14
-#define MAIN 	15	
-	
-/*********/	
+#define MAIN 	15
+
+/*********/
 #define	INT_NUM		16
 #define	DOUBLE_NUM	17
 #define	TEXT		18
@@ -108,4 +118,4 @@ struct T_Token nextToken();
 #define SYS_ERROR 99
 #define LEX_ERROR 1
 
-
+#endif // SCANER_H_

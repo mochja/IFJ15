@@ -1,5 +1,17 @@
-#include "scaner.h"
+/**
+ * Copyright (c) 2015, Team Unknown,
+ *                     Ján Mochňak,    <xmochn00@vutbr.cz>
+ *                     Tibor Dudlák,   <xdudla00@vutbr.cz>
+ *                     Dávid Prexta,   <xprext00@vutbr.cz>
+ *                     Martin Krajňák, <xkrajn02@vutbr.cz>
+ *                     Patrik Segedy,  <xseged00@vutbr.cz>
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
+#include "scaner.h"
 
 #define ALLOC_SIZE 		8
 int lineNumber = 1;
@@ -33,7 +45,7 @@ int initString(string *s){
 	s->str[0]='\0';
 	s->length = 0;
 	s->allocSize = ALLOC_SIZE;
-	
+
 }
 
 /***********************prida znak do retazca**************************************
@@ -56,11 +68,11 @@ struct T_Token nextToken()
 {
 	int state = STATE_START;
 	int c;
-	
+
 
 	string arr;
 	arr.str = NULL;
-	
+
 	struct T_Token token;
 	token.type = BASIC;
 	token.result = EOK;
@@ -70,7 +82,7 @@ struct T_Token nextToken()
 		c = getc(source);
 
 		/**************koniec suboru *********************/
-		if(c == EOF){	
+		if(c == EOF){
 			token.type = END_OF_FILE;
 			token.result = EEOF;
 			return token;
@@ -85,17 +97,17 @@ struct T_Token nextToken()
 			case STATE_START:
 
 				/***********mezdera, biely znak*****************/
-				if(isspace(c)) 
+				if(isspace(c))
 					state = STATE_START;
 
 				/*************Pismeno alebo znak '_'***********/
-				else if( isalpha(c) || c == '_') 
+				else if( isalpha(c) || c == '_')
 					{
 						if(initString(&arr) ==  SYS_ERROR){
-							token.result = ESYS; 
+							token.result = ESYS;
 							token.type = SYS_ERROR;
 						}
-						
+
 						if(strAdd(&arr,c) == SYS_ERROR){
 							token.type = SYS_ERROR;
 							token.result = ESYS;
@@ -107,11 +119,11 @@ struct T_Token nextToken()
 				/************cislo *****************************/
 				else if(isdigit(c))
 					{
-						if(initString(&arr) == SYS_ERROR){ 
+						if(initString(&arr) == SYS_ERROR){
 							token.type = SYS_ERROR;
 							token.result = ESYS;
 						}
-						
+
 						if(strAdd(&arr,c) == SYS_ERROR){
 							token.type = SYS_ERROR;
 							token.result = ESYS;
@@ -122,7 +134,7 @@ struct T_Token nextToken()
 				/*******************string*************************/
 				else if(c == '"')
 					{
-						if(initString(&arr) == SYS_ERROR){ 
+						if(initString(&arr) == SYS_ERROR){
 							token.type = SYS_ERROR;
 							token.result = ESYS;
 						}
@@ -202,7 +214,7 @@ struct T_Token nextToken()
 			break;
 
 			/*****klucove slovlo alebo ID **********/
-			case STATE_K_OR_ID:	 
+			case STATE_K_OR_ID:
 				if(isalnum(c) || c == '_'){  // ak je c pismeno, cislo alebo znak _ prida sa do retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
 						token.type = SYS_ERROR;
@@ -212,7 +224,7 @@ struct T_Token nextToken()
 
 				/*ak je c niektory z povolenych znakov*/
 				else if( c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' ||
-						 c == '.' || c == '=' || c == '<' || c == '>' || c == '!' || c == '+' || 
+						 c == '.' || c == '=' || c == '<' || c == '>' || c == '!' || c == '+' ||
 						 c == '-' || c == '*' || c == '/' || c == '"' || isspace(c) || c == EOF)
 				{
 					if(c == '\n'){
@@ -220,15 +232,15 @@ struct T_Token nextToken()
 					}
 
 					ungetc(c, source);
-					
+
 					/*kontrola ci retazec nie je klucove slovo */
 					if(!strcmp(arr.str,"auto"))		{token.type = AUTO; 	free(arr.str);} else
 					if(!strcmp(arr.str,"cin"))		{token.type = CIN; 		free(arr.str);}	else
-					if(!strcmp(arr.str,"cout"))		{token.type = COUT;		free(arr.str);}	else					
+					if(!strcmp(arr.str,"cout"))		{token.type = COUT;		free(arr.str);}	else
 					if(!strcmp(arr.str,"double"))	{token.type = DOUBLE;	free(arr.str);}	else
 					if(!strcmp(arr.str,"else"))		{token.type = ELSE;		free(arr.str);}	else
 					if(!strcmp(arr.str,"for"))		{token.type = FOR;		free(arr.str);}	else
-					if(!strcmp(arr.str,"if"))		{token.type = IF;		free(arr.str);}	else					
+					if(!strcmp(arr.str,"if"))		{token.type = IF;		free(arr.str);}	else
 					if(!strcmp(arr.str,"int"))		{token.type = INT; 		free(arr.str);}	else
 					if(!strcmp(arr.str,"return"))	{token.type = RETURN;	free(arr.str);}	else
 					if(!strcmp(arr.str,"string"))	{token.type = STRING;	free(arr.str);}	else
@@ -253,7 +265,7 @@ struct T_Token nextToken()
 			break;
 
 			/*****komentar alebo delenie*******/
-			case STATE_DEV_OR_COM:  
+			case STATE_DEV_OR_COM:
 				if(c == '/'){
 					state = STATE_LINE_COM;
 				}
@@ -270,7 +282,7 @@ struct T_Token nextToken()
 			break;
 
 			/***********riadkovy komentar**********/
-			case STATE_LINE_COM: 
+			case STATE_LINE_COM:
 				if(c == '\n'){
 					state = STATE_START;
 				}
@@ -282,22 +294,22 @@ struct T_Token nextToken()
 
 			/**********blokovy komentar ************/
 
-			case STATE_BLOCK_COM: 
+			case STATE_BLOCK_COM:
 				if(c == '*'){
 					state = STATE_BLOCK_COM_END;
 				}
 				else if(c == EOF){
 					token.type = END_OF_FILE;
 					token.result = EEOF;
-				}	
+				}
 			break;
 
 			/*********koniec blokoveho komentara ******/
-			case STATE_BLOCK_COM_END: 
+			case STATE_BLOCK_COM_END:
 				if(c == '/'){
 					state = STATE_START;
 				}
-				else 
+				else
 				if(c == EOF){
 					token.type = END_OF_FILE;
 					token.result = EEOF;
@@ -312,7 +324,7 @@ struct T_Token nextToken()
 			break;
 
 			/************* = alebo == ***********************/
-			case STATE_EQ_OR_AS: 
+			case STATE_EQ_OR_AS:
 				if(c == '='){
 					token.type = EQUALS;
 				}
@@ -326,7 +338,7 @@ struct T_Token nextToken()
 			break;
 
 			/***************< alebo << alebo <= **************/
-			case STATE_L_ARR_LQ: 
+			case STATE_L_ARR_LQ:
 				if(c == '<')
 					token.type = DBL_ARR_LEFT;
 				else if ( c == '=')
@@ -341,7 +353,7 @@ struct T_Token nextToken()
 			break;
 
 			/*************** > alebo >> alebo >= **************/
-			case STATE_R_ARR_MQ: 
+			case STATE_R_ARR_MQ:
 				if(c == '>')
 					token.type = DBL_ARR_RIGHT;
 				else if( c == '=')
@@ -356,17 +368,17 @@ struct T_Token nextToken()
 			break;
 
 			/********************* !=  *********************************/
-			case STATE_NOT: 
+			case STATE_NOT:
 				if( c == '=')
 					token.type = NOT_EQUAL;
-				else{ 
+				else{
 					token.type = LEX_ERROR;
 					token.result = ELEX;
 				}
 			break;
 
 			/*************************cislo******************************/
-			case STATE_NUMBER: 
+			case STATE_NUMBER:
 
 				if(isdigit(c)){							//ak je znak cislo prida sa do retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
@@ -393,7 +405,7 @@ struct T_Token nextToken()
 
 				// c je niektory z povloenych znakov
 				else if( c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' ||
-						 c == '=' || c == '<' || c == '>' || c == '!' || c == '+' || c == '-' || 
+						 c == '=' || c == '<' || c == '>' || c == '!' || c == '+' || c == '-' ||
 						 c == '*' || c == '/' || c == '"' || isspace(c))
 				{
 					if(c == '\n'){
@@ -422,7 +434,7 @@ struct T_Token nextToken()
 
 			/******** prvy stav cisla double - sem sa dostaneme napr s cislom 1. ********
 			******************v tomto stave ocakavame iba cislo**************************/
-			case STATE_D_NUMBER: 
+			case STATE_D_NUMBER:
 				if(isdigit(c)){			// ak je znak c cislo pokracujeme do stavu STATE_D_NUMBER2 , pridame do retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
 						token.type = SYS_ERROR;
@@ -439,7 +451,7 @@ struct T_Token nextToken()
 			break;
 
 			/***************************druhy stav cisla double****************************************/
-			case STATE_D_NUMBER2: 
+			case STATE_D_NUMBER2:
 				if(c == 'E' || c == 'e'){		// znak c je pismeno e alebo E - cislo double s exponentom , pridame do retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
 						token.type = SYS_ERROR;
@@ -457,7 +469,7 @@ struct T_Token nextToken()
 
 				//c je niektory z povolenych znakov
 				else if( c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' ||
-						 c == '=' || c == '<' || c == '>' || c == '!' || c == '+' || c == '-' || 
+						 c == '=' || c == '<' || c == '>' || c == '!' || c == '+' || c == '-' ||
 						 c == '*' || c == '/' || c == '"' || isspace(c))
 				{
 					if(c == '\n'){
@@ -485,7 +497,7 @@ struct T_Token nextToken()
 			break;
 
 			/*****stav cisla s exponentom,  sem sa dostavame napr s cislom 1e alebo 1,1e*******/
-			case STATE_E: 
+			case STATE_E:
 				if(c == '-' || c == '+' || isdigit(c)){	//nasledujuci znak musi byt bud cislo, + alebo -
 					if(strAdd(&arr,c) == SYS_ERROR){	//prida sa do retazca
 						token.type = SYS_ERROR;
@@ -502,7 +514,7 @@ struct T_Token nextToken()
 			break;
 
 			/*****************pokracovanie cisla s exp ********************************/
-			case STATE_E2: 
+			case STATE_E2:
 				if(isdigit(c)){		//ak je c cislo prida sa do retazca
 					if(strAdd(&arr,c) == SYS_ERROR){
 						token.type = SYS_ERROR;
@@ -513,7 +525,7 @@ struct T_Token nextToken()
 
 				//ak je c povoleny znak
 				else if( c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' ||
-						 c == '=' || c == '<' || c == '>' || c == '!' || c == '+' || c == '-' || 
+						 c == '=' || c == '<' || c == '>' || c == '!' || c == '+' || c == '-' ||
 						 c == '*' || c == '/' || c == '"' || isspace(c))
 				{
 					if(c == '\n'){
@@ -537,11 +549,11 @@ struct T_Token nextToken()
 					free(arr.str);
 					token.type = LEX_ERROR;
 					token.result = ELEX;
-				}	
+				}
 			break;
 
 			/******************STRING******************************/
-			case STATE_STRING: 
+			case STATE_STRING:
 				if(c == '"'){  //ak c je znak " znamena to ukoncenie retazca - nastavy sa token a pointer na string
 					token.type = TEXT;
 					token.data.s = arr.str; // nastavi pointer na retazec - uvolni sa mimo tejto funkcie
@@ -549,7 +561,7 @@ struct T_Token nextToken()
 				else if( c == '\\'){ 		//znak \ - pokracuje sa do escape sekvencie
 					state = STATE_ESCAPE;
 				}
-				else if(c == EOF || c == '\0')			// koniec suboru alebo retazca - Lex chyba 
+				else if(c == EOF || c == '\0')			// koniec suboru alebo retazca - Lex chyba
 				{
 					fprintf(stderr, "LEX Error: Line: %d , Unknown token: '%c'\n", c,lineNumber);
 					free(arr.str);
@@ -561,7 +573,7 @@ struct T_Token nextToken()
 						token.type = SYS_ERROR;
 						token.result = ESYS;
 					}
-				}	
+				}
 			break;
 
 			/************** ESCAPE SEKVENCIA NAPR \n**********************/
@@ -612,7 +624,7 @@ struct T_Token nextToken()
 			/*********nasledujuce 2 znaky ocakavame v rozsahu 0-1 alebo a-f || A-F*******/
 			case STATE_X:
 			{
-				char  s;		
+				char  s;
 				char ascii[2]; //pole o 2 prvkoch do ktoreho ulozime 2 nacitane znaky
 				int counter;
 
