@@ -18,7 +18,7 @@ Describe(Interpreter)
 BeforeEach(Interpreter) {}
 AfterEach(Interpreter) {}
 
-Ensure(Interpreter, abcs) {
+Ensure(Interpreter, should_add_two_integers) {
     klist_t(stack_list) *sl;
     sl = kl_init(stack_list);
 
@@ -30,17 +30,15 @@ Ensure(Interpreter, abcs) {
     add->second = &item[1];
     add->third = &item[2];
 
-    add->second->dataType = T_INT;
-    add->second->iVal = 1;
-    add->third->dataType = T_INT;
-    add->third->iVal = 2;
+    ZVAL_SET_INT(add->second, 2);
+    ZVAL_SET_INT(add->third, 1);
 
     *kl_pushp(stack_list, sl) = add;
 
     interpret(sl);
 
-    assert_that(add->first->dataType, is_equal_to(T_INT));
-    assert_that(add->first->iVal, is_equal_to(3));
+    assert_true(ZVAL_IS_INT(add->first));
+    assert_that(ZVAL_GET_INT(add->first), is_equal_to(3));
 
     free(add);
     kl_destroy(stack_list, sl);
@@ -48,6 +46,6 @@ Ensure(Interpreter, abcs) {
 
 TestSuite *interpreter_suite() {
     TestSuite *suite = create_test_suite();
-    add_test_with_context(suite, Interpreter, abcs);
+    add_test_with_context(suite, Interpreter, should_add_two_integers);
     return suite;
 }

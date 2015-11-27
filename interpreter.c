@@ -28,12 +28,10 @@ void interpret(klist_t(stack_list) *stack) {
     while(kl_shift(stack_list, stack, &item) != -1) {
         switch(item->type) {
             case I_ADD:
-                if (item->second->dataType == T_INT && item->third->dataType == T_INT) {
-                    item->first->dataType = T_INT;
-                    item->first->iVal = __add_int(item->second->iVal, item->third->iVal);
-                } else if (item->second->dataType == T_DOUBLE && item->third->dataType == T_DOUBLE) {
-                    item->first->dataType = T_DOUBLE;
-                    item->first->dVal = __add_double(item->second->dVal, item->third->dVal);
+                if (ZVAL_IS_INT(item->second) && ZVAL_IS_INT(item->third)) {
+                    ZVAL_SET_INT(item->first, __add_int(item->second->iVal, item->third->iVal));
+                } else if (ZVAL_IS_DOUBLE(item->second) && ZVAL_IS_DOUBLE(item->third)) {
+                    ZVAL_SET_DOUBLE(item->first, __add_double(item->second->dVal, item->third->dVal));
                 }
                 break;
             default:
