@@ -16,9 +16,9 @@
 
 #include "klist.h"
 
-#define ZVAL_GET_INT(x) (x)->iVal
-#define ZVAL_GET_DOUBLE(x) (x)->dVal
-#define ZVAL_GET_STRING(x) (x)->sVal
+#define ZVAL_GET_INT(x) ((x)->iVal)
+#define ZVAL_GET_DOUBLE(x) ((x)->dVal)
+#define ZVAL_GET_STRING(x) ((x)->sVal)
 
 #define ZVAL_SET_INT(x, v) (x)->type = T_INT; \
     (x)->iVal = v
