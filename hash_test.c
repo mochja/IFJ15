@@ -1,7 +1,7 @@
 #include <cgreen/cgreen.h>
 #include "hash.h"
 
-Describe(Hash);
+Describe(Hash)
 BeforeEach(Hash) {}
 AfterEach(Hash) {}
 
