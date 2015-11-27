@@ -46,14 +46,3 @@ TestSuite *hash_suite() {
     add_test_with_context(suite, Hash, can_hold_an_item);
     return suite;
 }
-
-int main(int argc, char **argv) {
-    TestSuite *suite = hash_suite();
-    TestReporter *reporter = create_text_reporter();
-
-    int ret = run_test_suite(suite, reporter);
-
-    destroy_reporter(reporter);
-    destroy_test_suite(suite);
-    return ret;
-}

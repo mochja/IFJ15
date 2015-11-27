@@ -5,8 +5,12 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -pedantic -Wall -Werror")
 
 add_executable(ifj15 main.c)
 
-add_executable(hash_test hash_test.c hash.c)
-target_link_libraries(hash_test cgreen)
-
 enable_testing()
-add_test(hash hash_test)
+find_library(cgreen cgreen)
+
+add_library(hash_test hash_test.c hash.c)
+
+add_executable(run_test run_test.c)
+target_link_libraries(run_test cgreen hash_test)
+
+add_test(hash run_test hash)
