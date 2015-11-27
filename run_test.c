@@ -15,6 +15,7 @@
 
 TestSuite *hash_suite();
 TestSuite *ial_suite();
+TestSuite *interpreter_suite();
 
 int main(int argc, char **argv) {
     TestSuite *suite = create_test_suite();
@@ -27,6 +28,8 @@ int main(int argc, char **argv) {
             add_suite(suite, hash_suite());
         } else if (!strcmp("Ial", argv[1])) {
             add_suite(suite, ial_suite());
+        } else if (!strcmp("Interpreter", argv[1])) {
+            add_suite(suite, interpreter_suite());
         }
 
         if (argc > 2) {
@@ -37,6 +40,7 @@ int main(int argc, char **argv) {
     } else {
         add_suite(suite, hash_suite());
         add_suite(suite, ial_suite());
+        add_suite(suite, interpreter_suite());
         result = run_test_suite(suite, reporter);
     }
 
