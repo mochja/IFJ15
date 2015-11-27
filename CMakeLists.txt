@@ -15,3 +15,4 @@ add_executable(run_test run_test.c)
 target_link_libraries(run_test cgreen hash_test ial_test)
 
 add_test(hash run_test hash)
+add_test(ial run_test ial)
