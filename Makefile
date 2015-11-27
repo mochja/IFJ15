@@ -6,7 +6,7 @@ SOURCES=main.c ial.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=ifj15
 
-CHECK_SOURCES=check_main.c ial.c
+CHECK_SOURCES=check_main.c ial.c hash.c
 CHECK_OBJECTS=$(CHECK_SOURCES:.c=.o)
 CHECK_EXECUTABLE=check_ifj15
 
