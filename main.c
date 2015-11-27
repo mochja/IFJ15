@@ -1,5 +1,5 @@
-#include "ial.h"
-#include <string.h>
+#include <stdio.h>
+
 int main()
 {
     printf("Heloooo\n");

@@ -2,18 +2,37 @@
 language: c
 install:
   - export CC=gcc-4.9
+  - export LD_LIBRARY_PATH="$HOME/.local/lib64:${LD_LIBRARY_PATH}"
+  - export C_INCLUDE_PATH="$HOME/.local/include:${C_INCLUDE_PATH}"
+  - export LDFLAGS="-L$HOME/.local/lib64"
+  - >
+      if [ ! -d "$HOME/.local/include/cgreen" ]; then \
+        mkdir tmp/; cd tmp && curl -LOs https://github.com/cgreen-devs/cgreen/archive/master.zip \
+        && unzip -q master.zip \
+        && cd cgreen-master && make build && cd build && mkdir build-c; cd build-c \
+        && cmake -DCMAKE_INSTALL_PREFIX:PATH=$HOME/.local ../.. \
+        && make &&  make install && cd ../../.. \
+        && rm -rf cgreen-master/ && curl -LOs https://cmake.org/files/v3.4/cmake-3.4.0-Linux-x86_64.tar.gz \
+        && tar xf cmake-3.4.0-Linux-x86_64.tar.gz \
+        && cp -r cmake-3.4.0-Linux-x86_64/* "${HOME}/.local" \
+        && rm -rf cmake-* \
+        && cd .. ; \
+      fi
+  - export PATH="${HOME}/.local/bin:${PATH}"
+  - cmake --version
+cache:
+  apt: true
+  directories:
+    - $HOME/.local
 script: >
-  make
-  && make check
-  && ./ifj15
-  && ./check_ifj15
-  && CK_FORK=no valgrind --tool=memcheck --track-origins=yes --leak-check=full --error-exitcode=1 ./check_ifj15
-  && CK_FORK=no valgrind --tool=memcheck --track-origins=yes --leak-check=full --error-exitcode=1 ./ifj15
+  mkdir tmp && cd tmp && cmake -DCMAKE_BUILD_TYPE=Debug ../
+  && make
+  && make test
+  && perl -lne '/Ensure\((\w+)\,\s+(\w+)/ and print "\"$1\" \"$2\""' ../*_test.c | xargs -n2 -L1 sh -c 'valgrind --tool=memcheck --track-origins=yes --leak-check=full --error-exitcode=255 ./run_test $0 $1'
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - check
       - gcc-4.9
       - valgrind
