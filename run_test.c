@@ -14,6 +14,7 @@
 #include <cgreen/cgreen.h>
 
 TestSuite *hash_suite();
+TestSuite *ial_suite();
 
 int main(int argc, char **argv) {
     TestSuite *suite = create_test_suite();
@@ -24,6 +25,8 @@ int main(int argc, char **argv) {
     if (argc > 1) {
         if (!strcmp("Hash", argv[1])) {
             add_suite(suite, hash_suite());
+        } else if (!strcmp("Ial", argv[1])) {
+            add_suite(suite, ial_suite());
         }
 
         if (argc > 2) {
@@ -33,6 +36,7 @@ int main(int argc, char **argv) {
         }
     } else {
         add_suite(suite, hash_suite());
+        add_suite(suite, ial_suite());
         result = run_test_suite(suite, reporter);
     }
 
