@@ -35,9 +35,9 @@
 #define ZVAL_IS_STRING(x) ((x)->type == T_STRING)
 
 typedef struct __stack_item_t stack_item_t;
-typedef struct __zvar_t zvar_t;
+typedef struct __zval_t zval_t;
 
-enum instruction_type {
+enum __instruction_type {
     I_LOAD,
     I_CALL,
     I_PUSH,
@@ -51,7 +51,7 @@ enum __data_type {
     T_STRING
 };
 
-struct __zvar_t {
+struct __zval_t {
     char *name;
     enum __data_type type;
 
@@ -63,11 +63,11 @@ struct __zvar_t {
 };
 
 struct __stack_item_t {
-    enum instruction_type type;
+    enum __instruction_type type;
 
-    zvar_t *first;
-    zvar_t *second;
-    zvar_t *third;
+    zval_t *first;
+    zval_t *second;
+    zval_t *third;
 };
 
 #define __item_free(x)

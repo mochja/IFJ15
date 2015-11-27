@@ -25,7 +25,7 @@ Ensure(Interpreter, should_add_two_integers) {
     stack_item_t *add = calloc(1, sizeof(stack_item_t));
     add->type = I_ADD;
 
-    zvar_t item[3];
+    zval_t item[3];
     add->first = &item[0];
     add->second = &item[1];
     add->third = &item[2];
