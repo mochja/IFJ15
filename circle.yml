@@ -7,8 +7,14 @@ machine:
     C_INCLUDE_PATH: "${HOME}/.local/include:${C_INCLUDE_PATH}"
     LDFLAGS: "-L${HOME}/.local/lib64"
     PATH: "${HOME}/.local/bin:${PATH}"
+checkout:
+  post:
+    - "cd ../ && git archive --format=tar.gz -o .build/xmochn00.tar.gz HEAD && cd -"
 general:
   build_dir: .build
+  artifacts:
+    - xmochn00.tar.gz
+    - tmp/is_it_ok.log
 test:
   pre:
     - cmake -DCMAKE_BUILD_TYPE=Debug ../
@@ -16,6 +22,8 @@ test:
     - make
     - make test
     - perl -lne '/Ensure\((\w+)\,\s+(\w+)/ and print "\"$1\" \"$2\""' ../*_test.c | xargs -n2 -L1 sh -c 'valgrind --tool=memcheck --track-origins=yes --leak-check=full --error-exitcode=255 ./run_test $0 $1'
+  post:
+    - "./is_it_ok.sh xmochn00.tar.gz tmp && cat tmp/is_it_ok.log"
 database:
   override:
     - /bin/true

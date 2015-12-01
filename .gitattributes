@@ -4,6 +4,7 @@
 *.h text eol=lf
 *.md text eol=lf
 *.txt text eol=lf
+*.sh text eol=lf
 Makefile text eol=lf
 rozdeleni text eol=lf
 
@@ -16,7 +17,9 @@ rozdeleni text eol=lf
 .gitattributes export-ignore
 .gitignore export-ignore
 .editorconfig export-ignore
+README.md export-ignore
 *.sublime-project export-ignore
 CMakeLists.txt export-ignore
 circle.yml export-ignore
 *_test.c export-ignore
+.build/ export-ignore

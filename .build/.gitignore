@@ -1,4 +1,5 @@
 # Directory for CircleCI builds
 
 *
+!is_it_ok.sh
 !.gitignore
