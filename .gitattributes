@@ -17,3 +17,6 @@ rozdeleni text eol=lf
 .gitignore export-ignore
 .editorconfig export-ignore
 *.sublime-project export-ignore
+CMakeLists.txt export-ignore
+circle.yml export-ignore
+*_test.c export-ignore
