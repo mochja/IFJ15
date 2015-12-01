@@ -37,17 +37,18 @@ dependencies:
   pre:
     - >-
       if [[ ! -d "$HOME/.local/include/cgreen" ]]; then \
-        mkdir ~/tmp/; cd ~/tmp && curl -LOs https://github.com/cgreen-devs/cgreen/archive/master.zip \
-        && unzip -q master.zip \
-        && cd cgreen-master && make build && cd build && mkdir build-c; cd build-c \
-        && cmake -DCMAKE_INSTALL_PREFIX:PATH=$HOME/.local ../.. \
-        && make &&  make install && cd ../../.. \
-        && rm -rf cgreen-master/ && curl -LOs https://cmake.org/files/v3.4/cmake-3.4.0-Linux-x86_64.tar.gz \
-        && tar xf cmake-3.4.0-Linux-x86_64.tar.gz \
-        && cp -r cmake-3.4.0-Linux-x86_64/* "${HOME}/.local" \
-        && rm -rf cmake-* \
-        ; \
-      fi
+        mkdir ~/tmp/; cd ~/tmp \
+        && curl -LOs https://github.com/cgreen-devs/cgreen/archive/master.zip \
+          && unzip -q master.zip \
+          && cd cgreen-master && make build && cd build && mkdir build-c; cd build-c \
+          && cmake -DCMAKE_INSTALL_PREFIX:PATH=$HOME/.local ../.. \
+          && make && make install && cd ../../.. \
+          && rm -rf cgreen-master/ \
+        && curl -LOs https://cmake.org/files/v3.4/cmake-3.4.0-Linux-x86_64.tar.gz \
+          && tar xf cmake-3.4.0-Linux-x86_64.tar.gz \
+          && cp -r cmake-3.4.0-Linux-x86_64/* "${HOME}/.local" \
+          && rm -rf cmake-* \
+      ; fi
     - >-
       if [[ ! -d "$HOME/.local/debs" ]]; then \
         mkdir -p "$HOME/.local/debs"; cd "$HOME/.local/debs" \
