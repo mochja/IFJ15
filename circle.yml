@@ -1,0 +1,49 @@
+machine:
+  pre:
+    - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 20
+    - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 20
+  environment:
+    LD_LIBRARY_PATH: "${HOME}/.local/lib64:${LD_LIBRARY_PATH}"
+    C_INCLUDE_PATH: "${HOME}/.local/include:${C_INCLUDE_PATH}"
+    LDFLAGS: "-L${HOME}/.local/lib64"
+    PATH: "${HOME}/.local/bin:${PATH}"
+general:
+  build_dir: .build
+test:
+  pre:
+    - cmake -DCMAKE_BUILD_TYPE=Debug ../
+  override:
+    - make
+    - make test
+    - perl -lne '/Ensure\((\w+)\,\s+(\w+)/ and print "\"$1\" \"$2\""' ../*_test.c | xargs -n2 -L1 sh -c 'valgrind --tool=memcheck --track-origins=yes --leak-check=full --error-exitcode=255 ./run_test $0 $1'
+database:
+  override:
+    - /bin/true
+dependencies:
+  override:
+    - /bin/true
+  cache_directories:
+    - "~/.local"
+  pre:
+    - >-
+      if [[ ! -d "$HOME/.local/include/cgreen" ]]; then \
+        mkdir ~/tmp/; cd ~/tmp && curl -LOs https://github.com/cgreen-devs/cgreen/archive/master.zip \
+        && unzip -q master.zip \
+        && cd cgreen-master && make build && cd build && mkdir build-c; cd build-c \
+        && cmake -DCMAKE_INSTALL_PREFIX:PATH=$HOME/.local ../.. \
+        && make &&  make install && cd ../../.. \
+        && rm -rf cgreen-master/ && curl -LOs https://cmake.org/files/v3.4/cmake-3.4.0-Linux-x86_64.tar.gz \
+        && tar xf cmake-3.4.0-Linux-x86_64.tar.gz \
+        && cp -r cmake-3.4.0-Linux-x86_64/* "${HOME}/.local" \
+        && rm -rf cmake-* \
+        ; \
+      fi
+    - >-
+      if [[ ! -d "$HOME/.local/debs" ]]; then \
+        mkdir -p "$HOME/.local/debs"; cd "$HOME/.local/debs" \
+        && curl -LOs http://launchpadlibrarian.net/198723929/libc6-dbg_2.19-0ubuntu6.6_amd64.deb \
+        && curl -LOs http://launchpadlibrarian.net/220526492/valgrind_3.10.1-1ubuntu3~14.04_amd64.deb \
+      ; fi
+  post:
+    - sudo dpkg -i $HOME/.local/debs/libc6-dbg_2.19-0ubuntu6.6_amd64.deb
+    - sudo dpkg -i $HOME/.local/debs/valgrind_3.10.1-1ubuntu3~14.04_amd64.deb
