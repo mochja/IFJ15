@@ -9,7 +9,7 @@ machine:
     PATH: "${HOME}/.local/bin:${PATH}"
 checkout:
   post:
-    - "cd ../ && git archive --format=tar.gz -o .build/xmochn00.tar.gz HEAD && cd -"
+    - "cd ../ && git archive --format=tar.gz -o .build/xmochn00.tar.gz $CIRCLE_SHA1 && cd -"
 general:
   build_dir: .build
   artifacts:
