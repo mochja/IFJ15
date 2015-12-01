@@ -1,6 +1,6 @@
 # IFJ15
 
-[![Build Status](https://travis-ci.com/mochja/IFJ15.svg?token=R1xPH8Tds42vtS3xNggs&branch=develop)](https://travis-ci.com/mochja/IFJ15)
+[![Circle CI](https://circleci.com/gh/mochja/IFJ15/tree/develop.svg?style=shield&circle-token=bd537238e8a5539e705e90b27d450ac2bbc9092b)](https://circleci.com/gh/mochja/IFJ15/tree/develop)
 
 ## Style Guide
 
