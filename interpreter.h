@@ -17,17 +17,17 @@
 #include "klist.h"
 #include "zval.h"
 
-typedef struct __stack_item_t stack_item_t;
+typedef struct __instruction_t instruction_t;
 
 enum __instruction_type {
     I_LOAD,
     I_CALL,
-    I_PUSH,
+    I_PUSH, //
     I_POP,
     I_ADD
 };
 
-struct __stack_item_t {
+struct __instruction_t {
     enum __instruction_type type;
 
     zval_t *first;
@@ -35,9 +35,9 @@ struct __stack_item_t {
     zval_t *third;
 };
 
-#define __item_free(x)
-KLIST_INIT(stack_list, stack_item_t*, __item_free)
+#define __instruction_free(x) free(kl_val(x))
+KLIST_INIT(instruction_list, instruction_t*, __instruction_free)
 
-void interpret(klist_t(stack_list) *stack);
+void interpret(klist_t(instruction_list) *stack);
 
 #endif // INTERPRETER_H_
