@@ -19,19 +19,22 @@
 #include "token.h"
 
 #define EXPR_IS_OPERAND(x)  (((x)->flags >> 0) & 1)
+#define EXPR_IS_OFFSET(x)   (((x)->flags >> 1) & 1)
 #define EXPR_IS_INT(x)      (((x)->flags >> 2) & 1)
 #define EXPR_IS_DOUBLE(x)   (((x)->flags >> 3) & 1)
 #define EXPR_IS_STRING(x)   (((x)->flags >> 4) & 1)
 
 #define EXPR_SET_OPERAND(x, v)  (x)->flags = 0x00 | 1 << 0; (x)->op_t = v;
-#define EXPR_SET_INT(x, v)      (x)->flags = 0x00 | 1 << 2; (x)->iVal = v;
-#define EXPR_SET_DOUBLE(x, v)   (x)->flags = 0x00 | 1 << 3; (x)->dVal = v;
-#define EXPR_SET_STRING(x, v)   (x)->flags = 0x00 | 1 << 4; (x)->sVal = v;
+#define EXPR_SET_OFFSET(x, v)   (x)->flags = 0x00 | 1 << 1; (x)->val.iVal = v;
+#define EXPR_SET_INT(x, v)      (x)->flags = 0x00 | 1 << 2; (x)->val.iVal = v;
+#define EXPR_SET_DOUBLE(x, v)   (x)->flags = 0x00 | 1 << 3; (x)->val.dVal = v;
+#define EXPR_SET_STRING(x, v)   (x)->flags = 0x00 | 1 << 4; (x)->val.sVal = v;
 
 #define EXPR_GET_OPERAND(x)  ((x)->op_t)
-#define EXPR_GET_INT(x)      ((x)->iVal)
-#define EXPR_GET_DOUBLE(x)   ((x)->dVal)
-#define EXPR_GET_STRING(x)   ((x)->sVal)
+#define EXPR_GET_OFFSET(x)   ((x)->val.iVal)
+#define EXPR_GET_INT(x)      ((x)->val.iVal)
+#define EXPR_GET_DOUBLE(x)   ((x)->val.dVal)
+#define EXPR_GET_STRING(x)   ((x)->val.sVal)
 
 typedef struct __expr_t expr_t;
 
@@ -40,10 +43,7 @@ struct __expr_t {
 
     union {
         unsigned int op_t;
-        zval_t *data;
-        int iVal;
-        double dVal;
-        char *sVal;
+        zval_t val;
     };
 };
 

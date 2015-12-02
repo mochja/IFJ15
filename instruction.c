@@ -11,13 +11,19 @@
  * license.txt file in the root directory of this source tree.
  */
 
-#ifndef INTERPRETER_H_
-#define INTERPRETER_H_
-
-#include "klist.h"
-#include "zval.h"
 #include "instruction.h"
 
-void interpret(klist_t(instruction_list) *stack);
+/**
+ * Move first element from stack to [addr_offset]
+ */
+static inline instruction_t* create_POP_instr(int addr_offset) {
+    instruction_t *i = malloc(sizeof(instruction_t));
 
-#endif // INTERPRETER_H_
+    zval_t *val = malloc(sizeof(zval_t));
+    ZVAL_SET_INT(val, addr_offset);
+
+    i->type = I_POP;
+    i->first = val;
+
+    return i;
+}

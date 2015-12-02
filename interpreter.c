@@ -14,19 +14,6 @@
 #include <stdio.h>
 #include "interpreter.h"
 
-
-static inline instruction_t* create_pop_instr(int addr_offset) {
-    instruction_t *i = malloc(sizeof(instruction_t));
-
-    zval_t *val = malloc(sizeof(zval_t));
-    ZVAL_SET_INT(val, addr_offset);
-
-    i->type = I_POP;
-    i->first = val;
-
-    return i;
-}
-
 static inline int __add_int(const int a, const int b) {
     return a + b;
 }

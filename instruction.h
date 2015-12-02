@@ -11,13 +11,28 @@
  * license.txt file in the root directory of this source tree.
  */
 
-#ifndef INTERPRETER_H_
-#define INTERPRETER_H_
+#ifndef INSTRUCTION_H
+#define INSTRUCTION_H
 
-#include "klist.h"
-#include "zval.h"
-#include "instruction.h"
+typedef struct __instruction_t instruction_t;
 
-void interpret(klist_t(instruction_list) *stack);
+enum __instruction_type {
+    I_LOAD,
+    I_CALL,
+    I_PUSH,
+    I_POP,
+    I_ADD
+};
 
-#endif // INTERPRETER_H_
+struct __instruction_t {
+    enum __instruction_type type;
+
+    zval_t *first;
+    zval_t *second;
+    zval_t *third;
+};
+
+#define __instruction_free(x) free(kl_val(x))
+KLIST_INIT(instruction_list, instruction_t*, __instruction_free)
+
+#endif // INSTRUCTION_H
