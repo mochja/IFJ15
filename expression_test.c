@@ -24,7 +24,6 @@ Ensure(Expression, can_contain_a_number) {
 
     EXPR_SET_INT(expr, 1);
     assert_true(EXPR_IS_INT(expr));
-    assert_false(EXPR_IS_ZVAL(expr));
     assert_false(EXPR_IS_STRING(expr));
     assert_false(EXPR_IS_DOUBLE(expr));
     assert_false(EXPR_IS_OPERAND(expr));
@@ -32,7 +31,6 @@ Ensure(Expression, can_contain_a_number) {
     EXPR_SET_DOUBLE(expr, 1.2);
     assert_true(EXPR_IS_DOUBLE(expr));
     assert_false(EXPR_IS_INT(expr));
-    assert_false(EXPR_IS_ZVAL(expr));
     assert_false(EXPR_IS_STRING(expr));
     assert_false(EXPR_IS_OPERAND(expr));
 
@@ -45,26 +43,9 @@ Ensure(Expression, can_contain_a_operand) {
 
     assert_true(EXPR_IS_OPERAND(expr));
     assert_false(EXPR_IS_INT(expr));
-    assert_false(EXPR_IS_ZVAL(expr));
     assert_false(EXPR_IS_STRING(expr));
     assert_false(EXPR_IS_DOUBLE(expr));
 
-    free(expr);
-}
-
-Ensure(Expression, can_contain_a_zval_ptr) {
-    expr_t *expr = calloc(1, sizeof(expr_t));
-    zval_t *val = calloc(1, sizeof(zval_t));
-
-    EXPR_SET_ZVAL(expr, val);
-
-    assert_true(EXPR_IS_ZVAL(expr));
-    assert_false(EXPR_IS_OPERAND(expr));
-    assert_false(EXPR_IS_INT(expr));
-    assert_false(EXPR_IS_STRING(expr));
-    assert_false(EXPR_IS_DOUBLE(expr));
-
-    free(val);
     free(expr);
 }
 
@@ -75,7 +56,6 @@ Ensure(Expression, can_contain_a_string) {
     EXPR_SET_STRING(expr, "string");
 
     assert_true(EXPR_IS_STRING(expr));
-    assert_false(EXPR_IS_ZVAL(expr));
     assert_false(EXPR_IS_OPERAND(expr));
     assert_false(EXPR_IS_INT(expr));
     assert_false(EXPR_IS_DOUBLE(expr));
@@ -273,7 +253,6 @@ TestSuite *expression_suite() {
     TestSuite *suite = create_test_suite();
     add_test_with_context(suite, Expression, can_contain_a_number);
     add_test_with_context(suite, Expression, can_contain_a_operand);
-    add_test_with_context(suite, Expression, can_contain_a_zval_ptr);
     add_test_with_context(suite, Expression, can_contain_a_string);
     add_test_with_context(suite, Expression, should_be_able_to_generate_expr_stack);
     add_test_with_context(suite, Expression, should_be_able_to_generate_expr_stack2);
