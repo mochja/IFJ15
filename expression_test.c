@@ -193,16 +193,18 @@ Ensure(Expression, should_be_able_to_generate_expr_stack2) {
     *kl_pushp(token_list, l) = &t7;
 
     klist_t(expr_stack) *s = build_expression(l);
-//
-//    for (kliter_t(expr_stack) *it = kl_begin(s); it != kl_end(s); it = kl_next(it)) {
-//        expr_t *expr = kl_val(it);
-//
+
+    for (kliter_t(expr_stack) *it = kl_begin(s); it != kl_end(s); it = kl_next(it)) {
+        expr_t *expr = kl_val(it);
+
 //        if (EXPR_IS_OPERAND(expr)) {
 //            printf("[%d] ", EXPR_GET_OPERAND(expr));
 //        } else {
 //            printf("%d ", EXPR_GET_INT(expr));
 //        }
-//    }
+
+        free(expr);
+    }
 
     kl_destroy(token_list, l);
     kl_destroy(expr_stack, s);
@@ -251,15 +253,17 @@ Ensure(Expression, should_be_able_to_generate_expr_stack_massacra) {
 
     klist_t(expr_stack) *s = build_expression(l);
 
-//    for (kliter_t(expr_stack) *it = kl_begin(s); it != kl_end(s); it = kl_next(it)) {
-//        expr_t *expr = kl_val(it);
-//
+    for (kliter_t(expr_stack) *it = kl_begin(s); it != kl_end(s); it = kl_next(it)) {
+        expr_t *expr = kl_val(it);
+
 //        if (EXPR_IS_OPERAND(expr)) {
 //            printf("[%d] ", EXPR_GET_OPERAND(expr));
 //        } else {
 //            printf("%d ", EXPR_GET_INT(expr));
 //        }
-//    }
+
+        free(expr);
+    }
 
     kl_destroy(token_list, l);
     kl_destroy(expr_stack, s);
