@@ -107,7 +107,13 @@
 		++kl->size;														\
 		return &q->data;												\
 	}																	\
-	SCOPE int kl_shift_##name(kl_##name##_t *kl, kltype_t *d) {			\
+	SCOPE kltype_t *kl_push_##name(kl_##name##_t *kl) {				    \
+		kl1_##name *q, *p = kmp_alloc(name, kl->mp);					\
+		q = kl->head; p->next = q; kl->head = p; kl->head->next = q;	\
+		++kl->size;														\
+		return &p->data;												\
+	}                                                                   \
+    SCOPE int kl_shift_##name(kl_##name##_t *kl, kltype_t *d) {			\
 		kl1_##name *p;													\
 		if (kl->head->next == 0) return -1;								\
 		--kl->size;														\
@@ -130,6 +136,7 @@
 #define kl_init(name) kl_init_##name()
 #define kl_destroy(name, kl) kl_destroy_##name(kl)
 #define kl_pushp(name, kl) kl_pushp_##name(kl)
+#define kl_push(name, kl) kl_push_##name(kl)
 #define kl_shift(name, kl, d) kl_shift_##name(kl, d)
 
 #endif
