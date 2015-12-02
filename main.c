@@ -11,9 +11,42 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
-int main()
+static char* read_source_file(const char *filename) {
+    FILE *f;
+    f = fopen(filename, "r");
+
+    if (f == NULL) {
+        puts("could not read a file");
+        return NULL;
+    }
+
+    fseek(f, 0, SEEK_END);
+    size_t size = (size_t) ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    char *source;
+    if ((source = malloc(size * sizeof(char))) != NULL) {
+        fread(source, 1, size, f);
+    }
+
+    fclose(f);
+
+    return source;
+}
+
+int main(int argc, char *argv[])
 {
-    printf("Heloooo\n");
+
+    if (argc < 2) {
+        // print help, usage...
+        printf("usage %s source_file\n", argv[0]);
+        return 1;
+    }
+
+    char *source = read_source_file(argv[1]);
+
+    free(source);
     return 0;
 }
