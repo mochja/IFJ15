@@ -11,11 +11,13 @@
  * license.txt file in the root directory of this source tree.
  */
 
+#include <string.h>
 #include <cgreen/cgreen.h>
 
 TestSuite *hash_suite();
 TestSuite *ial_suite();
 TestSuite *interpreter_suite();
+TestSuite *expression_suite();
 
 int main(int argc, char **argv) {
     TestSuite *suite = create_test_suite();
@@ -30,6 +32,8 @@ int main(int argc, char **argv) {
             add_suite(suite, ial_suite());
         } else if (!strcmp("Interpreter", argv[1])) {
             add_suite(suite, interpreter_suite());
+        } else if (!strcmp("Expression", argv[1])) {
+            add_suite(suite, expression_suite());
         }
 
         if (argc > 2) {
@@ -41,6 +45,7 @@ int main(int argc, char **argv) {
         add_suite(suite, hash_suite());
         add_suite(suite, ial_suite());
         add_suite(suite, interpreter_suite());
+        add_suite(suite, expression_suite());
         result = run_test_suite(suite, reporter);
     }
 
