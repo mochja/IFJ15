@@ -2,6 +2,26 @@
 
 [![Circle CI](https://circleci.com/gh/mochja/IFJ15/tree/develop.svg?style=shield&circle-token=bd537238e8a5539e705e90b27d450ac2bbc9092b)](https://circleci.com/gh/mochja/IFJ15/tree/develop)
 
+## CMake & Tests
+
+Install https://github.com/cgreen-devs/cgreen ( https://github.com/cgreen-devs/cgreen/archive/master.zip ) dependency
+
+```
+cd cgreen-master
+make
+sudo make install
+```
+
+### Running tests
+
+```
+export LD_LIBRARY_PATH=/usr/local/lib64
+cd .build/
+cmake ../
+make
+make test
+```
+
 ## Style Guide
 
 HipChat room — https://unknown-team.hipchat.com/chat
