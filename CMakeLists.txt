@@ -19,4 +19,4 @@ target_link_libraries(run_test cgreen hash_test ial_test interpreter_test expres
 add_test(hash run_test Hash)
 add_test(ial run_test Ial)
 add_test(interpreter run_test Interpreter)
-add_test(interpreter run_test Expresion)
+add_test(interpreter run_test Expression)
