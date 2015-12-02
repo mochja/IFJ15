@@ -18,6 +18,7 @@ TestSuite *hash_suite();
 TestSuite *ial_suite();
 TestSuite *interpreter_suite();
 TestSuite *expression_suite();
+TestSuite *instruction_suite();
 
 int main(int argc, char **argv) {
     TestSuite *suite = create_test_suite();
@@ -34,6 +35,8 @@ int main(int argc, char **argv) {
             add_suite(suite, interpreter_suite());
         } else if (!strcmp("Expression", argv[1])) {
             add_suite(suite, expression_suite());
+        } else if (!strcmp("Instruction", argv[1])) {
+            add_suite(suite, instruction_suite());
         }
 
         if (argc > 2) {
@@ -46,6 +49,7 @@ int main(int argc, char **argv) {
         add_suite(suite, ial_suite());
         add_suite(suite, interpreter_suite());
         add_suite(suite, expression_suite());
+        add_suite(suite, instruction_suite());
         result = run_test_suite(suite, reporter);
     }
 

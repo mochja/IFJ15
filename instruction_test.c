@@ -11,6 +11,24 @@
  * license.txt file in the root directory of this source tree.
  */
 
+#include <cgreen/cgreen.h>
 #include "instruction.h"
 
+Describe(Instruction)
+BeforeEach(Instruction) {}
+AfterEach(Instruction) {}
 
+Ensure(Instruction, should_create_POP_instruction) {
+    instruction_t *pop = create_POP_instr(5);
+
+    assert_true(ZVAL_IS_INT(pop->first));
+    assert_equal(ZVAL_GET_INT(pop->first), 5);
+
+    INSTRUCTION_FREE(pop);
+}
+
+TestSuite *instruction_suite() {
+    TestSuite *suite = create_test_suite();
+    add_test_with_context(suite, Instruction, should_create_POP_instruction);
+    return suite;
+}
