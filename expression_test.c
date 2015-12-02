@@ -13,6 +13,7 @@
 
 #include <cgreen/cgreen.h>
 #include "expression.h"
+#include "globals.h"
 
 Describe(Expression)
 BeforeEach(Expression) {}
@@ -82,18 +83,28 @@ Ensure(Expression, can_contain_a_string) {
     free(expr);
 }
 
+/**
+ * 1+3*5-9 -> 1 3 5 * + 9 -
+ */
 Ensure(Expression, should_be_able_to_generate_expr_stack) {
-    // a+b*c-d
+    token_t t1, t2, t3, t4, t5, t6, t7;
+    t1.type = INT;
+    t1.iVal = 1;
 
-//    expr_t expr1, expr2, expr3, expr4, expr5;
-//
-//    EXPR_SET_INT(&expr1, 1);
-//    EXPR_SET_OPERAND(&expr2, '+');
-//    EXPR_SET_INT(&expr3, 3);
-//    EXPR_SET_OPERAND(&expr4, '*');
-//    EXPR_SET_INT(&expr5, 5);
+    t2.type = PLUS;
 
-    token_t t1, t2, t3, t4, t5;
+    t3.type = INT;
+    t3.iVal = 3;
+
+    t4.type = MULTIPLY;
+
+    t5.type = INT;
+    t5.iVal = 5;
+
+    t6.type = MINUS;
+
+    t7.type = INT;
+    t7.iVal = 9;
 
     klist_t(token_list) *l = kl_init(token_list);
     *kl_pushp(token_list, l) = &t1;
@@ -101,17 +112,53 @@ Ensure(Expression, should_be_able_to_generate_expr_stack) {
     *kl_pushp(token_list, l) = &t3;
     *kl_pushp(token_list, l) = &t4;
     *kl_pushp(token_list, l) = &t5;
+    *kl_pushp(token_list, l) = &t6;
+    *kl_pushp(token_list, l) = &t7;
 
-    klist_t(expr_stack) *s;
+    klist_t(expr_stack) *s = build_expression(l);
+    kliter_t(expr_stack) *it = kl_begin(s);
+    expr_t *expr;
 
-    s = build_expression(l);
+    expr = kl_val(it);
+    assert_true(EXPR_IS_INT(expr));
+    assert_equal(EXPR_GET_INT(expr), 1);
+    free(expr); it = kl_next(it);
 
-    int i = 0;
-    for (kliter_t(expr_stack) *it = kl_begin(s); it != kl_end(s); it = kl_next(it)) {
-        i++;
-    }
+    expr = kl_val(it);
+    assert_true(EXPR_IS_INT(expr));
+    assert_equal(EXPR_GET_INT(expr), 3);
+    free(expr); it = kl_next(it);
 
-    assert_that(i, is_equal_to(5));
+    expr = kl_val(it);
+    assert_true(EXPR_IS_INT(expr));
+    assert_equal(EXPR_GET_INT(expr), 5);
+    free(expr); it = kl_next(it);
+
+    expr = kl_val(it);
+    assert_true(EXPR_IS_OPERAND(expr));
+    assert_equal(EXPR_GET_OPERAND(expr), MULTIPLY);
+    free(expr); it = kl_next(it);
+
+    expr = kl_val(it);
+    assert_true(EXPR_IS_OPERAND(expr));
+    assert_equal(EXPR_GET_OPERAND(expr), PLUS);
+    free(expr); it = kl_next(it);
+
+    expr = kl_val(it);
+    assert_true(EXPR_IS_INT(expr));
+    assert_equal(EXPR_GET_INT(expr), 9);
+    free(expr); it = kl_next(it);
+
+    expr = kl_val(it);
+    assert_true(EXPR_IS_OPERAND(expr));
+    assert_equal(EXPR_GET_OPERAND(expr), MINUS);
+    free(expr);
+
+    // We should end up at end of list
+    assert_true(kl_next(it) == kl_end(s));
+
+    kl_destroy(token_list, l);
+    kl_destroy(expr_stack, s);
 }
 
 TestSuite *expression_suite() {

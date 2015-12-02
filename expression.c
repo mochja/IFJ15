@@ -11,6 +11,7 @@
  * license.txt file in the root directory of this source tree.
  */
 
+#include <stdio.h>
 #include "expression.h"
 #include "globals.h"
 
@@ -55,29 +56,31 @@ klist_t(expr_stack)* build_expression(klist_t(token_list) *tokens) {
         expr_t *exp = calloc(1, sizeof(expr_t));
 
         if (get_operation(t->type) == Op_VAR) {
+
             if (t->type == INT) {
                 EXPR_SET_INT(exp, t->iVal);
             }
+
             *kl_pushp(expr_stack, stack) = exp;
         } else {
             EXPR_SET_OPERAND(exp, t->type);
 
-            if (kl_begin(op_stack)) {
-                expr_t *top = kl_begin(op_stack)->data;
+            while (kl_begin(op_stack) != kl_end(op_stack)) {
+                expr_t *top = kl_val(kl_begin(op_stack));
 
-                if ( get_rule(get_operation(EXPR_GET_OPERAND(top)), get_operation(t->type)) != L ) {
+                if (get_rule(get_operation(EXPR_GET_OPERAND(top)), get_operation(t->type)) == M) {
                     kl_shift(expr_stack, op_stack, kl_pushp(expr_stack, stack));
                 } else {
-                    *kl_pushp(expr_stack, op_stack) = exp;
+                    break;
                 }
-            } else {
-                *kl_pushp(expr_stack, op_stack) = exp;
             }
+
+            *kl_push(expr_stack, op_stack) = exp;
         }
     }
 
     for (kliter_t(expr_stack) *it = kl_begin(op_stack); it != kl_end(op_stack); it = kl_next(it)) {
-        kl_shift(expr_stack, op_stack, kl_pushp(expr_stack, op_stack));
+        kl_shift(expr_stack, op_stack, kl_pushp(expr_stack, stack));
     }
 
     kl_destroy(expr_stack, op_stack);
