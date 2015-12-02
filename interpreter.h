@@ -15,27 +15,9 @@
 #define INTERPRETER_H_
 
 #include "klist.h"
-
-#define ZVAL_GET_INT(x) ((x)->iVal)
-#define ZVAL_GET_DOUBLE(x) ((x)->dVal)
-#define ZVAL_GET_STRING(x) ((x)->sVal)
-
-#define ZVAL_SET_INT(x, v) (x)->type = T_INT; \
-    (x)->iVal = v
-
-#define ZVAL_SET_DOUBLE(x, v) (x)->type = T_DOUBLE; \
-    (x)->dVal = v
-
-#define ZVAL_SET_STRING(x, v) (x)->type = T_STRING; \
-    (x)->sVal = malloc(strlen(x) + 1 * sizeof(char)) \
-    memset((x)->sVal, x, strlen(x) + 1);
-
-#define ZVAL_IS_INT(x) ((x)->type == T_INT)
-#define ZVAL_IS_DOUBLE(x) ((x)->type == T_DOUBLE)
-#define ZVAL_IS_STRING(x) ((x)->type == T_STRING)
+#include "zval.h"
 
 typedef struct __stack_item_t stack_item_t;
-typedef struct __zval_t zval_t;
 
 enum __instruction_type {
     I_LOAD,
@@ -43,23 +25,6 @@ enum __instruction_type {
     I_PUSH,
     I_POP,
     I_ADD
-};
-
-enum __data_type {
-    T_INT,
-    T_DOUBLE,
-    T_STRING
-};
-
-struct __zval_t {
-    char *name;
-    enum __data_type type;
-
-    union {
-        int iVal;
-        double dVal;
-        char *sVal;
-    };
 };
 
 struct __stack_item_t {

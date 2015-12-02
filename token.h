@@ -11,49 +11,25 @@
  * license.txt file in the root directory of this source tree.
  */
 
-#ifndef SCANER_H_
-#define SCANER_H_
+#ifndef TOKEN_H_
+#define TOKEN_H_
 
-#include <stdio.h>
-#include <ctype.h>
-#include <malloc.h>
-#include <string.h>
-#include <stdlib.h>
+#include "klist.h"
 
-typedef enum Result
-{
-    EOK,
-    ELEX,
-    ESYN,
-    ESEM,
-    ESEM2,
-    ESEM3,
-    ESEM4,
-    EEOF,
-    ESYS = 99,
-}tresult;
+typedef struct __token_t token_t;
 
-
-typedef struct
-{
-  char* str;
-  int length;
-  int allocSize;
-} string;
-
-struct T_Token
-{
+struct __token_t {
     int type;
-    union
-    {
-        char*   s;
-        int     i;
-        double  d;
-    }data;
-    tresult result;
+    int result;
+
+    union {
+        int iVal;
+        double dVal;
+        char *sVal;
+    };
 };
 
-FILE *source;
-struct T_Token nextToken();
+#define __token_t_free(x)
+KLIST_INIT(token_list, token_t*, __token_t_free)
 
-#endif // SCANER_H_
+#endif // TOKEN_H_
