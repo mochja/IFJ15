@@ -17,7 +17,17 @@
 #include "klist.h"
 #include "zval.h"
 #include "instruction.h"
+#include "kvec.h"
 
-void interpret(klist_t(instruction_list) *stack);
+typedef struct __interpreter_t interpreter_t;
+
+struct __interpreter_t {
+    kvec_t(instruction_t) instructions;
+    kvec_t(zval_t) zstack;
+};
+
+void destroy_interpreter(interpreter_t *intr);
+interpreter_t *init_interpreter(klist_t(instruction_list) *instructions);
+void interpret_run(interpreter_t *interpreter);
 
 #endif // INTERPRETER_H_
