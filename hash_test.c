@@ -44,8 +44,8 @@ Ensure(Hash, can_hold_an_item) {
     hTabItem *ret = searchItem(table, "test");
     assert_that(ret, is_not_equal_to(NULL));
     assert_that(ret, is_equal_to(item));
-    assert_that((*ret->data).type, is_equal_to(T_STRING));
-    assert_that((*ret->data).type, is_equal_to(T_STRING));
+    assert_that(ZVAL_GET_TYPE(ret), is_equal_to(T_STRING));
+    assert_that(ZVAL_GET_TYPE(ret), is_equal_to(T_STRING));
     assert_string_equal("abcdabcd12", ret->data->sVal);
     free(item->data);
 
