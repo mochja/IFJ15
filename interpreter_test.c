@@ -19,55 +19,42 @@ BeforeEach(Interpreter) {}
 AfterEach(Interpreter) {}
 
 Ensure(Interpreter, should_add_two_integers) {
-    klist_t(stack_list) *sl;
-    sl = kl_init(stack_list);
+    klist_t(instruction_list) *sl;
+    sl = kl_init(instruction_list);
 
-    stack_item_t *add = calloc(1, sizeof(stack_item_t));
+    instruction_t *add = calloc(1, sizeof(instruction_t));
+
     add->type = I_ADD;
 
-    zval_t item[3];
-    add->first = &item[0];
-    add->second = &item[1];
-    add->third = &item[2];
+    ZVAL_INIT_INT(add->second, 2);
+    ZVAL_INIT_INT(add->third, 1);
 
-    ZVAL_SET_INT(add->second, 2);
-    ZVAL_SET_INT(add->third, 1);
+    ZVAL_INIT_INT(add->first, /* offset */ 1);
 
-    *kl_pushp(stack_list, sl) = add;
+    *kl_pushp(instruction_list, sl) = add;
 
     interpret(sl);
 
-    assert_true(ZVAL_IS_INT(add->first));
-    assert_that(ZVAL_GET_INT(add->first), is_equal_to(3));
-
-    free(add);
-    kl_destroy(stack_list, sl);
+    kl_destroy(instruction_list, sl);
 }
 
 Ensure(Interpreter, should_add_two_doubles) {
-    klist_t(stack_list) *sl;
-    sl = kl_init(stack_list);
+    klist_t(instruction_list) *sl;
+    sl = kl_init(instruction_list);
 
-    stack_item_t *add = calloc(1, sizeof(stack_item_t));
+    instruction_t *add = calloc(1, sizeof(instruction_t));
     add->type = I_ADD;
 
-    zval_t item[3];
-    add->first = &item[0];
-    add->second = &item[1];
-    add->third = &item[2];
+    ZVAL_INIT_DOUBLE(add->second, 2.33);
+    ZVAL_INIT_DOUBLE(add->third, 1.27);
 
-    ZVAL_SET_DOUBLE(add->second, 2.33);
-    ZVAL_SET_DOUBLE(add->third, 1.27);
+    ZVAL_INIT_INT(add->first, /* offset */ 1);
 
-    *kl_pushp(stack_list, sl) = add;
+    *kl_pushp(instruction_list, sl) = add;
 
     interpret(sl);
 
-    assert_true(ZVAL_IS_DOUBLE(add->first));
-    assert_double_equal(ZVAL_GET_DOUBLE(add->first), 3.6);
-
-    free(add);
-    kl_destroy(stack_list, sl);
+    kl_destroy(instruction_list, sl);
 }
 
 TestSuite *interpreter_suite() {

@@ -11,13 +11,24 @@
  * license.txt file in the root directory of this source tree.
  */
 
-#ifndef INTERPRETER_H_
-#define INTERPRETER_H_
-
-#include "klist.h"
-#include "zval.h"
+#include <cgreen/cgreen.h>
 #include "instruction.h"
 
-void interpret(klist_t(instruction_list) *stack);
+Describe(Instruction)
+BeforeEach(Instruction) {}
+AfterEach(Instruction) {}
 
-#endif // INTERPRETER_H_
+Ensure(Instruction, should_create_POP_instruction) {
+    instruction_t *pop = create_POP_instr(5);
+
+    assert_true(ZVAL_IS_INT(pop->first));
+    assert_equal(ZVAL_GET_INT(pop->first), 5);
+
+    destroy_instruction(pop);
+}
+
+TestSuite *instruction_suite() {
+    TestSuite *suite = create_test_suite();
+    add_test_with_context(suite, Instruction, should_create_POP_instruction);
+    return suite;
+}

@@ -14,19 +14,27 @@
 #ifndef ZVAL_H_
 #define ZVAL_H_
 
-#define ZVAL_GET_INT(x) ((x)->iVal)
-#define ZVAL_GET_DOUBLE(x) ((x)->dVal)
-#define ZVAL_GET_STRING(x) ((x)->sVal)
+#define ZVAL_GET_INT(x)     ((x)->iVal)
+#define ZVAL_GET_DOUBLE(x)  ((x)->dVal)
+#define ZVAL_GET_STRING(x)  ((x)->sVal)
 
-#define ZVAL_SET_INT(x, v) (x)->type = T_INT; \
+#define ZVAL_SET_INT(x, v) (x)->type = T_INT;                \
     (x)->iVal = v
 
-#define ZVAL_SET_DOUBLE(x, v) (x)->type = T_DOUBLE; \
+#define ZVAL_SET_DOUBLE(x, v) (x)->type = T_DOUBLE;         \
     (x)->dVal = v
 
-#define ZVAL_SET_STRING(x, v) (x)->type = T_STRING; \
-    (x)->sVal = malloc(strlen(x) + 1 * sizeof(char)) \
-    memset((x)->sVal, x, strlen(x) + 1);
+#define ZVAL_SET_STRING(x, v) (x)->type = T_STRING;         \
+    (x)->sVal = malloc((strlen(x) + 1) * sizeof(char))      \
+    strcpy((x)->sVal, x);
+
+#define ZVAL_INIT_INT(x, v)                                 \
+    (x) = malloc(sizeof(zval_t));                           \
+    ZVAL_SET_INT(x, v)                                      \
+
+#define ZVAL_INIT_DOUBLE(x, v)                              \
+    (x) = malloc(sizeof(zval_t));                           \
+    ZVAL_SET_DOUBLE(x, v)                                   \
 
 #define ZVAL_IS_INT(x) ((x)->type == T_INT)
 #define ZVAL_IS_DOUBLE(x) ((x)->type == T_DOUBLE)
@@ -49,5 +57,17 @@ struct __zval_t {
         char *sVal;
     };
 };
+
+static inline __attribute__ ((__unused__)) void destroy_zval(zval_t *val) {
+    if (val == NULL) {
+        return;
+    }
+
+    if (ZVAL_IS_STRING(val)) {
+        free(val->sVal);
+    }
+
+    free(val);
+}
 
 #endif // ZVAL_H_

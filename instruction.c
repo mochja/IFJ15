@@ -11,13 +11,6 @@
  * license.txt file in the root directory of this source tree.
  */
 
-#ifndef INTERPRETER_H_
-#define INTERPRETER_H_
-
-#include "klist.h"
-#include "zval.h"
 #include "instruction.h"
 
-void interpret(klist_t(instruction_list) *stack);
 
-#endif // INTERPRETER_H_
