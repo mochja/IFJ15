@@ -19,20 +19,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
-
-typedef enum Result
-{
-    EOK,
-    ELEX,
-    ESYN,
-    ESEM,
-    ESEM2,
-    ESEM3,
-    ESEM4,
-    EEOF,
-    ESYS = 99,
-}tresult;
-
+#include "globals.h"
 
 typedef struct
 {

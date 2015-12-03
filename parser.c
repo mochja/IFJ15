@@ -1056,7 +1056,7 @@ tresult buildInF(t_Parser * parser){
 				tItem1->name=malloc(strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
 				tItem1->dataType=STRING;
-				tItem1->value.c = token.data.s;
+				tItem1->sVal = token.data.s;
 				insertHashTable(parser->table,tItem1);
 			}else if(token.type == ID){
 				/**********vyhladame polozku hName v TS*********/
@@ -1117,7 +1117,7 @@ tresult buildInF(t_Parser * parser){
 				tItem1->name=malloc(strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
 				tItem1->dataType=STRING;
-				tItem1->value.c = token.data.s;
+				tItem1->sVal = token.data.s;
 				insertHashTable(parser->table,tItem1);
 			}else if(token.type == ID){
 				/**********vyhladame polozku hName v TS*********/
@@ -1148,7 +1148,7 @@ tresult buildInF(t_Parser * parser){
 				tItem2->name=malloc(strlen(hName) + 1);
 				strcpy(tItem2->name,hName);
 				tItem2->dataType=INT;
-				tItem2->value.i = token.data.i;
+				tItem2->iVal = token.data.i;
 				insertHashTable(parser->table,tItem2);
 			}else if(token.type == ID){
 			/**********vyhladame polozku hName v TS*********/
@@ -1181,7 +1181,7 @@ tresult buildInF(t_Parser * parser){
 				tItem3->name=malloc(strlen(hName) + 1);
 				strcpy(tItem3->name,hName);
 				tItem3->dataType=INT;
-				tItem3->value.i = token.data.i;
+				tItem3->iVal = token.data.i;
 				insertHashTable(parser->table,tItem3);
 			}else if(token.type == ID){
 			/**********vyhladame polozku hName v TS*********/
@@ -1237,7 +1237,7 @@ tresult buildInF(t_Parser * parser){
 				tItem1->name=malloc(strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
 				tItem1->dataType=STRING;
-				tItem1->value.c = token.data.s;
+				tItem1->sVal = token.data.s;
 				insertHashTable(parser->table,tItem1);
 			}else if(token.type == ID){
 			/**********vyhladame polozku hName v TS*********/
@@ -1269,7 +1269,7 @@ tresult buildInF(t_Parser * parser){
 				tItem2->name=malloc(strlen(hName) + 1);
 				strcpy(tItem2->name,hName);
 				tItem2->dataType=STRING;
-				tItem2->value.c = token.data.s;
+				tItem2->sVal = token.data.s;
 				insertHashTable(parser->table,tItem2);
 			}else if(token.type == ID){
 				if((hName = varSearch(&parser->varList, token.data.s)) == NULL){
@@ -1321,7 +1321,7 @@ tresult buildInF(t_Parser * parser){
 				tItem1->name=malloc(strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
 				tItem1->dataType=STRING;
-				tItem1->value.c = token.data.s;
+				tItem1->sVal = token.data.s;
 				insertHashTable(parser->table,tItem1);
 			}else if(token.type == ID){
 				/**********vyhladame polozku hName v TS*********/
@@ -1352,7 +1352,7 @@ tresult buildInF(t_Parser * parser){
 				tItem2->name=malloc(strlen(hName) + 1);
 				strcpy(tItem2->name,hName);
 				tItem2->dataType=STRING;
-				tItem2->value.c = token.data.s;
+				tItem2->sVal = token.data.s;
 				insertHashTable(parser->table,tItem2);
 			}else if(token.type == ID){
 				/**********vyhladame polozku hName v TS*********/
@@ -1404,7 +1404,7 @@ tresult buildInF(t_Parser * parser){
 				tItem1->name=malloc(strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
 				tItem1->dataType=STRING;
-				tItem1->value.c = token.data.s;
+				tItem1->sVal = token.data.s;
 				insertHashTable(parser->table,tItem1);
 			}else if(token.type == ID){
 			/**********vyhladame polozku hName v TS*********/
@@ -1470,7 +1470,7 @@ hTabItem * tableItem;
 		tItem1->name=malloc(strlen(hName) + 1);
 		strcpy(tItem1->name,hName);
 		tItem1->dataType = INT;
-		tItem1->value.i = token.data.i;
+		tItem1->iVal = token.data.i;
 		insertHashTable(parser->table,tItem1);
 
 		/**************************************/
@@ -1489,7 +1489,7 @@ hTabItem * tableItem;
 		tItem1->name=malloc(strlen(hName) + 1);
 		strcpy(tItem1->name,hName);
 		tItem1->dataType = DOUBLE;
-		tItem1->value.d = token.data.d;
+		tItem1->dVal = token.data.d;
 		insertHashTable(parser->table,tItem1);
 
 		/****************************************/
@@ -1508,7 +1508,7 @@ hTabItem * tableItem;
 		tItem1->name=malloc(strlen(hName) + 1);
 		strcpy(tItem1->name,hName);
 		tItem1->dataType = STRING;
-		tItem1->value.c = token.data.s;
+		tItem1->sVal = token.data.s;
 		insertHashTable(parser->table,tItem1);
 
 		/**************************************/
@@ -1619,7 +1619,7 @@ tresult args(tItemPtr item,t_Parser * parser){
 		else return ESYN;
 
 }
-/*
+
 int main(){
 	
 	source = fopen("src","r");
@@ -1633,4 +1633,3 @@ int main(){
 	result = parse(&parser);
 	printf("err code: %d" , result);
 }	
-*/

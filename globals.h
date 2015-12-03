@@ -24,7 +24,7 @@ typedef enum {
     ESEM4,
     EEOF,
     ESYS = 99,
-} result_t;
+} tresult;
 
 #define BASIC   2
 
