@@ -47,6 +47,7 @@ Ensure(Hash, can_hold_an_item) {
     assert_that(ZVAL_GET_TYPE(ret), is_equal_to(T_STRING));
     assert_that(ZVAL_GET_TYPE(ret), is_equal_to(T_STRING));
     assert_string_equal("abcdabcd12", ret->data->sVal);
+    free(item->data->sVal);
     free(item->data);
 
     freeHashTable(table);

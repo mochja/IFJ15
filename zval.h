@@ -16,6 +16,7 @@
 
 #include <string.h>
 
+#define ZVAL_GET_TYPE(x)    ((*x->data).type)
 #define ZVAL_GET_INT(x)     ((x)->iVal)
 #define ZVAL_GET_DOUBLE(x)  ((x)->dVal)
 #define ZVAL_GET_STRING(x)  ((x)->sVal)
