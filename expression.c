@@ -15,27 +15,30 @@
 #include "expression.h"
 #include "globals.h"
 
-static inline unsigned int get_operation(int type) {
+static inline unsigned int get_operation(unsigned char type, unsigned int flags) {
 
-    switch (type) {
-        case PLUS:          return Op_PLUS;
-        case MINUS:         return Op_MINUS;
-        case MULTIPLY:      return Op_MUL;
-        case DEVIDE:        return Op_DIV;
-        case EQUALS:        return Op_EQ;
-        case NOT_EQUAL:     return Op_NEQ;
-        case LEFT_ARROW:    return Op_LESS;
-        case RIGHT_ARROW:   return Op_MORE;
-        case LESS_OR_EQUAL: return Op_LEQ;
-        case MORE_OR_EQUAL: return Op_MEQ;
-        case LEFT_CULUM:    return Op_LB;
-        case RIGHT_CULUM:   return Op_RB;
-        case ID:
-        case INT:
-        case DOUBLE:
-        case STRING:        return Op_VAR;
-        default:            return Op_ERR;
+    if (CHECK_FLAG(type, ID_TYPE) || (CHECK_FLAG(type, CONST_TYPE) && (HAS_FLAG(flags, INT_CONST|DOUBLE_CONST|TEXT_CONST)))) {
+        return Op_VAR;
     }
+
+    if (!CHECK_FLAG(type, SMBL_TYPE)) {
+        return Op_ERR;
+    }
+
+    if (CHECK_FLAG(flags, PLUS_SMBL)) return Op_PLUS;
+    if (CHECK_FLAG(flags, MINUS_SMBL)) return Op_MINUS;
+    if (CHECK_FLAG(flags, MULTIPLY_SMBL)) return Op_MUL;
+    if (CHECK_FLAG(flags, DEVIDE_SMBL)) return Op_DIV;
+    if (CHECK_FLAG(flags, EQUALS_SMBL)) return Op_EQ;
+    if (CHECK_FLAG(flags, NOT_EQUAL_SMBL)) return Op_NEQ;
+    if (CHECK_FLAG(flags, LEFT_ARROW_SMBL)) return Op_LESS;
+    if (CHECK_FLAG(flags, RIGHT_ARROW_SMBL)) return Op_MORE;
+    if (CHECK_FLAG(flags, LESS_OR_EQUAL_SMBL)) return Op_LEQ;
+    if (CHECK_FLAG(flags, MORE_OR_EQUAL_SMBL)) return Op_MEQ;
+    if (CHECK_FLAG(flags, LEFT_CULUM_SMBL)) return Op_LB;
+    if (CHECK_FLAG(flags, RIGHT_CULUM_SMBL)) return Op_RB;
+
+    return Op_ERR;
 }
 
 static inline unsigned int get_rule(unsigned int left, unsigned int right) {
@@ -55,20 +58,20 @@ klist_t(expr_stack)* build_expression(klist_t(token_list) *tokens) {
 
         expr_t *exp = calloc(1, sizeof(expr_t));
 
-        if (get_operation(t->type) == Op_VAR) {
+        if (get_operation(t->type, t->flags) == Op_VAR) {
 
-            if (t->type == INT) {
-                EXPR_SET_INT(exp, t->iVal);
+            if (TOKEN_HAS_TFLAG(t, CONST_TYPE, INT_CONST)) {
+                EXPR_SET_INT(exp, ZVAL_GET_INT(&t->data));
             }
 
             *kl_pushp(expr_stack, stack) = exp;
         } else {
-            EXPR_SET_OPERAND(exp, t->type);
+            EXPR_SET_OPERAND(exp, t->flags);
 
             while (kl_begin(op_stack) != kl_end(op_stack)) {
                 expr_t *top = kl_val(kl_begin(op_stack));
 
-                if (get_rule(get_operation(EXPR_GET_OPERAND(top)), get_operation(t->type)) == M) {
+                if (get_rule(get_operation(SMBL_TYPE, EXPR_GET_OPERAND(top)), get_operation(t->type, t->flags)) == M) {
                     kl_shift(expr_stack, op_stack, kl_pushp(expr_stack, stack));
                 } else {
                     break;
