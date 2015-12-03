@@ -32,10 +32,9 @@ typedef struct t_parser{
 	char buffer[20];
 	char * assignVarName;
 	tTable *table;
+	struct T_Token token;
 }t_Parser;
 
-
-struct T_Token token;
 
 tresult init_parser(t_Parser *parser);
 tresult parse();
