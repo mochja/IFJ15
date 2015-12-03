@@ -25,8 +25,8 @@
     (x)->dVal = v
 
 #define ZVAL_SET_STRING(x, v) (x)->type = T_STRING;         \
-    (x)->sVal = malloc(strlen(x) + 1 * sizeof(char))        \
-    memset((x)->sVal, x, strlen(x) + 1);
+    (x)->sVal = malloc((strlen(x) + 1) * sizeof(char))      \
+    strcpy((x)->sVal, x);
 
 #define ZVAL_INIT_INT(x, v)                                 \
     (x) = malloc(sizeof(zval_t));                           \
@@ -53,5 +53,17 @@ struct __zval_t {
         char *sVal;
     };
 };
+
+static inline __attribute__ ((__unused__)) void destroy_zval(zval_t *val) {
+    if (val == NULL) {
+        return;
+    }
+
+    if (ZVAL_IS_STRING(val)) {
+        free(val->sVal);
+    }
+
+    free(val);
+}
 
 #endif // ZVAL_H_

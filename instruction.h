@@ -36,9 +36,9 @@ struct __instruction_t {
     zval_t *third;
 };
 
-#define INSTRUCTION_FREE(x) free((x)->first); free((x)->second); free((x)->third); free(x);
+#define INSTRUCTION_FREE(x)
 
-#define __instruction_free(x) free(kl_val(x))
+#define __instruction_free(x) INSTRUCTION_FREE(kl_val(x))
 KLIST_INIT(instruction_list, instruction_t*, __instruction_free)
 
 
@@ -61,5 +61,11 @@ INSTR_T create_POP_instr(int addr_offset) {
 }
 
 #undef INSTR_T
+
+static inline __attribute__ ((__unused__)) void destroy_instruction(instruction_t *i) {
+    destroy_zval(i->first);
+    destroy_zval(i->second);
+    destroy_zval(i->third);
+}
 
 #endif // INSTRUCTION_H
