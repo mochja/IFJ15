@@ -24,7 +24,7 @@ Ensure(Instruction, should_create_POP_instruction) {
     assert_true(ZVAL_IS_INT(pop->first));
     assert_equal(ZVAL_GET_INT(pop->first), 5);
 
-    INSTRUCTION_FREE(pop);
+    destroy_instruction(pop);
 }
 
 TestSuite *instruction_suite() {

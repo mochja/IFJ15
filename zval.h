@@ -32,6 +32,10 @@
     (x) = malloc(sizeof(zval_t));                           \
     ZVAL_SET_INT(x, v)                                      \
 
+#define ZVAL_INIT_DOUBLE(x, v)                              \
+    (x) = malloc(sizeof(zval_t));                           \
+    ZVAL_SET_DOUBLE(x, v)                                   \
+
 #define ZVAL_IS_INT(x) ((x)->type == T_INT)
 #define ZVAL_IS_DOUBLE(x) ((x)->type == T_DOUBLE)
 #define ZVAL_IS_STRING(x) ((x)->type == T_STRING)
