@@ -14,37 +14,112 @@
 #include <stdio.h>
 #include "interpreter.h"
 
-static inline int __add_int(const int a, const int b) {
-    return a + b;
-}
+interpreter_t *init_interpreter(klist_t(instruction_list) *instructions) {
+    interpreter_t *intr = calloc(1, sizeof(interpreter_t));
 
-static inline double __add_double(const double a, const double b) {
-    return a + b;
-}
+    kv_init(intr->instructions);
+    kv_init(intr->stack.data);
 
-void interpret(klist_t(instruction_list) *instructions) {
-    instruction_t *item;
+    kv_resize(instruction_t, intr->instructions, 50);
+    kv_resize(zval_t, intr->stack.data, 100);
 
-    zval_t stack[50000];
-    int basePtr = 0;
-    int stackPtr = 0;
+    kvec_t(size_t) labels;
+    kv_init(labels);
+    kv_resize(size_t, labels, 50);
 
-    while(kl_shift(instruction_list, instructions, &item) != -1) {
-        switch(item->type) {
-            case I_ADD:
-                if (ZVAL_IS_INT(item->second) && ZVAL_IS_INT(item->third)) {
-                    ZVAL_SET_INT(item->first, __add_int(item->second->iVal, item->third->iVal));
-                } else if (ZVAL_IS_DOUBLE(item->second) && ZVAL_IS_DOUBLE(item->third)) {
-                    ZVAL_SET_DOUBLE(item->first, __add_double(item->second->dVal, item->third->dVal));
-                }
-                break;
-            case I_POP:
-                stack[basePtr + ZVAL_GET_INT(item->first)] = stack[stackPtr];
-                break;
-            default:
-                printf("ERR: %d\n", item->type);
-                break;
+    size_t i = 0;
+    for (kliter_t(instruction_list) *it = kl_begin(instructions);
+            it != kl_end(instructions); it = kl_next(it)) {
+
+        instruction_t *instr = kl_val(it);
+
+        if (instr->type == I_LABEL) {
+            kv_a(size_t, labels, ZVAL_GET_INT(instr->first)) = i;
+        } else {
+            i++;
         }
+    }
+
+    i = 0;
+    for (kliter_t(instruction_list) *it = kl_begin(instructions);
+         it != kl_end(instructions); it = kl_next(it)) {
+
+        instruction_t *instr = kl_val(it);
+
+        if (instr->type == I_JMP) {
+            copy_instruction(&kv_a(instruction_t, intr->instructions, i), instr);
+            ZVAL_SET_INT(kv_A(intr->instructions, i).first, kv_A(labels, ZVAL_GET_INT(instr->first)));
+        } else if (instr->type != I_LABEL) {
+            copy_instruction(&kv_a(instruction_t, intr->instructions, i), instr);
+        }
+
+        if (instr->type != I_LABEL && instr->type != I_NOOP) {
+            i++;
+        }
+    }
+
+    kv_destroy(labels);
+
+    return intr;
+}
+
+void destroy_interpreter(interpreter_t *intr) {
+
+    for (size_t i = 0; i < kv_size(intr->instructions); i++) {
+        destroy_zval(kv_A(intr->instructions, i).first);
+        destroy_zval(kv_A(intr->instructions, i).second);
+        destroy_zval(kv_A(intr->instructions, i).third);
+    }
+
+    for (size_t i = 0; i < kv_size(intr->stack.data); ++i) {
+        zval_t *val = &kv_A(intr->stack.data, i);
+
+        if (val == NULL) {
+            continue;
+        }
+
+        if (ZVAL_IS_STRING(val)) {
+            free(ZVAL_GET_STRING(val));
+        }
+    }
+
+    kv_destroy(intr->instructions);
+    kv_destroy(intr->stack.data);
+    free(intr);
+}
+
+static inline void process_PUSH_instr(struct __stack_t *stack, const int offset) {
+    zval_t val;
+    ZVAL_SET_INT(&val, offset);
+    kv_push(zval_t, stack->data, val);
+}
+
+static size_t proccess_instruction(instruction_t *instr, struct __stack_t *stack, const size_t actual_addr) {
+
+    switch (instr->type) {
+        case I_PUSH:
+            process_PUSH_instr(stack, ZVAL_GET_INT(instr->first));
+            return actual_addr + 1;
+        case I_JMP:
+            return (size_t) ZVAL_GET_INT(instr->first);
+        case I_ADD:
+            if (ZVAL_IS_INT(instr->second) && ZVAL_IS_INT(instr->third)) {
+                ZVAL_SET_INT(&kv_A(stack->data, stack->base_pointer + ZVAL_GET_INT(instr->first) - 1), ZVAL_GET_INT(instr->second) + ZVAL_GET_INT(instr->third));
+            } else if (ZVAL_IS_DOUBLE(instr->second) && ZVAL_IS_DOUBLE(instr->third)) {
+                ZVAL_SET_DOUBLE(&kv_A(stack->data, stack->base_pointer + ZVAL_GET_INT(instr->first) - 1), ZVAL_IS_DOUBLE(instr->second) + ZVAL_IS_DOUBLE(instr->third));
+            }
+            // TODO: Add double + int
+            return actual_addr + 1;
+        default:
+            return 0;
     }
 }
 
+void run_interpreter(interpreter_t *intr) {
+    size_t actual_addr = 0;
+
+    while (actual_addr < kv_size(intr->instructions)) {
+        instruction_t *i = &kv_A(intr->instructions, actual_addr);
+        actual_addr = proccess_instruction(i, &intr->stack, actual_addr);
+    };
+}

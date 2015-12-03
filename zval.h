@@ -14,6 +14,8 @@
 #ifndef ZVAL_H_
 #define ZVAL_H_
 
+#include <string.h>
+
 #define ZVAL_GET_INT(x)     ((x)->iVal)
 #define ZVAL_GET_DOUBLE(x)  ((x)->dVal)
 #define ZVAL_GET_STRING(x)  ((x)->sVal)
@@ -25,8 +27,8 @@
     (x)->dVal = v
 
 #define ZVAL_SET_STRING(x, v) (x)->type = T_STRING;         \
-    (x)->sVal = malloc((strlen(x) + 1) * sizeof(char))      \
-    strcpy((x)->sVal, x);
+    (x)->sVal = malloc((strlen(v) + 1) * sizeof(char));     \
+    strcpy((x)->sVal, v);
 
 #define ZVAL_INIT_INT(x, v)                                 \
     (x) = malloc(sizeof(zval_t));                           \
@@ -36,14 +38,14 @@
     (x) = malloc(sizeof(zval_t));                           \
     ZVAL_SET_DOUBLE(x, v)                                   \
 
-#define ZVAL_IS_INT(x) ((x)->type == T_INT)
-#define ZVAL_IS_DOUBLE(x) ((x)->type == T_DOUBLE)
-#define ZVAL_IS_STRING(x) ((x)->type == T_STRING)
+#define ZVAL_IS_INT(x)     ((x)->type == T_INT)
+#define ZVAL_IS_DOUBLE(x)  ((x)->type == T_DOUBLE)
+#define ZVAL_IS_STRING(x)  ((x)->type == T_STRING)
 
 typedef struct __zval_t zval_t;
 
 enum __data_type {
-    T_INT,
+    T_INT = 9,
     T_DOUBLE,
     T_STRING
 };
@@ -68,6 +70,18 @@ static inline __attribute__ ((__unused__)) void destroy_zval(zval_t *val) {
     }
 
     free(val);
+}
+
+static inline __attribute__ ((__unused__)) void copy_zval(zval_t *dest, zval_t *src) {
+    if (dest == NULL || src == NULL) {
+        return;
+    }
+
+    memcpy(dest, src, sizeof(zval_t));
+
+    if (ZVAL_IS_STRING(dest)) {
+        ZVAL_SET_STRING(dest, ZVAL_GET_STRING(src));
+    }
 }
 
 #endif // ZVAL_H_

@@ -18,24 +18,57 @@ Describe(Interpreter)
 BeforeEach(Interpreter) {}
 AfterEach(Interpreter) {}
 
+Ensure(Interpreter, should_replace_labels_with_addresses_on_initialize) {
+    klist_t(instruction_list) *sl;
+    sl = kl_init(instruction_list);
+
+    *kl_pushp(instruction_list, sl) = create_JMP_instr(8);   // 0
+    *kl_pushp(instruction_list, sl) = create_LABEL_instr(2);
+    *kl_pushp(instruction_list, sl) = create_JMP_instr(1);   // 1
+    *kl_pushp(instruction_list, sl) = create_LABEL_instr(8);
+    *kl_pushp(instruction_list, sl) = create_JMP_instr(2);   // 2
+    *kl_pushp(instruction_list, sl) = create_LABEL_instr(1);
+    *kl_pushp(instruction_list, sl) = create_POP_instr(100); // 3
+
+
+    interpreter_t *intr = init_interpreter(sl);
+    kl_destroy(instruction_list, sl);
+
+    zval_t *fval = kv_A(intr->instructions, 0).first;
+    assert_true(ZVAL_IS_INT(fval));
+    assert_equal(ZVAL_GET_INT(fval), 2);
+
+    fval = kv_A(intr->instructions, 1).first;
+    assert_true(ZVAL_IS_INT(fval));
+    assert_equal(ZVAL_GET_INT(fval), 3);
+
+    fval = kv_A(intr->instructions, 2).first;
+    assert_true(ZVAL_IS_INT(fval));
+    assert_equal(ZVAL_GET_INT(fval), 1);
+
+    fval = kv_A(intr->instructions, 3).first;
+    assert_true(ZVAL_IS_INT(fval));
+    assert_equal(ZVAL_GET_INT(fval), 100);
+
+    destroy_interpreter(intr);
+}
+
 Ensure(Interpreter, should_add_two_integers) {
     klist_t(instruction_list) *sl;
     sl = kl_init(instruction_list);
 
-    instruction_t *add = calloc(1, sizeof(instruction_t));
+    *kl_pushp(instruction_list, sl) = create_PUSH_int_instr(0);
+    *kl_pushp(instruction_list, sl) = create_ADD_int_instr(1, 5, 2);
 
-    add->type = I_ADD;
-
-    ZVAL_INIT_INT(add->second, 2);
-    ZVAL_INIT_INT(add->third, 1);
-
-    ZVAL_INIT_INT(add->first, /* offset */ 1);
-
-    *kl_pushp(instruction_list, sl) = add;
-
-    interpret(sl);
-
+    interpreter_t *intr = init_interpreter(sl);
     kl_destroy(instruction_list, sl);
+
+    run_interpreter(intr);
+
+    assert_equal(kv_size(intr->stack.data), 1);
+    assert_equal(ZVAL_GET_INT(&kv_A(intr->stack.data, 0)), 7);
+
+    destroy_interpreter(intr);
 }
 
 Ensure(Interpreter, should_add_two_doubles) {
@@ -52,13 +85,14 @@ Ensure(Interpreter, should_add_two_doubles) {
 
     *kl_pushp(instruction_list, sl) = add;
 
-    interpret(sl);
+//    interpret(sl);
 
     kl_destroy(instruction_list, sl);
 }
 
 TestSuite *interpreter_suite() {
     TestSuite *suite = create_test_suite();
+    add_test_with_context(suite, Interpreter, should_replace_labels_with_addresses_on_initialize);
     add_test_with_context(suite, Interpreter, should_add_two_integers);
     add_test_with_context(suite, Interpreter, should_add_two_doubles);
     return suite;
