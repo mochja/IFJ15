@@ -21,13 +21,18 @@
 
 typedef struct __interpreter_t interpreter_t;
 
+struct __stack_t {
+    kvec_t(zval_t) data;
+    size_t base_pointer;
+};
+
 struct __interpreter_t {
     kvec_t(instruction_t) instructions;
-    kvec_t(zval_t) zstack;
+    struct __stack_t stack;
 };
 
 void destroy_interpreter(interpreter_t *intr);
 interpreter_t *init_interpreter(klist_t(instruction_list) *instructions);
-void interpret_run(interpreter_t *interpreter);
+void run_interpreter(interpreter_t *intr);
 
 #endif // INTERPRETER_H_

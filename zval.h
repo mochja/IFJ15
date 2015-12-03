@@ -38,14 +38,14 @@
     (x) = malloc(sizeof(zval_t));                           \
     ZVAL_SET_DOUBLE(x, v)                                   \
 
-#define ZVAL_IS_INT(x) ((x)->type == T_INT)
-#define ZVAL_IS_DOUBLE(x) ((x)->type == T_DOUBLE)
-#define ZVAL_IS_STRING(x) ((x)->type == T_STRING)
+#define ZVAL_IS_INT(x)     ((x)->type == T_INT)
+#define ZVAL_IS_DOUBLE(x)  ((x)->type == T_DOUBLE)
+#define ZVAL_IS_STRING(x)  ((x)->type == T_STRING)
 
 typedef struct __zval_t zval_t;
 
 enum __data_type {
-    T_INT,
+    T_INT = 9,
     T_DOUBLE,
     T_STRING
 };

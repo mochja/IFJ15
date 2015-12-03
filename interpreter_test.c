@@ -57,20 +57,18 @@ Ensure(Interpreter, should_add_two_integers) {
     klist_t(instruction_list) *sl;
     sl = kl_init(instruction_list);
 
-    instruction_t *add = calloc(1, sizeof(instruction_t));
+    *kl_pushp(instruction_list, sl) = create_PUSH_int_instr(0);
+    *kl_pushp(instruction_list, sl) = create_ADD_int_instr(1, 5, 2);
 
-    add->type = I_ADD;
-
-    ZVAL_INIT_INT(add->second, 2);
-    ZVAL_INIT_INT(add->third, 1);
-
-    ZVAL_INIT_INT(add->first, /* offset */ 1);
-
-    *kl_pushp(instruction_list, sl) = add;
-
-//    interpret(sl);
-
+    interpreter_t *intr = init_interpreter(sl);
     kl_destroy(instruction_list, sl);
+
+    run_interpreter(intr);
+
+    assert_equal(kv_size(intr->stack.data), 1);
+    assert_equal(ZVAL_GET_INT(&kv_A(intr->stack.data, 0)), 7);
+
+    destroy_interpreter(intr);
 }
 
 Ensure(Interpreter, should_add_two_doubles) {
