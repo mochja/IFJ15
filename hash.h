@@ -31,12 +31,7 @@ struct hItem {
     char *name;
     int dataType;
 
-    struct __zval_t *data;
-    /*union {
-        int iVal;
-        double dVal;
-        char *sVal;
-    };*/
+    zval_t *data;
 
     bool isDefined;
     int params;
