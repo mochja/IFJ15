@@ -18,6 +18,8 @@
 #include <string.h>
 #include "klist.h"
 #include "zval.h"
+#include "expression.h"
+#include "kvec.h"
 
 typedef struct __instruction_t instruction_t;
 
@@ -128,5 +130,7 @@ INSTR_T create_PUSH_int_instr(const int store_offset) {
 }
 
 #undef INSTR_T
+
+klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stack) *expression);
 
 #endif // INSTRUCTION_H

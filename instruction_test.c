@@ -27,8 +27,35 @@ Ensure(Instruction, should_create_POP_instruction) {
     destroy_instruction(pop);
 }
 
+Ensure(Instruction, should_create_instruction_list_from_expression) {
+    klist_t(expr_stack) *expr;
+    expr = kl_init(expr_stack);
+
+    expr_t e1, e2, e3;
+    EXPR_SET_INT(&e1, 2);
+    EXPR_SET_INT(&e2, 5);
+    EXPR_SET_OPERAND(&e3, Op_PLUS);
+
+    *kl_pushp(expr_stack, expr) = &e1;
+    *kl_pushp(expr_stack, expr) = &e2;
+    *kl_pushp(expr_stack, expr) = &e3;
+
+    klist_t(instruction_list) *l = create_instructions_from_expression(expr);
+    kl_destroy(expr_stack, expr);
+
+    instruction_t *instr;
+    kl_shift(instruction_list, l, &instr);
+
+    assert_equal(instr->type, I_ADD);
+    assert_equal(ZVAL_GET_INT(instr->second), 2);
+    assert_equal(ZVAL_GET_INT(instr->third), 5);
+
+    kl_destroy(instruction_list, l);
+}
+
 TestSuite *instruction_suite() {
     TestSuite *suite = create_test_suite();
     add_test_with_context(suite, Instruction, should_create_POP_instruction);
+    add_test_with_context(suite, Instruction, should_create_instruction_list_from_expression);
     return suite;
 }
