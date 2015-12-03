@@ -116,12 +116,12 @@ Ensure(Expression, should_be_able_to_generate_expr_stack) {
 
     expr = kl_val(it);
     assert_true(EXPR_IS_OPERAND(expr));
-    assert_equal(EXPR_GET_OPERAND(expr), MULTIPLY_SMBL);
+    assert_equal(EXPR_GET_OPERAND(expr), Op_MUL);
     free(expr); it = kl_next(it);
 
     expr = kl_val(it);
     assert_true(EXPR_IS_OPERAND(expr));
-    assert_equal(EXPR_GET_OPERAND(expr), PLUS_SMBL);
+    assert_equal(EXPR_GET_OPERAND(expr), Op_PLUS);
     free(expr); it = kl_next(it);
 
     expr = kl_val(it);
@@ -131,7 +131,7 @@ Ensure(Expression, should_be_able_to_generate_expr_stack) {
 
     expr = kl_val(it);
     assert_true(EXPR_IS_OPERAND(expr));
-    assert_equal(EXPR_GET_OPERAND(expr), MINUS_SMBL);
+    assert_equal(EXPR_GET_OPERAND(expr), Op_MINUS);
     free(expr);
 
     // We should end up at end of list
