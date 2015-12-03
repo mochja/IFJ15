@@ -30,6 +30,10 @@
     (x)->sVal = malloc((strlen(v) + 1) * sizeof(char));     \
     strcpy((x)->sVal, v);
 
+#define ZVAL_INIT_STRING(x, v)                              \
+    (x) = malloc(sizeof(zval_t));                           \
+    ZVAL_SET_STRING(x, v)
+
 #define ZVAL_INIT_INT(x, v)                                 \
     (x) = malloc(sizeof(zval_t));                           \
     ZVAL_SET_INT(x, v)                                      \

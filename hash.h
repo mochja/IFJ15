@@ -17,6 +17,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdbool.h>
+#include "zval.h"
 
 #define MAX_HTSIZE 101
 
@@ -30,11 +31,12 @@ struct hItem {
     char *name;
     int dataType;
 
-    union {
+    struct __zval_t *data;
+    /*union {
         int iVal;
         double dVal;
         char *sVal;
-    };
+    };*/
 
     bool isDefined;
     int params;
