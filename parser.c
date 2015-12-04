@@ -61,27 +61,16 @@ result_t parser_run(parser_t *parser) {
     if (!TOKEN_HAS_TFLAG(&parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW))
         return ESYN;
 
-    result = parse_fn(parser);
-
-    if (result != EOK)
-        return result;
-
-    if ((result = parser_next_token(parser)) != EOK) {
+    if ((result = parse_fn(parser)) != EOK) {
         return result;
     }
 
-    if (!TOKEN_IS(&parser->token, EOF_TYPE))
+    // Overime ci sme naozaj na konci
+    if (parser_next_token(parser) != EEOF) {
         return ESYN;
+    }
 
     return result;
-
-/****ak prvy parser->token nie je datovy typ --> error ****/
-
-/**ak je to datovy typ vola sa parse_fn ***/
-
-
-/*po analyze vsetkcyh funkci sa skontroluje ci posledna funkcia bola main---ak ano EOK ak nie error -------posledny by mal byt EOF **/
-
 }
 
 
