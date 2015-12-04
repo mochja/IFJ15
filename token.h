@@ -82,7 +82,7 @@
 
 #define TOKEN_HAS_TFLAG(x, t, f)        ((((x)->type & (t)) == (t)) && ((x)->flags & (f)))
 #define TOKEN_HAS_FLAG(x, f)            (((x)->flags & f))
-#define TOKEN_IS(x, t)                  ((x)->type & t)
+#define TOKEN_IS(x, t)                  (((x)->type & (t)) == t)
 //#define TOKEN_IS(x, t)                  (((x)->type & t) == t)
 
 #define __token_set(x, tt, ff, zvalt, v)                \

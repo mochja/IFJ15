@@ -58,7 +58,7 @@ result_t parser_run(parser_t *parser) {
     if ((result = parser_next_token(parser)) != EOK)
         return result;
 
-    if (!TOKEN_HAS_TFLAG(&parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW))
+    if (!TOKEN_HAS_TFLAG(&parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW))
         return ESYN;
 
     if ((result = parse_fn(parser)) != EOK) {
@@ -1370,10 +1370,11 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
 
 result_t parse_fn_args(parser_t *parser, tItemPtr item) {
     /******spracovanie argumentov funkcii********/
-    result_t result = EOK;
+    result_t result;
+
     int varType = parser->token.flags;
     hTabItem *tItem;
-    if (!TOKEN_HAS_TFLAG(&parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW))
+    if (!TOKEN_HAS_TFLAG(&parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW))
         return ESYN;
 
     if ((result = parser_next_token(parser)) != EOK) { return result; }
@@ -1404,7 +1405,7 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
             return ESEM;
 
     }
-    else if (!parser->fDeclared) {
+    else {
         char *hName = generate_var_name(parser->hInt);
         parser->hInt++;
         int i = 0;
