@@ -134,7 +134,7 @@ result_t parse_fn(parser_t *parser) {
     }
     else if (TOKEN_IS(&parser->token, ID_TYPE)) {
         /*****************telo funkcie*************/
-        strcpy(parser->fName, ZVAL_GET_STRING(&parser->token.data));
+        parser->fName = ZVAL_GET_STRING(&parser->token.data);
         char *fLabel = parser->token.data.sVal;
         parser->fDeclared = false;
         /********MISSSING: kontrola ts**********************/
@@ -145,7 +145,8 @@ result_t parse_fn(parser_t *parser) {
         }
         else {
             tableItem = createNewItem();
-            tableItem->name = parser->fName; // TODO: strcpy
+            tableItem->name = malloc(sizeof(char) * (strlen(parser->fName) + 1));
+            strcpy(tableItem->name, parser->fName);
             tableItem->dataType = fType;
             tableItem->isDefined = false;
             insertHashTable(parser->table, tableItem);
@@ -531,7 +532,6 @@ result_t parse_list(parser_t *parser) {
                                 RIGHT_CULUM_SMBL)) {                ///mala by sa volat precedencna analyza
             if ((result = parser_next_token(parser)) != EOK) { return result; }
         }
-
 
         printf("ASSING EXP\n");
         /**vyhodnotenie vyrazu**/
