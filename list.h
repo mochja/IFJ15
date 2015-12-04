@@ -4,9 +4,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
-
-
-#endif // LIST_H_
+#include "globals.h"
 
 typedef struct Data
 {
@@ -35,3 +33,16 @@ void insertLast(tItemPtr item, tvarList *L);
 void deleteLast(tvarList *L);
 char * varSearch(tvarList *L, char * name);
 char * paramSearch(tvarList *L, char * fid, char *name);
+
+static inline result_t init_data_var(tdata *dest, const char *id, const char *hid) {
+
+    dest->id = malloc((strlen(id) + 1) * sizeof(char));
+    dest->hid = malloc((strlen(hid) + 1) * sizeof(char));
+
+    strcpy(dest->id, id);
+    strcpy(dest->hid, hid);
+
+    return EOK;
+}
+
+#endif // LIST_H_

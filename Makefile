@@ -2,7 +2,7 @@ CC?=gcc
 CFLAGS=-std=c11 -c -g -pedantic -Wall
 LDFLAGS=
 
-SOURCES=main.c scanner.c
+SOURCES=main.c scanner.c parser.c hash.c list.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=ifj15
 

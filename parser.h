@@ -16,7 +16,6 @@
 
 #include <stdbool.h>
 #include "scanner.h"
-#include "scanner.h"
 #include "list.h"
 #include "hash.h"
 #include "token.h"
@@ -31,26 +30,25 @@ typedef struct {
 	bool fDeclared;
 	int hInt;
 	int label;
-	char buffer[20];
 	char * assignVarName;
 	tTable *table;
-	token_t token;
-
-    char *source;
+    token_t token;
+    scanner_t scanner;
 } parser_t;
 
 result_t init_parser(parser_t *parser, const char *source);
-result_t parse(parser_t *parser);
-result_t program(parser_t *parser);
-result_t function(parser_t *parser)
+result_t parser_run(parser_t *parser);
 
-//result_t body();
-//result_t declaration();
-//result_t advDeclaration();
-//result_t args();
-//result_t buildInF();
-//result_t params();
-//result_t assign();
-//result_t list();
+result_t parse_fn(parser_t *parser);
+result_t parse_fn_body(parser_t *parser);
+result_t parse_fn_args(parser_t *parser, tItemPtr item);
+result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock);
+result_t parse_list(parser_t *parser);
+result_t parse_assign(parser_t *parser);
+result_t parse_adv_declaration(parser_t *parser);
+result_t parse_build_in_fn(parser_t *parser);
+result_t parse_params(parser_t *parser, tItemPtr item);
+
+result_t parser_next_token(parser_t *parser);
 
 #endif // PARSER_H_
