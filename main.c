@@ -12,6 +12,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "globals.h"
+#include "scanner.h"
 
 static char* read_source_file(const char *filename) {
     FILE *f;
@@ -38,15 +40,33 @@ static char* read_source_file(const char *filename) {
 
 int main(int argc, char *argv[])
 {
+    result_t res;
 
     if (argc < 2) {
         // print help, usage...
         printf("usage %s source_file\n", argv[0]);
-        return 1;
+        return ESYS;
     }
 
     char *source = read_source_file(argv[1]);
 
+    scanner_t s;
+    res = init_scanner(&s, source);
     free(source);
-    return 0;
+
+    if (res != EOK) {
+        fprintf(stderr, "Could not initialize scanner.");
+        return res;
+    }
+
+    destroy_scanner(&s);
+
+//    parser_t parser;
+//    if ((res = init_parser(&parser, source)) != EOK) {
+//        printf("Parser Init failed\n");
+//    } else {
+//        res = parse(&parser);
+//    }
+
+    return res;
 }

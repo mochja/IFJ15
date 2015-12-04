@@ -11,36 +11,22 @@
  * license.txt file in the root directory of this source tree.
  */
 
-#ifndef SCANER_H_
-#define SCANER_H_
+#ifndef SCANNER_H_
+#define SCANNER_H_
 
 #include <stdio.h>
 #include <ctype.h>
-#include <malloc.h>
-#include <string.h>
-#include <stdlib.h>
 #include "globals.h"
+#include "token.h"
+#include "string.h"
 
-typedef struct
-{
-  char* str;
-  int length;
-  int allocSize;
-} string;
+typedef struct {
+    char *source;
+    size_t line;
+} scanner_t;
 
-struct T_Token
-{
-    int type;
-    union
-    {
-        char*   s;
-        int     i;
-        double  d;
-    }data;
-    tresult result;
-};
+result_t init_scanner(scanner_t *s, const char *source);
+result_t scanner_get_next_token(scanner_t *s, token_t *dest);
+void destroy_scanner(scanner_t *s);
 
-FILE *source;
-struct T_Token nextToken();
-
-#endif // SCANER_H_
+#endif // SCANNER_H_
