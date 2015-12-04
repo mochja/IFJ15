@@ -63,6 +63,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *dest)
     buff[0] = '\0';
 
     dest->type = EOF_TYPE;
+    clean_token(dest);
 
     while ((c[0] = *(scanner->source++)) != '\0') {
 

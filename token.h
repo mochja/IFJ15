@@ -80,9 +80,10 @@
 #define TOKEN_SET_TYPE(x, t)            ((x)->type = t)
 #define TOKEN_SET_TYPE_WFLAG(x, t, f)   ((x)->type = t; (x)->flags = f)
 
-#define TOKEN_HAS_TFLAG(x, t, f)        ((((x)->flags & f) == f) && ((x)->type & t))
+#define TOKEN_HAS_TFLAG(x, t, f)        ((((x)->flags & (f)) == (f)) && ((x)->type & t))
 #define TOKEN_HAS_FLAG(x, f)            (((x)->flags & f))
-#define TOKEN_IS(x, t)                  (((x)->type & t) == t)
+#define TOKEN_IS(x, t)                  ((x)->type & t)
+//#define TOKEN_IS(x, t)                  (((x)->type & t) == t)
 
 #define __token_set(x, tt, ff, zvalt, v)                \
     (x)->type = tt; (x)->flags = ff;                    \
@@ -152,8 +153,18 @@ INLINED void token_set_flags(token_t *dest, const unsigned int flags) {
 
 INLINED result_t token_init(token_t *dest) {
     token_set_type(dest, BASIC_TYPE);
-//    token_set_flags();
     return EOK;
+}
+
+INLINED void clean_token(token_t *t) {
+    if (TOKEN_HAS_TFLAG(t, CONST_TYPE, TEXT_CONST) || TOKEN_IS(t, ID_TYPE)) {
+        free(t->data.sVal);
+    }
+}
+
+INLINED void destroy_token(token_t *t) {
+    clean_token(t);
+    free(t);
 }
 
 #endif // TOKEN_H_

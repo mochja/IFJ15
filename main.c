@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "globals.h"
-#include "scanner.h"
+#include "parser.h"
 
 static char* read_source_file(const char *filename) {
     FILE *f;
@@ -50,23 +50,13 @@ int main(int argc, char *argv[])
 
     char *source = read_source_file(argv[1]);
 
-    scanner_t s;
-    res = init_scanner(&s, source);
+    parser_t parser;
+    res = init_parser(&parser, source);
     free(source);
 
-    if (res != EOK) {
-        fprintf(stderr, "Could not initialize scanner.");
-        return res;
+    if (res == EOK) {
+        res = parser_run(&parser);
     }
-
-    destroy_scanner(&s);
-
-//    parser_t parser;
-//    if ((res = init_parser(&parser, source)) != EOK) {
-//        printf("Parser Init failed\n");
-//    } else {
-//        res = parse(&parser);
-//    }
 
     return res;
 }

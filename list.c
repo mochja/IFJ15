@@ -50,7 +50,7 @@ char * varSearch(tvarList *L, char * name){
 	char * result = NULL;
 
 	while(tmp != NULL){
-	int i = 0;	
+	int i = 0;
 		while(tmp->data[i].id != NULL){
 			if(!strcmp(name, tmp->data[i].id))
 			{
@@ -85,4 +85,6 @@ char * paramSearch(tvarList *L, char * fid, char *name){
 		}
 		tmp=tmp->next;
 	}
+
+    return result;
 }

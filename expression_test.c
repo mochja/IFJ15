@@ -134,7 +134,7 @@ Ensure(Expression, should_be_able_to_generate_expr_stack) {
     assert_equal(EXPR_GET_OPERAND(expr), Op_MINUS);
     free(expr);
 
-    // We should end up at end of list
+    // We should end up at end of parse_list
     assert_true(kl_next(it) == kl_end(s));
 
     kl_destroy(token_list, l);

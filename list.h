@@ -5,9 +5,6 @@
 #include <malloc.h>
 #include <string.h>
 
-
-#endif // LIST_H_
-
 typedef struct Data
 {
 	char * id;
@@ -35,3 +32,5 @@ void insertLast(tItemPtr item, tvarList *L);
 void deleteLast(tvarList *L);
 char * varSearch(tvarList *L, char * name);
 char * paramSearch(tvarList *L, char * fid, char *name);
+
+#endif // LIST_H_
