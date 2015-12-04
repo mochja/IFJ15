@@ -291,7 +291,7 @@ result_t parse_list(parser_t *parser) {
 
         if ((result = parser_next_token(parser)) != EOK) { return result; }
 
-        strcpy(parser->assignVarName, hName);
+        parser->assignVarName = hName;
         result = parse_assign(parser);
 
         if (result != EOK)
@@ -794,7 +794,6 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock) {
     insertHashTable(parser->table, tItem);
 
     if (varType == AUTO_KW) {
-
         if ((result = parser_next_token(parser)) != EOK) {
             return result;
         }
@@ -821,6 +820,7 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock) {
 
         if ((result = parser_next_token(parser)) != EOK) { return result; }
 
+        printf("LOCAL VAR\n");
 
         if (TOKEN_HAS_TFLAG(&parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
             if ((result = parser_next_token(parser)) != EOK) {
