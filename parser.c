@@ -53,9 +53,12 @@ char *generate_var_name(int number) {
 
 result_t parser_run(parser_t *parser) {
 /**overim prvy parser->token**/
-    result_t result = parser_next_token(parser);
+    result_t result;
 
-	if(!TOKEN_HAS_TFLAG(&parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW ))
+    if ((result = parser_next_token(parser)) != EOK)
+        return result;
+
+	if(!TOKEN_HAS_TFLAG(&parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW))
 		return ESYN;
 
 	result = parse_fn(parser);
@@ -90,7 +93,8 @@ result_t result=EOK;
 	if ((result = parser_next_token(parser)) != EOK) {
         return result;
     }
-	if(TOKEN_HAS_TFLAG(&parser->token,KW_TYPE,MAIN_KW) && fType == INT_KW){
+
+	if(TOKEN_HAS_TFLAG(&parser->token, KW_TYPE, MAIN_KW) && fType == INT_KW){
 		/***********telo funkcie main**************/
 			parser->fName = "main";
 
@@ -98,20 +102,20 @@ result_t result=EOK;
                 return result;
             }
 
-			if(!TOKEN_HAS_TFLAG(&parser->token,SMBL_TYPE,LEFT_CULUM_SMBL)) // (
+			if(!TOKEN_HAS_TFLAG(&parser->token, SMBL_TYPE, LEFT_CULUM_SMBL)) // (
 				return ESYN;
 
 			if ((result = parser_next_token(parser)) != EOK) {
                 return result;
             }
 
-			if(!TOKEN_HAS_TFLAG(&parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL))	// )
+			if(!TOKEN_HAS_TFLAG(&parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))	// )
 				return ESYN;
 
 			tItemPtr item;
-			if((item = malloc(sizeof(struct tItem))) == NULL)
+			if((item = calloc(1, sizeof(struct tItem))) == NULL)
 				return ESYS;
-			if((item->data = malloc(sizeof(struct Data))) == NULL)
+			if((item->data = calloc(1, sizeof(struct Data))) == NULL)
 				return ESYS;
 
 			item->functionId = parser->fName;
@@ -173,10 +177,10 @@ result_t result=EOK;
 
 			}
 			else {
-				if((item = malloc(sizeof(struct tItem))) == NULL)
+				if((item = calloc(1, sizeof(struct tItem))) == NULL)
 					return ESYS;
 
-				if((item->data = malloc(sizeof(struct Data))) == NULL)
+				if((item->data = calloc(1, sizeof(struct Data))) == NULL)
 					return ESYS;
 				item->functionId = parser->fName;
 			}
@@ -261,10 +265,10 @@ result_t parse_fn_body(parser_t *parser){
 result_t result=EOK;
 
 	tItemPtr varBlock;
-		if((varBlock = malloc(sizeof(struct tItem))) == NULL)
+		if((varBlock = calloc(1, sizeof(struct tItem))) == NULL)
 			return ESYS;
 
-		if((varBlock->data = malloc(sizeof(struct Data))) == NULL)
+		if((varBlock->data = calloc(1, sizeof(struct Data))) == NULL)
 			return ESYS;
 
 	result= parse_fn_declaration(parser, varBlock);
@@ -311,10 +315,10 @@ result_t result=EOK;
 		/***************** { <deklaracia> <parse_list> ****************************/
 		else if(TOKEN_HAS_TFLAG(&parser->token,SMBL_TYPE,LEFT_VINCULUM_SMBL)){
 			tItemPtr varBlock;
-				if((varBlock = malloc(sizeof(struct tItem))) == NULL)
+				if((varBlock = calloc(1, sizeof(struct tItem))) == NULL)
 					return ESYS;
 
-				if((varBlock->data = malloc(sizeof(struct Data))) == NULL)
+				if((varBlock->data = calloc(1, sizeof(struct Data))) == NULL)
 					return ESYS;
 			if ((result = parser_next_token(parser)) != EOK) {                 return result;             }
 
@@ -371,10 +375,10 @@ result_t result=EOK;
 				return ESYN;
 			printf("....NEW BLOCK....\n");
 			tItemPtr varBlock;
-				if((varBlock = malloc(sizeof(struct tItem))) == NULL)
+				if((varBlock = calloc(1, sizeof(struct tItem))) == NULL)
 					return ESYS;
 
-				if((varBlock->data = malloc(sizeof(struct Data))) == NULL)
+				if((varBlock->data = calloc(1, sizeof(struct Data))) == NULL)
 					return ESYS;
 
 			if ((result = parser_next_token(parser)) != EOK) {                 return result;             }
@@ -405,10 +409,10 @@ result_t result=EOK;
 				return ESYN;
 			printf("....NEW BLOCK....\n");
 			tItemPtr varBlock2;
-				if((varBlock2 = malloc(sizeof(struct tItem))) == NULL)
+				if((varBlock2 = calloc(1, sizeof(struct tItem))) == NULL)
 					return ESYS;
 
-				if((varBlock2->data = malloc(sizeof(struct Data))) == NULL)
+				if((varBlock2->data = calloc(1, sizeof(struct Data))) == NULL)
 					return ESYS;
 
 			if ((result = parser_next_token(parser)) != EOK) {                 return result;             }
@@ -459,22 +463,24 @@ result_t result=EOK;
 				return ESYN;
 
 			tItemPtr varBlock;
-				if((varBlock = malloc(sizeof(struct tItem))) == NULL)
+				if((varBlock = calloc(1, sizeof(struct tItem))) == NULL)
 					return ESYS;
 
-				if((varBlock->data = malloc(sizeof(struct Data))) == NULL)
+				if((varBlock->data = calloc(1, sizeof(struct Data))) == NULL)
 					return ESYS;
 
 			hName= generate_var_name(parser->hInt);
 			parser->hInt++;
-			varBlock->data[0].id=parser->token.data.sVal;
-			varBlock->data[0].hid=malloc(strlen(hName) + 1);
-			strcpy(varBlock->data[0].hid,hName);
+
+            if ((result = init_data_var(&varBlock->data[0], ZVAL_GET_STRING(&parser->token.data), hName)) != EOK) {
+                return result;
+            }
+
 			insertLast(varBlock,&parser->varList);
 
 			/*vlozenie riadiacje premennej do TS*/
 			tItem=createNewItem();
-			tItem->name=malloc(strlen(hName) + 1);
+			tItem->name=calloc(1, strlen(hName) + 1);
 			strcpy(tItem->name,hName);
 			tItem->dataType=varType;
 			insertHashTable(parser->table,tItem);
@@ -549,10 +555,10 @@ result_t result=EOK;
 				return ESYN;
 
 			tItemPtr varBlock2;
-				if((varBlock2 = malloc(sizeof(struct tItem))) == NULL)
+				if((varBlock2 = calloc(1, sizeof(struct tItem))) == NULL)
 					return ESYS;
 
-				if((varBlock2->data = malloc(sizeof(struct Data))) == NULL)
+				if((varBlock2->data = calloc(1, sizeof(struct Data))) == NULL)
 					return ESYS;
 
 			if ((result = parser_next_token(parser)) != EOK) {                 return result;             }
@@ -653,7 +659,7 @@ result_t result=EOK;
 			/****vyhdontenie vyrazu***/
 			/**vloznenie 3AK - skos s5**/
 		}
-		else if(TOKEN_HAS_TFLAG(&parser->token,KW_TYPE,INT_KW|DOUBLE_KW|STRING_KW|AUTO_KW)){
+		else if(TOKEN_HAS_TFLAG(&parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW|AUTO_KW)){
 			/***deklaracia mimo zaciatku bloku**/
 			result= parse_adv_declaration(parser);
 			if(result != EOK)
@@ -674,12 +680,12 @@ result_t parse_adv_declaration(parser_t *parser){
 
 	if ((result = parser_next_token(parser)) != EOK) {                 return result;             }
 
-	if(!TOKEN_IS(&parser->token,ID_TYPE))
+	if(!TOKEN_IS(&parser->token, ID_TYPE))
 		return ESYN;
 
 	int i = 0;
-	while(parser->varList.Last->data[i].id != NULL){
-		if(!strcmp(parser->token.data.sVal,parser->varList.Last->data[i].id))
+	while(parser->varList.Last->data[i].id != '\0'){
+		if(!strcmp(parser->token.data.sVal, parser->varList.Last->data[i].id))
 			return ESEM;
 		i++;
 	}
@@ -692,13 +698,14 @@ result_t parse_adv_declaration(parser_t *parser){
 
 	if((parser->varList.Last->data = realloc(parser->varList.Last->data, sizeof(struct Data) * (i+1) )) == NULL)
 		return ESYS;
-	parser->varList.Last->data[i].id=parser->token.data.sVal;
-	parser->varList.Last->data[i].hid=malloc(strlen(hName) + 1);
-	strcpy(parser->varList.Last->data[i].hid,hName);
+
+    if ((result = init_data_var(&parser->varList.Last->data[i], ZVAL_GET_STRING(&parser->token.data), hName)) != EOK) {
+        return result;
+    }
 
 	/***vytvorenie novej polozky do TS****/
 	tItem=createNewItem();
-	tItem->name=malloc(strlen(hName) + 1);
+	tItem->name=calloc(1, strlen(hName) + 1);
 	strcpy(tItem->name,hName);
 	tItem->dataType=varType;
 	insertHashTable(parser->table,tItem);
@@ -724,7 +731,6 @@ result_t parse_adv_declaration(parser_t *parser){
 
 	}else{
 		if ((result = parser_next_token(parser)) != EOK) {                 return result;             }
-
 
 		if(TOKEN_HAS_TFLAG(&parser->token,SMBL_TYPE,SEMICOLON_SMBL)){
 			return EOK;
@@ -778,16 +784,17 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock){
 	parser->hInt++;
 
 
-	if((varBlock->data = realloc(varBlock->data, sizeof(struct Data) * (parser->argsCounter+1) )) == NULL)
-		return ESYS;
-	varBlock->data[parser->argsCounter].id=parser->token.data.sVal;
-	varBlock->data[parser->argsCounter].hid=malloc(strlen(hName) + 1);
-	strcpy(varBlock->data[parser->argsCounter].hid,hName);
-	parser->argsCounter=parser->argsCounter+1;
+	if((varBlock->data = realloc(varBlock->data, sizeof(struct Data) * (parser->argsCounter+1) )) == NULL) {
+        return ESYS;
+    }
+
+    if ((result = init_data_var(&varBlock->data[parser->argsCounter++], ZVAL_GET_STRING(&parser->token.data), hName)) != EOK) {
+        return result;
+    }
 
 	/***vytvorenie novej polozky do TS****/
 	tItem=createNewItem();
-	tItem->name=malloc(strlen(hName) + 1);
+	tItem->name=calloc(1, strlen(hName) + 1);
 	strcpy(tItem->name,hName);
 	tItem->dataType=varType;
 	insertHashTable(parser->table,tItem);
@@ -942,7 +949,7 @@ result_t parse_build_in_fn(parser_t *parser){
 				hName = generate_var_name(parser->hInt);
 				parser->hInt++;
 				tItem1=createNewItem();
-				tItem1->name=malloc(strlen(hName) + 1);
+				tItem1->name=calloc(1, strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
 				tItem1->dataType=STRING_KW;
 				tItem1->sVal = parser->token.data.sVal;
@@ -995,7 +1002,7 @@ result_t parse_build_in_fn(parser_t *parser){
 				hName = generate_var_name(parser->hInt);
 				parser->hInt++;
 				tItem1=createNewItem();
-				tItem1->name=malloc(strlen(hName) + 1);
+				tItem1->name=calloc(1, strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
 				tItem1->dataType=STRING_KW;
 				tItem1->sVal = parser->token.data.sVal;
@@ -1022,7 +1029,7 @@ result_t parse_build_in_fn(parser_t *parser){
 				hName = generate_var_name(parser->hInt);
 				parser->hInt++;
 				tItem2=createNewItem();
-				tItem2->name=malloc(strlen(hName) + 1);
+				tItem2->name=calloc(1, strlen(hName) + 1);
 				strcpy(tItem2->name,hName);
 				tItem2->dataType=INT_KW;
 				tItem2->iVal = parser->token.data.iVal;
@@ -1051,7 +1058,7 @@ result_t parse_build_in_fn(parser_t *parser){
 				hName = generate_var_name(parser->hInt);
 				parser->hInt++;
 				tItem3=createNewItem();
-				tItem3->name=malloc(strlen(hName) + 1);
+				tItem3->name=calloc(1, strlen(hName) + 1);
 				strcpy(tItem3->name,hName);
 				tItem3->dataType=INT_KW;
 				tItem3->iVal = parser->token.data.iVal;
@@ -1099,7 +1106,7 @@ result_t parse_build_in_fn(parser_t *parser){
 				hName = generate_var_name(parser->hInt);
 				parser->hInt++;
 				tItem1=createNewItem();
-				tItem1->name=malloc(strlen(hName) + 1);
+				tItem1->name=calloc(1, strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
 				tItem1->dataType=STRING_KW;
 				tItem1->sVal = parser->token.data.sVal;
@@ -1127,7 +1134,7 @@ result_t parse_build_in_fn(parser_t *parser){
 				hName = generate_var_name(parser->hInt);
 				parser->hInt++;
 				tItem2=createNewItem();
-				tItem2->name=malloc(strlen(hName) + 1);
+				tItem2->name=calloc(1, strlen(hName) + 1);
 				strcpy(tItem2->name,hName);
 				tItem2->dataType=STRING_KW;
 				tItem2->sVal = parser->token.data.sVal;
@@ -1171,7 +1178,7 @@ result_t parse_build_in_fn(parser_t *parser){
 				hName = generate_var_name(parser->hInt);
 				parser->hInt++;
 				tItem1=createNewItem();
-				tItem1->name=malloc(strlen(hName) + 1);
+				tItem1->name=calloc(1, strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
 				tItem1->dataType=STRING_KW;
 				tItem1->sVal = parser->token.data.sVal;
@@ -1198,7 +1205,7 @@ result_t parse_build_in_fn(parser_t *parser){
 				hName = generate_var_name(parser->hInt);
 				parser->hInt++;
 				tItem2=createNewItem();
-				tItem2->name=malloc(strlen(hName) + 1);
+				tItem2->name=calloc(1, strlen(hName) + 1);
 				strcpy(tItem2->name,hName);
 				tItem2->dataType=STRING_KW;
 				tItem2->sVal = parser->token.data.sVal;
@@ -1242,7 +1249,7 @@ result_t parse_build_in_fn(parser_t *parser){
 				hName = generate_var_name(parser->hInt);
 				parser->hInt++;
 				tItem1=createNewItem();
-				tItem1->name=malloc(strlen(hName) + 1);
+				tItem1->name=calloc(1, strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
 				tItem1->dataType=STRING_KW;
 				tItem1->sVal = parser->token.data.sVal;
@@ -1305,7 +1312,7 @@ hTabItem * tableItem;
 		hTabItem * tItem1 = createNewItem();
 		hName= generate_var_name(parser->hInt);
 		parser->hInt++;
-		tItem1->name=malloc(strlen(hName) + 1);
+		tItem1->name=calloc(1, strlen(hName) + 1);
 		strcpy(tItem1->name,hName);
 		tItem1->dataType = INT_KW;
 		tItem1->iVal = parser->token.data.iVal;
@@ -1324,7 +1331,7 @@ hTabItem * tableItem;
 		hTabItem * tItem1 = createNewItem();
 		hName= generate_var_name(parser->hInt);
 		parser->hInt++;
-		tItem1->name=malloc(strlen(hName) + 1);
+		tItem1->name=calloc(1, strlen(hName) + 1);
 		strcpy(tItem1->name,hName);
 		tItem1->dataType = DOUBLE_KW;
 		tItem1->dVal = parser->token.data.dVal;
@@ -1343,7 +1350,7 @@ hTabItem * tableItem;
 		hTabItem * tItem1 = createNewItem();
 		hName= generate_var_name(parser->hInt);
 		parser->hInt++;
-		tItem1->name=malloc(strlen(hName) + 1);
+		tItem1->name=calloc(1, strlen(hName) + 1);
 		strcpy(tItem1->name,hName);
 		tItem1->dataType = STRING_KW;
         strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token.data));
@@ -1419,13 +1426,14 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item){
 				if((item->data = realloc(item->data, sizeof(struct Data) * (parser->argsCounter+1) )) == NULL){
 					return ESYS;
 				}
-				item->data[parser->argsCounter].id=parser->token.data.sVal;
-				item->data[parser->argsCounter].hid=malloc(strlen(hName) + 1);
-				strcpy(item->data[parser->argsCounter].hid,hName);
+
+                if ((result = init_data_var(&item->data[parser->argsCounter], ZVAL_GET_STRING(&parser->token.data), hName))) {
+                    return result;
+                }
 
 				/*vlozi parameter do TS -nazov, typ, funkciu a poradie*/
 				tItem=createNewItem();
-				tItem->name=malloc(strlen(hName) + 1);
+				tItem->name=calloc(1, strlen(hName) + 1);
 				strcpy(tItem->name,hName);
 				tItem->dataType=varType;
 				tItem->paramPosition=parser->argsCounter;

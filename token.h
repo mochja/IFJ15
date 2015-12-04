@@ -56,7 +56,8 @@
 #define MINUS_SMBL           0x20000U
 #define MULTIPLY_SMBL        0x40000U
 #define DEVIDE_SMBL          0x80000U
-#define ASSIGN_SMBL          0x100000U
+#define UV_SMBL              0x100000U
+#define ASSIGN_SMBL          0x200000U
 
 /*********FUNCTIONS***************/
 #define LENGTH_FN       0x02U
@@ -79,7 +80,7 @@
 #define TOKEN_SET_TYPE(x, t)            ((x)->type = t)
 #define TOKEN_SET_TYPE_WFLAG(x, t, f)   ((x)->type = t; (x)->flags = f)
 
-#define TOKEN_HAS_TFLAG(x, t, f)        ((((x)->flags & (f)) == (f)) && ((x)->type & t))
+#define TOKEN_HAS_TFLAG(x, t, f)        ((((x)->type & (t)) == (t)) && ((x)->flags & (f)))
 #define TOKEN_HAS_FLAG(x, f)            (((x)->flags & f))
 #define TOKEN_IS(x, t)                  ((x)->type & t)
 //#define TOKEN_IS(x, t)                  (((x)->type & t) == t)
