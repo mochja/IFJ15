@@ -16,6 +16,7 @@
 
 #include <string.h>
 
+#define ZVAL_GET_TYPE(x)    ((*x->data).type)
 #define ZVAL_GET_INT(x)     ((x)->iVal)
 #define ZVAL_GET_DOUBLE(x)  ((x)->dVal)
 #define ZVAL_GET_STRING(x)  ((x)->sVal)
@@ -29,6 +30,10 @@
 #define ZVAL_SET_STRING(x, v) (x)->type = T_STRING;         \
     (x)->sVal = malloc((strlen(v) + 1) * sizeof(char));     \
     strcpy((x)->sVal, v);
+
+#define ZVAL_INIT_STRING(x, v)                              \
+    (x) = malloc(sizeof(zval_t));                           \
+    ZVAL_SET_STRING(x, v)
 
 #define ZVAL_INIT_INT(x, v)                                 \
     (x) = malloc(sizeof(zval_t));                           \
