@@ -61,6 +61,21 @@ int main(int argc, char *argv[])
 
     token_t token;
     scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
+    scanner_get_next_token(&s, &token);
 
 //    parser_t parser;
 //    if ((res = init_parser(&parser, source)) != EOK) {
