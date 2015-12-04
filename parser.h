@@ -19,6 +19,8 @@
 #include "scaner.h"
 #include "list.h"
 #include "hash.h"
+#include "token.h"
+#include "zval.h"
 
 typedef struct t_parser{
 	tvarList varList;

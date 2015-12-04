@@ -81,7 +81,7 @@ tresult result=EOK;
 	if(parser->token.result != EOK && parser->token.result != EEOF)
 		return parser->token.result;
 
-	if(!TOKEN_IS(EOF_TYPE))
+	if(!TOKEN_IS(parser->token,EOF_TYPE))
 		return ESYN;
 
 	return result;
@@ -104,7 +104,7 @@ tresult result=EOK;
 	parser->token = nextToken();
 	if(parser->token.result != EOK)
 		return parser->token.result;
-	if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,MAIN_KW) && fType == INT){
+	if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,MAIN_KW) && fType == INT_KW){
 		/***********telo funkcie main**************/
 			parser->fName = "main";
 
@@ -260,13 +260,13 @@ tresult result=EOK;
 				return parser->token.result;
 
 
-			if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,INT_KW|DOUBLE_KW|STRING))	///mala by nasledovat dalsia funkcia
+			if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,INT_KW|DOUBLE_KW|STRING_KW))	///mala by nasledovat dalsia funkcia
 				result = function(parser);		//rekurzivne volanie pre spracovanie dalsej funkcie
-			else if(TOKEN_IS(EOF_TYPE))
+			else if(TOKEN_IS(parser->token,EOF_TYPE))
 				return ESEM;
 			else
 				return ESYN;	//ak nie je ziadna dalsia funkcia je to chyba
-	}else if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,MAIN_KW) && fType != INT)
+	}else if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,MAIN_KW) && fType != INT_KW)
 		return ESEM;
 	else result = ESYN;
 
@@ -303,17 +303,17 @@ tresult list(t_Parser * parser){
 tresult result=EOK;
 	
 		/*******************ID <priradenie> ; <list>************************/
-		if(parser->token.type == ID){
+		if(TOKEN_IS(parser->token,ID_TYPE)){
 			char * hName=NULL;
-			if((hName = varSearch(&parser->varList,parser->token.data.s)) == NULL){
-				if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+			if((hName = varSearch(&parser->varList,parser->token.data.sVal)) == NULL){
+				if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 					return ESEM;
 			}
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != ASSIGN)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,ASSIGN_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
@@ -331,7 +331,7 @@ tresult result=EOK;
 		}
 
 		/***************** { <deklaracia> <list> ****************************/
-		else if(parser->token.type == LEFT_VINCULUM){
+		else if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_VINCULUM_SMBL)){
 			tItemPtr varBlock;
 				if((varBlock = malloc(sizeof(struct tItem))) == NULL)
 					return ESYS;
@@ -357,13 +357,13 @@ tresult result=EOK;
 		}
 
 		/*************** } <list> ***********************/
-		else if(parser->token.type == RIGHT_VINCULUM){ 
+		else if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_VINCULUM_SMBL)){ 
 			printf("....END BLOCK....\n");	
 			deleteLast(&parser->varList);
 				return EOK;	
 		}
 		/*********** if ( <EXP> ) { <list> } else { <list> }*******************/
-		else if(parser->token.type == IF){
+		else if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,IF_KW)){
 
 			int elseLabel = parser->label;
 			int endLabel = ++parser->label;
@@ -373,7 +373,7 @@ tresult result=EOK;
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != LEFT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_CULUM_SMBL))
 				return ESYN;
 			
 
@@ -381,7 +381,7 @@ tresult result=EOK;
 			parser->token=nextToken();
 			if(parser->token.result != EOK)					///mala by sa volat precedencna analyza
 				return parser->token.result;
-			while(parser->token.type != RIGHT_CULUM){
+			while(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL)){
 				parser->token=nextToken();
 				if(parser->token.result != EOK)
 					return parser->token.result;
@@ -399,7 +399,7 @@ tresult result=EOK;
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != LEFT_VINCULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_VINCULUM_SMBL))
 				return ESYN;
 			printf("....NEW BLOCK....\n");
 			tItemPtr varBlock;
@@ -430,7 +430,7 @@ tresult result=EOK;
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != ELSE)
+			if(!TOKEN_HAS_TFLAG(parser->token,KW_TYPE,ELSE_KW))
 				return ESYN;
 			/******vlozenie 3AK - elseLabel*******/
 			printf("LABEL ELSE %d\n", elseLabel );
@@ -439,7 +439,7 @@ tresult result=EOK;
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != LEFT_VINCULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_VINCULUM_SMBL))
 				return ESYN;
 			printf("....NEW BLOCK....\n");
 			tItemPtr varBlock2;
@@ -468,7 +468,7 @@ tresult result=EOK;
 		}
 
 		/** for ( <deklaracia> ; <vyraz> ; priradenie) <list>**/
-		else if(parser->token.type == FOR){
+		else if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,FOR_KW)){
 			int expLabel = parser->label;
 			int assignLabel = ++parser->label;
 			int beginLabel = ++parser->label;
@@ -482,7 +482,7 @@ tresult result=EOK;
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != LEFT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_CULUM_SMBL))
 				return ESYN;
 
 			/**deklaracia riadiacej premennej**/
@@ -491,17 +491,17 @@ tresult result=EOK;
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != INT && parser->token.type != DOUBLE && parser->token.type != STRING && parser->token.type != AUTO)
+			if(!TOKEN_HAS_TFLAG(parser->token,KW_TYPE,INT_KW|DOUBLE_KW|STRING_KW|AUTO_KW))
 				return ESYN;
 
-			int varType = parser->token.type;
+			int varType = parser->token.flags;
 
 			parser->token=nextToken();
 
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != ID)
+			if(!TOKEN_IS(parser->token,ID_TYPE))
 				return ESYN;
 			
 			tItemPtr varBlock;
@@ -513,7 +513,7 @@ tresult result=EOK;
 
 			hName=generateName(parser->hInt,parser);
 			parser->hInt++;
-			varBlock->data[0].id=parser->token.data.s;
+			varBlock->data[0].id=parser->token.data.sVal;
 			varBlock->data[0].hid=malloc(strlen(hName) + 1);
 			strcpy(varBlock->data[0].hid,hName);
 			insertLast(varBlock,&parser->varList);
@@ -529,16 +529,16 @@ tresult result=EOK;
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type == ASSIGN){
-				parser->token=nextToken();
-				if(parser->token.result != EOK)
-					return parser->token.result;
+			if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,ASSIGN_SMBL)){
+			parser->token=nextToken();
+			if(parser->token.result != EOK)
+				return parser->token.result;
 
 			/*********hack vyrazu ******/
 			parser->token=nextToken();
 			if(parser->token.result != EOK)					///mala by sa volat precedencna analyza
 				return parser->token.result;
-			while(parser->token.type != SEMICOLON){
+			while(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL)){
 				parser->token=nextToken();
 				if(parser->token.result != EOK)
 					return parser->token.result;
@@ -547,7 +547,7 @@ tresult result=EOK;
 
 			/**vlozenie hodnoty riadiacej premennej podla vysledku assign()**/
 			/*******3AK, MV , #1, NULL, hName******/
-			}else if(parser->token.type != SEMICOLON){
+			}else if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL)){
 				return ESYN;
 			}
 
@@ -561,7 +561,7 @@ tresult result=EOK;
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			while(parser->token.type != SEMICOLON){				///mala by sa volat precedencna analyza
+			while(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL)){				///mala by sa volat precedencna analyza
 				parser->token=nextToken();
 				if(parser->token.result != EOK)
 					return parser->token.result;
@@ -579,23 +579,23 @@ tresult result=EOK;
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != ID)
+			if(!TOKEN_IS(parser->token,ID_TYPE))
 				return ESYN;
-			if((hNameID = varSearch(&parser->varList,parser->token.data.s)) == NULL){
-				if((hNameID = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+			if((hNameID = varSearch(&parser->varList,parser->token.data.sVal)) == NULL){
+				if((hNameID = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 				return ESEM;
 			}
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != ASSIGN)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,ASSIGN_SMBL))
 				return ESYN;
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 			
 			/*****hack*********/
-			while(parser->token.type != RIGHT_CULUM){				///mala by sa volat precedencna analyza
+			while(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL)){				///mala by sa volat precedencna analyza
 				parser->token=nextToken();
 				if(parser->token.result != EOK)
 					return parser->token.result;
@@ -613,7 +613,7 @@ tresult result=EOK;
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != LEFT_VINCULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_VINCULUM_SMBL))
 				return ESYN;
 
 			tItemPtr varBlock2;
@@ -649,23 +649,24 @@ tresult result=EOK;
 		}
 
 		/**cin |>> ID|*n ;**/
-		else if(parser->token.type == CIN){
+		else if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,CIN_KW)){
 		char * hName = NULL;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != DBL_ARR_RIGHT)
+
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,DBL_ARR_RIGHT_SMBL))
 				return ESYN;
 
-			while(parser->token.type == DBL_ARR_RIGHT){
+			while(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,DBL_ARR_RIGHT_SMBL)){
 				parser->token=nextToken();
 				if(parser->token.result != EOK)
 					return parser->token.result;
-				if(parser->token.type != ID)
+				if(!TOKEN_IS(parser->token,ID_TYPE))
 					return ESEM4;
-				if((hName = varSearch(&parser->varList,parser->token.data.s)) == NULL){
-					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+				if((hName = varSearch(&parser->varList,parser->token.data.sVal)) == NULL){
+					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 						return ESEM;
 				}
 				/**vygenerovanie 3AK - nacitanie zo SV do premennej hName**/
@@ -676,39 +677,39 @@ tresult result=EOK;
 					return parser->token.result;
 			}
 
-			if(parser->token.type != SEMICOLON)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL))
 				return ESYN;
 		}
 
 		/**cout |<< term |*n  ---- term==ID || TEXT || INT || DOUBLE**/
-		else if(parser->token.type == COUT){
+		else if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,COUT_KW)){
 			char * hName=NULL;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != DBL_ARR_LEFT)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,DBL_ARR_LEFT_SMBL))
 				return ESYN;
 
-			while(parser->token.type == DBL_ARR_LEFT){
+			while(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,DBL_ARR_LEFT_SMBL)){
 				parser->token=nextToken();
 				if(parser->token.result != EOK)
 					return parser->token.result;
 				
-				if(parser->token.type == ID){
-					if((hName = varSearch(&parser->varList,parser->token.data.s)) == NULL){
-						if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+				if(TOKEN_IS(parser->token,ID_TYPE)){
+					if((hName = varSearch(&parser->varList,parser->token.data.sVal)) == NULL){
+						if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 							return ESEM;
 					}
 					/**vlozenie 3AK - vypis na STDOUT z premennej hName**/
 					printf("\tCOUNT STDOUT %s\n",hName);
 				}
-				else if(parser->token.type == INT_NUM)
-					{printf("\tCOUNT STDOUT %d\n",parser->token.data.i);}/**vlozenie 3AK - vypis na STDOUT cislo parser->token.data.i**/
-				else if(parser->token.type == DOUBLE_NUM)
-					{printf("\tCOUNT STDOUT %f\n",parser->token.data.d);}/**vlozenie 3AK - vypis na STDOUT cislo parser->token.data.d**/
-				else if(parser->token.type == TEXT)
-					{printf("\tCOUNT STDOUT %s\n",parser->token.data.s);}/**vlozenie 3AK - vypis na STDOUT retazec parser->token.data.s**/
+				else if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,INT_CONST))
+					{printf("\tCOUNT STDOUT %d\n",parser->token.data.iVal);}/**vlozenie 3AK - vypis na STDOUT cislo parser->token.data.i**/
+				else if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,DOUBLE_CONST))
+					{printf("\tCOUNT STDOUT %f\n",parser->token.data.dVal);}/**vlozenie 3AK - vypis na STDOUT cislo parser->token.data.d**/
+				else if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,TEXT_CONST))
+					{printf("\tCOUNT STDOUT %s\n",parser->token.data.sVal);}/**vlozenie 3AK - vypis na STDOUT retazec parser->token.data.s**/
 				else return ESEM4;
 
 
@@ -716,18 +717,18 @@ tresult result=EOK;
 				if(parser->token.result != EOK)
 					return parser->token.result;
 			}
-			if(parser->token.type != SEMICOLON)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL))
 				return ESYN;
 		}
 
 		/**return <EXP> ;**/
-		else if(parser->token.type == RETURN){
+		else if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,RETURN_KW)){
 
 			/*********hack**********/
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;					///precedencna
-			while(parser->token.type != SEMICOLON){
+			while(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL)){
 				parser->token=nextToken();
 				if(parser->token.result != EOK)
 					return parser->token.result;
@@ -738,7 +739,7 @@ tresult result=EOK;
 			/****vyhdontenie vyrazu***/
 			/**vloznenie 3AK - skos s5**/
 		}
-		else if(parser->token.type == INT || parser->token.type == DOUBLE || parser->token.type == STRING || parser->token.type == AUTO ){
+		else if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,INT_KW|DOUBLE_KW|STRING_KW|AUTO_KW)){
 			/***deklaracia mimo zaciatku bloku**/
 			result=advDeclaration(parser);
 			if(result != EOK)
@@ -755,7 +756,7 @@ tresult result=EOK;
 
 tresult advDeclaration(t_Parser * parser){
 	tresult result=EOK;
-	int varType = parser->token.type;
+	int varType = parser->token.flags;
 	char * hName;
 	hTabItem * tItem;
 
@@ -763,17 +764,17 @@ tresult advDeclaration(t_Parser * parser){
 	if(parser->token.result != EOK)
 		return parser->token.result;
 
-	if(parser->token.type != ID)
+	if(!TOKEN_IS(parser->token,ID_TYPE))
 		return ESYN;
 
 	int i = 0;
 	while(parser->varList.Last->data[i].id != NULL){
-		if(!strcmp(parser->token.data.s,parser->varList.Last->data[i].id))
+		if(!strcmp(parser->token.data.sVal,parser->varList.Last->data[i].id))
 			return ESEM;
 		i++;
 	}
 
-	if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) != NULL)
+	if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) != NULL)
 		return ESEM;
 
 	hName=generateName(parser->hInt,parser);
@@ -781,7 +782,7 @@ tresult advDeclaration(t_Parser * parser){
 
 	if((parser->varList.Last->data = realloc(parser->varList.Last->data, sizeof(struct Data) * (i+1) )) == NULL)
 		return ESYS;
-	parser->varList.Last->data[i].id=parser->token.data.s;
+	parser->varList.Last->data[i].id=parser->token.data.sVal;
 	parser->varList.Last->data[i].hid=malloc(strlen(hName) + 1);
 	strcpy(parser->varList.Last->data[i].hid,hName);
 
@@ -792,13 +793,13 @@ tresult advDeclaration(t_Parser * parser){
 	tItem->dataType=varType;
 	insertHashTable(parser->table,tItem);
 
-	if(varType == AUTO){
+	if(varType == AUTO_KW){
 		parser->token = nextToken();
 
 		if(parser->token.result != EOK)
 			return parser->token.result;
 
-		if(parser->token.type != ASSIGN)
+		if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,ASSIGN_SMBL))
 			return ESYN;
 
 		parser->token = nextToken();
@@ -817,9 +818,9 @@ tresult advDeclaration(t_Parser * parser){
 		if(parser->token.result != EOK)
 			return parser->token.result;
 
-		if(parser->token.type == SEMICOLON){
+		if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL)){
 			return EOK;
-		}else if(parser->token.type == ASSIGN){
+		}else if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,ASSIGN_SMBL)){
 				parser->token = nextToken();
 				if(parser->token.result != EOK)
 					return parser->token.result;
@@ -840,11 +841,11 @@ tresult advDeclaration(t_Parser * parser){
 tresult declaration(tItemPtr varBlock,t_Parser * parser){
 	/**deklaracia premennych ----- vola sa na zacitku kazdeho bloku ****/
 	tresult result=EOK;
-	int varType = parser->token.type;
+	int varType = parser->token.flags;
 	char * hName;
 	hTabItem * tItem;
 
-	if(parser->token.type != INT && parser->token.type != DOUBLE && parser->token.type != STRING && parser->token.type != AUTO)
+	if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,INT_KW|DOUBLE_KW|STRING_KW|AUTO_KW))
 		return EOK;
 
 	parser->token=nextToken();
@@ -852,19 +853,19 @@ tresult declaration(tItemPtr varBlock,t_Parser * parser){
 	if(parser->token.result != EOK)
 		return parser->token.result;
 
-	if(parser->token.type != ID)
+	if(!TOKEN_IS(parser->token,ID_TYPE))
 		return ESYN;
 
 	/***vlozenie do bloku***/
 
 	int i = 0;
 	while(varBlock->data[i].id != NULL){
-		if(!strcmp(parser->token.data.s, varBlock->data[i].id))
+		if(!strcmp(parser->token.data.sVal, varBlock->data[i].id))
 			return ESEM;
 		i++;
 	}
 	
-	if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) != NULL)
+	if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) != NULL)
 		return ESEM;
 
 	hName=generateName(parser->hInt,parser);
@@ -873,7 +874,7 @@ tresult declaration(tItemPtr varBlock,t_Parser * parser){
 	
 	if((varBlock->data = realloc(varBlock->data, sizeof(struct Data) * (parser->argsCounter+1) )) == NULL)
 		return ESYS;
-	varBlock->data[parser->argsCounter].id=parser->token.data.s;
+	varBlock->data[parser->argsCounter].id=parser->token.data.sVal;
 	varBlock->data[parser->argsCounter].hid=malloc(strlen(hName) + 1);
 	strcpy(varBlock->data[parser->argsCounter].hid,hName);
 	parser->argsCounter=parser->argsCounter+1;
@@ -885,14 +886,14 @@ tresult declaration(tItemPtr varBlock,t_Parser * parser){
 	tItem->dataType=varType;
 	insertHashTable(parser->table,tItem);
 
-	if(varType == AUTO){
+	if(varType == AUTO_KW){
 
 		parser->token = nextToken();
 
 		if(parser->token.result != EOK)
 			return parser->token.result;
 
-		if(parser->token.type != ASSIGN)
+		if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,ASSIGN_SMBL))
 			return ESYN;
 		
 		parser->token = nextToken();
@@ -918,14 +919,14 @@ tresult declaration(tItemPtr varBlock,t_Parser * parser){
 		if(parser->token.result != EOK)
 			return parser->token.result;
 
-		if(parser->token.type == SEMICOLON){
+		if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL)){
 			parser->token = nextToken();
 
 			if(parser->token.result != EOK)
 				return parser->token.result;
 			result = declaration(varBlock,parser);
 		}
-		else if(parser->token.type == ASSIGN){
+		else if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,ASSIGN_SMBL)){
 				
 			parser->token = nextToken();
 			if(parser->token.result != EOK)
@@ -949,14 +950,15 @@ tresult declaration(tItemPtr varBlock,t_Parser * parser){
 
 tresult assign(t_Parser * parser){
 	tresult result=EOK;
-	if(parser->token.type == LENGTH || parser->token.type == SUBSTR || parser->token.type == CONCAT || parser->token.type == FIND || parser->token.type == SORT){
+
+	if(TOKEN_HAS_TFLAG(parser->token,FN_TYPE,LENGTH_FN|SUBSTR_FN|CONCAT_FN|FIND_FN|SORT_FN)){
 		result=buildInF(parser);
 	}
-	else if(parser->token.type == ID){
+	else if(TOKEN_IS(parser->token,ID_TYPE)){
 	hTabItem *tableItem;
-		if((tableItem=searchItem(parser->table,parser->token.data.s)) == NULL){
+		if((tableItem=searchItem(parser->table,parser->token.data.sVal)) == NULL){
 			/*********hack**********/				///precedencna
-			while(parser->token.type != SEMICOLON){
+			while(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL)){
 				parser->token=nextToken();
 				if(parser->token.result != EOK)
 					return parser->token.result;
@@ -967,7 +969,7 @@ tresult assign(t_Parser * parser){
 		tItemPtr item;
 		item=parser->paramList.First;
 			while(item != NULL){
-				if(!strcmp(item->functionId, parser->token.data.s))
+				if(!strcmp(item->functionId, parser->token.data.sVal))
 					break;
 				item=item->next;
 			}
@@ -978,20 +980,20 @@ tresult assign(t_Parser * parser){
 
 		if((tItem = searchItem(parser->table,parser->assignVarName)) == NULL)
 			return ESYS;
-		if(tItem->dataType != tableItem->dataType && tItem->dataType!=AUTO)
+		if(tItem->dataType != tableItem->dataType && tItem->dataType!=AUTO_KW)
 			return ESEM2;
 
 		parser->token=nextToken();
 		if(parser->token.result != EOK)
 			return parser->token.result;
-		if(parser->token.type != LEFT_CULUM)
+		if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_CULUM_SMBL))
 			return ESYN;
 
 		parser->token=nextToken();
 		if(parser->token.result != EOK)
 			return parser->token.result;	
 
-		if(parser->token.type != RIGHT_CULUM)
+		if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL))
 			result=params(item,parser);
 		if(result != EOK)
 			return result;
@@ -1004,15 +1006,15 @@ tresult assign(t_Parser * parser){
 		parser->token=nextToken();
 		if(parser->token.result != EOK)
 			return parser->token.result;
-		if(parser->token.type != SEMICOLON)
+		if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL))
 			return ESYN;
 
 		/***********3AK , JMP, LABEL, PARAMETRE, NULL***********/
 		}
-	}else if(parser->token.type != SEMICOLON){
+	}else if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL)){
 		
 		/*********hack**********/				///precedencna
-		while(parser->token.type != SEMICOLON){
+		while(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL)){
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
@@ -1030,44 +1032,44 @@ tresult buildInF(t_Parser * parser){
 	hTabItem * tItem2;
 	hTabItem * tItem3;
 
-	switch(parser->token.type)
+	switch(parser->token.flags)
 	{
-		case LENGTH:
+		case LENGTH_FN:
 			/******************Skontrolovat typ assignVarName v TS - musi byt INT**********************/
 			if((tItem = searchItem(parser->table,parser->assignVarName)) == NULL)
 				return ESYS;
-			if(tItem->dataType != INT && tItem->dataType != AUTO)
+			if(tItem->dataType != INT_KW && tItem->dataType != AUTO_KW)
 				return ESEM2;
 			
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != LEFT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_CULUM_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type == TEXT){
+			if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,TEXT_CONST)){
 				hName = generateName(parser->hInt,parser);
 				parser->hInt++;
 				tItem1=createNewItem();
 				tItem1->name=malloc(strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
-				tItem1->dataType=STRING;
-				tItem1->sVal = parser->token.data.s;
+				tItem1->dataType=STRING_KW;
+				tItem1->sVal = parser->token.data.sVal;
 				insertHashTable(parser->table,tItem1);
-			}else if(parser->token.type == ID){
+			}else if(TOKEN_IS(parser->token,ID_TYPE)){
 				/**********vyhladame polozku hName v TS*********/
 				/****zkontroluje datovy typ --- musi byt string***/
-				if((hName = varSearch(&parser->varList, parser->token.data.s)) == NULL){
-					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+				if((hName = varSearch(&parser->varList, parser->token.data.sVal)) == NULL){
+					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 						return ESEM;
 				}
 				if((tItem1 = searchItem(parser->table,hName)) == NULL)
 					return ESYS;
-				if(tItem1->dataType != STRING && tItem2->dataType!=AUTO)
+				if(tItem1->dataType != STRING_KW && tItem2->dataType!=AUTO_KW)
 					return ESEM2;
 			}
 			else return ESEM2;
@@ -1076,14 +1078,14 @@ tresult buildInF(t_Parser * parser){
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != RIGHT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != SEMICOLON)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL))
 				return ESYN;
 
 			//printf("volanie funkcie length --- parameter: %s\n",  tItem1->value.c );
@@ -1093,80 +1095,80 @@ tresult buildInF(t_Parser * parser){
 
 		break;
 		
-		case SUBSTR:
+		case SUBSTR_FN:
 			/******************Skontrolovat typ assignVarName v TS - musi byt STRING**********************/
 			if((tItem = searchItem(parser->table,parser->assignVarName)) == NULL)
 				return ESYS;
-			if(tItem->dataType != STRING && tItem->dataType != AUTO)
+			if(tItem->dataType != STRING_KW && tItem->dataType != AUTO_KW)
 				return ESEM2;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != LEFT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_CULUM_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type == TEXT){
+			if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,TEXT_CONST)){
 				hName = generateName(parser->hInt,parser);
 				parser->hInt++;
 				tItem1=createNewItem();
 				tItem1->name=malloc(strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
-				tItem1->dataType=STRING;
-				tItem1->sVal = parser->token.data.s;
+				tItem1->dataType=STRING_KW;
+				tItem1->sVal = parser->token.data.sVal;
 				insertHashTable(parser->table,tItem1);
-			}else if(parser->token.type == ID){
+			}else if(TOKEN_IS(parser->token,ID_TYPE)){
 				/**********vyhladame polozku hName v TS*********/
-				if((hName = varSearch(&parser->varList, parser->token.data.s)) == NULL){
-					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+				if((hName = varSearch(&parser->varList, parser->token.data.sVal)) == NULL){
+					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 						return ESEM;
 				}
 				if((tItem1 = searchItem(parser->table,hName)) == NULL)
 					return ESYS;
-				if(tItem1->dataType != STRING && tItem2->dataType!=AUTO)
+				if(tItem1->dataType != STRING_KW && tItem2->dataType!=AUTO_KW)
 					return ESEM2;
 			}else return ESEM2;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != COMMA)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,COMMA_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type == INT_NUM){
+			if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,INT_CONST)){
 				hName = generateName(parser->hInt,parser);
 				parser->hInt++;
 				tItem2=createNewItem();
 				tItem2->name=malloc(strlen(hName) + 1);
 				strcpy(tItem2->name,hName);
-				tItem2->dataType=INT;
-				tItem2->iVal = parser->token.data.i;
+				tItem2->dataType=INT_KW;
+				tItem2->iVal = parser->token.data.iVal;
 				insertHashTable(parser->table,tItem2);
-			}else if(parser->token.type == ID){
+			}else if(TOKEN_IS(parser->token,ID_TYPE)){
 			/**********vyhladame polozku hName v TS*********/
-				if((hName = varSearch(&parser->varList, parser->token.data.s)) == NULL){
-					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+				if((hName = varSearch(&parser->varList, parser->token.data.sVal)) == NULL){
+					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 						return ESEM;
 				}
 
 				if((tItem2 = searchItem(parser->table,hName)) == NULL)
 					return ESYS;
-				if(tItem2->dataType != INT && tItem2->dataType!=AUTO)
+				if(tItem2->dataType != INT_KW && tItem2->dataType!=AUTO_KW)
 					return ESEM2;
 			}else return ESEM2;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != COMMA)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,COMMA_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
@@ -1174,37 +1176,37 @@ tresult buildInF(t_Parser * parser){
 				return parser->token.result;
 	
 
-			if(parser->token.type == INT_NUM){
+			if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,INT_CONST)){
 				hName = generateName(parser->hInt,parser);
 				parser->hInt++;
 				tItem3=createNewItem();
 				tItem3->name=malloc(strlen(hName) + 1);
 				strcpy(tItem3->name,hName);
-				tItem3->dataType=INT;
-				tItem3->iVal = parser->token.data.i;
+				tItem3->dataType=INT_KW;
+				tItem3->iVal = parser->token.data.iVal;
 				insertHashTable(parser->table,tItem3);
-			}else if(parser->token.type == ID){
+			}else if(TOKEN_IS(parser->token,ID_TYPE)){
 			/**********vyhladame polozku hName v TS*********/
-				if((hName = varSearch(&parser->varList, parser->token.data.s)) == NULL){
-					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+				if((hName = varSearch(&parser->varList, parser->token.data.sVal)) == NULL){
+					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 						return ESEM;
 				}
 				if((tItem2 = searchItem(parser->table,hName)) == NULL)
 					return ESYS;
-				if(tItem2->dataType != INT && tItem2->dataType!=AUTO)
+				if(tItem2->dataType != INT_KW && tItem2->dataType!=AUTO_KW)
 					return ESEM2;
 			}else return ESEM2;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != RIGHT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != SEMICOLON)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL))
 				return ESYN;	
 
 			
@@ -1212,222 +1214,222 @@ tresult buildInF(t_Parser * parser){
 			/***********************3AK -- SUBSTR , p1 , p2 , p3******************************/
 			/***********************3AK -- MV , searchTS(#1),NULL,searchTS(assignVarName)******/
 		break;
-		case CONCAT:
+		case CONCAT_FN:
 
 		/******************Skontrolovat typ assignVarName v TS - musi byt STRING**********************/
 			if((tItem = searchItem(parser->table,parser->assignVarName)) == NULL)
 				return ESYS;
-			if(tItem->dataType != STRING && tItem->dataType != AUTO)
+			if(tItem->dataType != STRING_KW && tItem->dataType != AUTO_KW)
 				return ESEM2;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != LEFT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_CULUM_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type == TEXT){
+			if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,TEXT_CONST)){
 				hName = generateName(parser->hInt,parser);
 				parser->hInt++;
 				tItem1=createNewItem();
 				tItem1->name=malloc(strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
-				tItem1->dataType=STRING;
-				tItem1->sVal = parser->token.data.s;
+				tItem1->dataType=STRING_KW;
+				tItem1->sVal = parser->token.data.sVal;
 				insertHashTable(parser->table,tItem1);
-			}else if(parser->token.type == ID){
+			}else if(TOKEN_IS(parser->token,ID_TYPE)){
 			/**********vyhladame polozku hName v TS*********/
-				if((hName = varSearch(&parser->varList, parser->token.data.s)) == NULL){
-					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+				if((hName = varSearch(&parser->varList, parser->token.data.sVal)) == NULL){
+					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 						return ESEM;
 				}
 				if((tItem1 = searchItem(parser->table,hName)) == NULL)
 					return ESYS;
-				if(tItem1->dataType != STRING && tItem2->dataType!=AUTO)
+				if(tItem1->dataType != STRING_KW && tItem2->dataType!=AUTO_KW)
 					return ESEM2;
 			}else return ESEM2;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != COMMA)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,COMMA_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type == TEXT){
+			if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,TEXT_CONST)){
 			/**********vyhladame polozku hName v TS*********/
 				hName = generateName(parser->hInt,parser);
 				parser->hInt++;
 				tItem2=createNewItem();
 				tItem2->name=malloc(strlen(hName) + 1);
 				strcpy(tItem2->name,hName);
-				tItem2->dataType=STRING;
-				tItem2->sVal = parser->token.data.s;
+				tItem2->dataType=STRING_KW;
+				tItem2->sVal = parser->token.data.sVal;
 				insertHashTable(parser->table,tItem2);
-			}else if(parser->token.type == ID){
-				if((hName = varSearch(&parser->varList, parser->token.data.s)) == NULL){
-					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+			}else if(TOKEN_IS(parser->token,ID_TYPE)){
+				if((hName = varSearch(&parser->varList, parser->token.data.sVal)) == NULL){
+					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 						return ESEM;
 				}
 				if((tItem2 = searchItem(parser->table,hName)) == NULL)
 					return ESYS;
-				if(tItem2->dataType != STRING && tItem2->dataType!=AUTO)
+				if(tItem2->dataType != STRING_KW && tItem2->dataType!=AUTO_KW)
 					return ESEM2;
 			}else return ESEM2;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != RIGHT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != SEMICOLON)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL))
 				return ESYN;
 
 			//printf("volanie funkcie concat--- parameter 1: %s ,parameter 2: %s\n",  tItem1->value.c, tItem2->value.c);
 
 		break;
-		case FIND: 
+		case FIND_FN: 
 		/******************Skontrolovat typ assignVarName v TS - musi byt INT**********************/
 			if((tItem = searchItem(parser->table,parser->assignVarName)) == NULL)
 				return ESYS;
-			if(tItem->dataType != INT && tItem->dataType != AUTO)
+			if(tItem->dataType != INT_KW && tItem->dataType != AUTO_KW)
 				return ESEM2;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != LEFT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_CULUM_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type == TEXT){
+			if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,TEXT_CONST)){
 				hName = generateName(parser->hInt,parser);
 				parser->hInt++;
 				tItem1=createNewItem();
 				tItem1->name=malloc(strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
-				tItem1->dataType=STRING;
-				tItem1->sVal = parser->token.data.s;
+				tItem1->dataType=STRING_KW;
+				tItem1->sVal = parser->token.data.sVal;
 				insertHashTable(parser->table,tItem1);
-			}else if(parser->token.type == ID){
+			}else if(TOKEN_IS(parser->token,ID_TYPE)){
 				/**********vyhladame polozku hName v TS*********/
-				if((hName = varSearch(&parser->varList, parser->token.data.s)) == NULL){
-					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+				if((hName = varSearch(&parser->varList, parser->token.data.sVal)) == NULL){
+					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 						return ESEM;
 				}
 				if((tItem1 = searchItem(parser->table,hName)) == NULL)
 					return ESYS;
-				if(tItem1->dataType != STRING && tItem2->dataType!=AUTO)
+				if(tItem1->dataType != STRING_KW && tItem2->dataType!=AUTO_KW)
 					return ESEM2;
 			}else return ESEM2;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != COMMA)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,COMMA_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type == TEXT){
+			if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,TEXT_CONST)){
 				hName = generateName(parser->hInt,parser);
 				parser->hInt++;
 				tItem2=createNewItem();
 				tItem2->name=malloc(strlen(hName) + 1);
 				strcpy(tItem2->name,hName);
-				tItem2->dataType=STRING;
-				tItem2->sVal = parser->token.data.s;
+				tItem2->dataType=STRING_KW;
+				tItem2->sVal = parser->token.data.sVal;
 				insertHashTable(parser->table,tItem2);
-			}else if(parser->token.type == ID){
+			}else if(TOKEN_IS(parser->token,ID_TYPE)){
 				/**********vyhladame polozku hName v TS*********/
-				if((hName = varSearch(&parser->varList, parser->token.data.s)) == NULL){
-					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+				if((hName = varSearch(&parser->varList, parser->token.data.sVal)) == NULL){
+					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 						return ESEM;
 				}
 				if((tItem2 = searchItem(parser->table,hName)) == NULL)
 					return ESYS;
-				if(tItem2->dataType != STRING && tItem2->dataType!=AUTO)
+				if(tItem2->dataType != STRING_KW && tItem2->dataType!=AUTO_KW)
 					return ESEM2;
 			}else return ESEM2;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != RIGHT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != SEMICOLON)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL))
 				return ESYN;
 
 	//	printf("volanie funkcie find--- parameter 1: %s ,parameter 2: %s\n",  tItem1->value.c, tItem2->value.c);
 		break;
-		case SORT: 
+		case SORT_FN: 
 		/******************Skontrolovat typ assignVarName v TS - musi byt STRING**********************/
 			if((tItem = searchItem(parser->table,parser->assignVarName)) == NULL)
 				return ESYS;
-			if(tItem->dataType != STRING && tItem->dataType != AUTO)
+			if(tItem->dataType != STRING_KW && tItem->dataType != AUTO_KW)
 				return ESEM2;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != LEFT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_CULUM_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type == TEXT){
+			if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,TEXT_CONST)){
 				hName = generateName(parser->hInt,parser);
 				parser->hInt++;
 				tItem1=createNewItem();
 				tItem1->name=malloc(strlen(hName) + 1);
 				strcpy(tItem1->name,hName);
-				tItem1->dataType=STRING;
-				tItem1->sVal = parser->token.data.s;
+				tItem1->dataType=STRING_KW;
+				tItem1->sVal = parser->token.data.sVal;
 				insertHashTable(parser->table,tItem1);
-			}else if(parser->token.type == ID){
+			}else if(TOKEN_IS(parser->token,ID_TYPE)){
 			/**********vyhladame polozku hName v TS*********/
-				if((hName = varSearch(&parser->varList, parser->token.data.s)) == NULL){
-					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+				if((hName = varSearch(&parser->varList, parser->token.data.sVal)) == NULL){
+					if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 						return ESEM;
 				}
 				if((tItem1 = searchItem(parser->table,hName)) == NULL)
 					return ESYS;
-				if(tItem1->dataType != STRING && tItem2->dataType!=AUTO)
+				if(tItem1->dataType != STRING_KW && tItem2->dataType!=AUTO_KW)
 					return ESEM2;
 			}else return ESEM2;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != RIGHT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL))
 				return ESYN;
 
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
-			if(parser->token.type != SEMICOLON)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL))
 				return ESYN;
 
 		break;
@@ -1440,29 +1442,29 @@ tresult result=EOK;
 char * hName;
 hTabItem * tableItem;
 
-	if(parser->token.type == ID){
+	if(TOKEN_IS(parser->token,ID_TYPE)){
 		hTabItem * tItem1;
 
 		if((tableItem=searchItem(parser->table,item->data[parser->argsCounter1].hid)) == NULL)
 			return ESYS;
-		if((hName = varSearch(&parser->varList,parser->token.data.s)) == NULL){
-			if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.s)) == NULL)
+		if((hName = varSearch(&parser->varList,parser->token.data.sVal)) == NULL){
+			if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 				return ESEM;
 		}
 		if((tItem1=searchItem(parser->table,hName)) == NULL)
 			return ESYS;
 
-		if(tableItem->dataType != AUTO && tableItem->dataType != tItem1->dataType && tItem1->dataType!=AUTO)
+		if(tableItem->dataType != AUTO_KW && tableItem->dataType != tItem1->dataType && tItem1->dataType!=AUTO_KW)
 			return ESEM2;
 		printf("ID ide\n");
 
 		/****************parameter tItem1*****************/
 	}
-	else if(parser->token.type == INT_NUM){
+	else if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,INT_CONST)){
 		if((tableItem=searchItem(parser->table,item->data[parser->argsCounter1].hid)) == NULL)
 			return ESYS;
 		
-		if(tableItem->dataType != INT && tableItem->dataType != AUTO)
+		if(tableItem->dataType != INT_KW && tableItem->dataType != AUTO_KW)
 			return ESEM2;
 
 		hTabItem * tItem1 = createNewItem();
@@ -1470,18 +1472,18 @@ hTabItem * tableItem;
 		parser->hInt++;
 		tItem1->name=malloc(strlen(hName) + 1);
 		strcpy(tItem1->name,hName);
-		tItem1->dataType = INT;
-		tItem1->iVal = parser->token.data.i;
+		tItem1->dataType = INT_KW;
+		tItem1->iVal = parser->token.data.iVal;
 		insertHashTable(parser->table,tItem1);
 
 		/**************************************/
 
 	}
-	else if(parser->token.type == DOUBLE_NUM){
+	else if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,DOUBLE_CONST)){
 		if((tableItem=searchItem(parser->table,item->data[parser->argsCounter1].hid)) == NULL)
 			return ESYS;
 
-		if(tableItem->dataType != DOUBLE && tableItem->dataType != AUTO)
+		if(tableItem->dataType != DOUBLE_KW && tableItem->dataType != AUTO_KW)
 			return ESEM2;
 
 		hTabItem * tItem1 = createNewItem();
@@ -1489,18 +1491,18 @@ hTabItem * tableItem;
 		parser->hInt++;
 		tItem1->name=malloc(strlen(hName) + 1);
 		strcpy(tItem1->name,hName);
-		tItem1->dataType = DOUBLE;
-		tItem1->dVal = parser->token.data.d;
+		tItem1->dataType = DOUBLE_KW;
+		tItem1->dVal = parser->token.data.dVal;
 		insertHashTable(parser->table,tItem1);
 
 		/****************************************/
 
 	}
-	else if(parser->token.type == TEXT){
+	else if(TOKEN_HAS_TFLAG(parser->token,CONST_TYPE,TEXT_CONST)){
 		if((tableItem=searchItem(parser->table,item->data[parser->argsCounter1].hid)) == NULL)
 			return ESYS;
 
-		if(tableItem->dataType != STRING && tableItem->dataType != AUTO)
+		if(tableItem->dataType != STRING_KW && tableItem->dataType != AUTO_KW)
 			return ESEM2;
 
 		hTabItem * tItem1 = createNewItem();
@@ -1508,8 +1510,8 @@ hTabItem * tableItem;
 		parser->hInt++;
 		tItem1->name=malloc(strlen(hName) + 1);
 		strcpy(tItem1->name,hName);
-		tItem1->dataType = STRING;
-		tItem1->sVal = parser->token.data.s;
+		tItem1->dataType = STRING_KW;
+		tItem1->sVal = parser->token.data.sVal;
 		insertHashTable(parser->table,tItem1);
 
 		/**************************************/
@@ -1521,13 +1523,13 @@ hTabItem * tableItem;
 	parser->token=nextToken();
 	if(parser->token.result != EOK)
 		return parser->token.result;
-	if(parser->token.type == COMMA){
+	if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,COMMA_SMBL)){
 		parser->token=nextToken();
 		if(parser->token.result != EOK)
 			return parser->token.result;
 		result=params(item,parser);
 	}
-	else if(parser->token.type == RIGHT_CULUM){
+	else if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL)){
 		return EOK;
 	}
 	else return ESYN;
@@ -1536,23 +1538,23 @@ hTabItem * tableItem;
 tresult args(tItemPtr item,t_Parser * parser){
 	/******spracovanie argumentov funkcii********/	
 		tresult result=EOK;
-		int varType = parser->token.type;
+		int varType = parser->token.flags;
 		hTabItem * tItem;
-		if(parser->token.type != INT && parser->token.type != DOUBLE && parser->token.type != STRING)
+		if(!TOKEN_HAS_TFLAG(parser->token,KW_TYPE,INT_KW|DOUBLE_KW|STRING_KW))
 			return ESYN;
 
 		parser->token=nextToken();
 		if(parser->token.result != EOK)
 			return parser->token.result;
 
-		if(parser->token.type != ID)
+		if(TOKEN_IS(parser->token,ID_TYPE))
 			return ESYN;
 
 			if(parser->fDeclared){
 				char * hName = NULL;
 				int i = 0;
 				while(item->data[i].id != NULL){
-					if(!strcmp(parser->token.data.s, item->data[i].id))
+					if(!strcmp(parser->token.data.sVal, item->data[i].id))
 					{
 						hName = item->data[i].hid;
 						break;
@@ -1578,7 +1580,7 @@ tresult args(tItemPtr item,t_Parser * parser){
 				int i = 0;
 
 				while(item->data[i].id != NULL){
-					if(!strcmp(parser->token.data.s, item->data[i].id))
+					if(!strcmp(parser->token.data.sVal, item->data[i].id))
 						return ESEM;
 					i++;
 				}
@@ -1586,7 +1588,7 @@ tresult args(tItemPtr item,t_Parser * parser){
 				if((item->data = realloc(item->data, sizeof(struct Data) * (parser->argsCounter+1) )) == NULL){
 					return ESYS;
 				}
-				item->data[parser->argsCounter].id=parser->token.data.s;
+				item->data[parser->argsCounter].id=parser->token.data.sVal;
 				item->data[parser->argsCounter].hid=malloc(strlen(hName) + 1);
 				strcpy(item->data[parser->argsCounter].hid,hName);
 
@@ -1608,11 +1610,11 @@ tresult args(tItemPtr item,t_Parser * parser){
 		if(parser->token.result != EOK)
 			return parser->token.result;
 
-		if(parser->token.type == RIGHT_CULUM){
+		if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL)){
 			return EOK;
 		}
 		else
-		if(parser->token.type == COMMA){
+		if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,COMMA_SMBL)){
 			parser->token=nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
