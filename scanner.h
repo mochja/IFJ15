@@ -14,6 +14,7 @@
 #ifndef SCANNER_H_
 #define SCANNER_H_
 
+#include <stdio.h>
 #include <ctype.h>
 #include "globals.h"
 #include "token.h"
@@ -26,5 +27,6 @@ typedef struct {
 
 result_t init_scanner(scanner_t *s, const char *source);
 result_t scanner_get_next_token(scanner_t *s, token_t *dest);
+void destroy_scanner(scanner_t *s);
 
 #endif // SCANNER_H_

@@ -12,7 +12,6 @@
  */
 
 #include "scanner.h"
-#include <stdio.h>
 
 /*********************zoznam stavov***********************************/
 enum {
@@ -48,6 +47,11 @@ result_t init_scanner(scanner_t *s, const char *source) {
     return EOK;
 }
 
+void destroy_scanner(scanner_t *s) {
+    if (s->source) {
+        free(s->source);
+    }
+}
 
 result_t scanner_get_next_token(scanner_t *scanner, token_t *dest)
 {

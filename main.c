@@ -40,12 +40,12 @@ static char* read_source_file(const char *filename) {
 
 int main(int argc, char *argv[])
 {
-    result_t res = EOK;
+    result_t res;
 
     if (argc < 2) {
         // print help, usage...
         printf("usage %s source_file\n", argv[0]);
-        return 1;
+        return ESYS;
     }
 
     char *source = read_source_file(argv[1]);
@@ -59,23 +59,7 @@ int main(int argc, char *argv[])
         return res;
     }
 
-    token_t token;
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
-    scanner_get_next_token(&s, &token);
+    destroy_scanner(&s);
 
 //    parser_t parser;
 //    if ((res = init_parser(&parser, source)) != EOK) {
