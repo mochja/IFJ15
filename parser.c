@@ -32,20 +32,19 @@ return EOK;
 }
 
 char * generateName(int number,t_Parser * parser){
-	
 	sprintf(parser->buffer, "$%d" , number);
 	return parser->buffer;
 }
 
 tresult parse(t_Parser * parser){
-/**incializacia  ---- overenie prazdnosti zdrojaku */
+/**incializacia  ---- overenie prazdnosti zdrojaku **/
  tresult result=EOK;
 	
 
 	/********MISSING: incializacia pola 3 adres. kodu*/
 
 	parser->token = nextToken();
-	if(parser->token.type == END_OF_FILE)
+	if(TOKEN_IS(parser->token,EOF_TYPE))
 		return ESYN;
 	if(parser->token.result != EOK)
 		return parser->token.result;
@@ -70,7 +69,7 @@ tresult program(t_Parser * parser){
 /**overim prvy parser->token**/
 tresult result=EOK;
 
-	if(parser->token.type != INT && parser->token.type != DOUBLE && parser->token.type != STRING)
+	if(!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW ))
 		return ESYN;
 
 	result = function(parser);
@@ -79,10 +78,10 @@ tresult result=EOK;
 		return result;
 
 	parser->token = nextToken();
-	if(parser->token.result != EOK && parser->token.result!= EEOF)
+	if(parser->token.result != EOK && parser->token.result != EEOF)
 		return parser->token.result;
 
-	if(parser->token.type != END_OF_FILE)
+	if(!TOKEN_IS(EOF_TYPE))
 		return ESYN;
 
 	return result;
@@ -100,12 +99,12 @@ tresult result=EOK;
 tresult function(t_Parser * parser){
 tresult result=EOK;
 
-	int fType = parser->token.type;
+	int fType = parser->token.flags;
 
 	parser->token = nextToken();
 	if(parser->token.result != EOK)
 		return parser->token.result;
-	if(parser->token.type == MAIN && fType == INT){
+	if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,MAIN_KW) && fType == INT){
 		/***********telo funkcie main**************/
 			parser->fName = "main";
 
@@ -113,14 +112,14 @@ tresult result=EOK;
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != LEFT_CULUM) // (
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_CULUM_SMBL)) // (
 				return ESYN;
 
 			parser->token = nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != RIGHT_CULUM)	// )
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL))	// )
 				return ESYN;
 
 			tItemPtr item;
@@ -136,7 +135,7 @@ tresult result=EOK;
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != LEFT_VINCULUM) // {
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_VINCULUM_SMBL))// {
 				return ESYN;
 
 			/********MISSING: vlozenie 3AK -- label zaciatku funkcie main********/
@@ -146,7 +145,7 @@ tresult result=EOK;
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != RIGHT_VINCULUM)		//ak nie je funkcia prazdna
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_VINCULUM_SMBL))		//ak nie je funkcia prazdna
 				result = body(parser);
 										
 			if(result != EOK)
@@ -154,10 +153,10 @@ tresult result=EOK;
 
 			return EOK;				/// po main uz ziadne dalsie rekurzivne volanie ---- main je posledna funkcia v programe
 	}
-	else if(parser->token.type = ID){
+	else if(TOKEN_IS(parser->token,ID_TYPE)){
 		/*****************telo funkcie*************/
-			parser->fName = parser->token.data.s;
-			char *fLabel = parser->token.data.s;
+			parser->fName = parser->token.data.sVal;
+			char *fLabel = parser->token.data.sVal;
 			parser->fDeclared = false;
 				/********MISSSING: kontrola ts**********************/
 
@@ -200,14 +199,14 @@ tresult result=EOK;
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != LEFT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_CULUM_SMBL))
 				return ESYN;
 
 			parser->token = nextToken();
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type != RIGHT_CULUM)
+			if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL))
 				result=args(item,parser);    //parsovanie argumentov funkcie
 
 			if(result != EOK)
@@ -230,7 +229,7 @@ tresult result=EOK;
 			if(parser->token.result != EOK)
 				return parser->token.result;
 
-			if(parser->token.type == LEFT_VINCULUM && tableItem->isDefined==false)
+			if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_VINCULUM_SMBL) && tableItem->isDefined==false)
 			{
 				tableItem->isDefined=true;
 				/********MISSING: vlozenie 3AK -- label zaciatku funkcie*******/
@@ -240,7 +239,7 @@ tresult result=EOK;
 				if(parser->token.result != EOK)
 					return parser->token.result;
 	
-				if(parser->token.type != RIGHT_VINCULUM)		//ak nie je funkcia prazdna
+				if(!TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_VINCULUM_SMBL))		//ak nie je funkcia prazdna
 					result = body(parser);
 	
 				if(result != EOK)
@@ -249,9 +248,9 @@ tresult result=EOK;
 				/********MISSING: vlozenie 3AK -- navrat z funkcie*******/
 				printf("LABEL ENDF %s\n", fLabel );
 			}
-			else if(parser->token.type == LEFT_VINCULUM && tableItem->isDefined==true)
+			else if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,LEFT_VINCULUM_SMBL) && tableItem->isDefined==true)
 				return ESEM;
-			else if(parser->token.type == SEMICOLON)
+			else if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,SEMICOLON_SMBL))
 				result=EOK;
 			else
 				return ESYN;
@@ -260,13 +259,14 @@ tresult result=EOK;
 			if(parser->token.result != EOK)	//lexikalna alebo systemova chyba
 				return parser->token.result;
 
-			if(parser->token.type == INT || parser->token.type == DOUBLE || parser->token.type == STRING)	///mala by nasledovat dalsia funkcia
+
+			if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,INT_KW|DOUBLE_KW|STRING))	///mala by nasledovat dalsia funkcia
 				result = function(parser);		//rekurzivne volanie pre spracovanie dalsej funkcie
-			else if(parser->token.type == END_OF_FILE)
+			else if(TOKEN_IS(EOF_TYPE))
 				return ESEM;
 			else
 				return ESYN;	//ak nie je ziadna dalsia funkcia je to chyba
-	}else if(parser->token.type == MAIN && fType != INT)
+	}else if(TOKEN_HAS_TFLAG(parser->token,KW_TYPE,MAIN_KW) && fType != INT)
 		return ESEM;
 	else result = ESYN;
 
