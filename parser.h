@@ -14,10 +14,31 @@
 #ifndef PARSER_H_
 #define PARSER_H_
 
+#include <stdbool.h>
 #include "scaner.h"
+#include "scaner.h"
+#include "list.h"
+#include "hash.h"
+#include "token.h"
+#include "zval.h"
 
-struct T_Token token;
+typedef struct t_parser{
+	tvarList varList;
+	tvarList paramList;
+	char * fName;
+	int argsCounter;
+	int argsCounter1;
+	bool fDeclared;
+	int hInt;
+	int label;
+	char buffer[20];
+	char * assignVarName;
+	tTable *table;
+	struct __token_t token;
+}t_Parser;
 
+
+tresult init_parser(t_Parser *parser);
 tresult parse();
 tresult program();
 tresult function();
