@@ -20,27 +20,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include "globals.h"
+#include "token.h"
+#include "parser.h"
 
-typedef struct
-{
+typedef struct {
   char* str;
-  int length;
-  int allocSize;
+  size_t length;
+  size_t allocSize;
 } string;
 
-struct T_Token
-{
-    int type;
-    union
-    {
-        char*   s;
-        int     i;
-        double  d;
-    }data;
-    tresult result;
-};
-
-FILE *source;
-struct T_Token nextToken();
+token_t nextToken(parser_t *parser);
 
 #endif // SCANER_H_

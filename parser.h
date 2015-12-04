@@ -22,7 +22,7 @@
 #include "token.h"
 #include "zval.h"
 
-typedef struct t_parser{
+typedef struct {
 	tvarList varList;
 	tvarList paramList;
 	char * fName;
@@ -34,21 +34,23 @@ typedef struct t_parser{
 	char buffer[20];
 	char * assignVarName;
 	tTable *table;
-	struct __token_t token;
-}t_Parser;
+	token_t token;
 
+    char *source;
+} parser_t;
 
-tresult init_parser(t_Parser *parser);
-tresult parse();
-tresult program();
-tresult function();
-tresult body();
-tresult declaration();
-tresult advDeclaration();
-tresult args();
-tresult buildInF();
-tresult params();
-tresult assign();
-tresult list();
+result_t init_parser(parser_t *parser, const char *source);
+result_t parse(parser_t *parser);
+result_t program(parser_t *parser);
+result_t function(parser_t *parser)
+
+//result_t body();
+//result_t declaration();
+//result_t advDeclaration();
+//result_t args();
+//result_t buildInF();
+//result_t params();
+//result_t assign();
+//result_t list();
 
 #endif // PARSER_H_

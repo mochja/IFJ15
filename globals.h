@@ -24,7 +24,7 @@ typedef enum {
     ESEM4,
     EEOF,
     ESYS = 99,
-} tresult;
+} result_t;
 
 #define CHECK_FLAG(x, t)                (((x) & (t)) == (t))
 #define HAS_FLAG(x, t)                  ((x) & (t))

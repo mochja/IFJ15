@@ -12,6 +12,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "globals.h"
+#include "parser.h"
 
 static char* read_source_file(const char *filename) {
     FILE *f;
@@ -38,6 +40,7 @@ static char* read_source_file(const char *filename) {
 
 int main(int argc, char *argv[])
 {
+    result_t res = EOK;
 
     if (argc < 2) {
         // print help, usage...
@@ -47,6 +50,13 @@ int main(int argc, char *argv[])
 
     char *source = read_source_file(argv[1]);
 
+//    parser_t parser;
+//    if ((res = init_parser(&parser, source)) != EOK) {
+//        printf("Parser Init failed\n");
+//    } else {
+//        res = parse(&parser);
+//    }
+
     free(source);
-    return 0;
+    return res;
 }

@@ -16,6 +16,7 @@
 
 #include "klist.h"
 #include "zval.h"
+#include "globals.h"
 
 /********Key words ****************/
 #define AUTO_KW         0x02U
@@ -79,7 +80,7 @@
 #define TOKEN_SET_TYPE(x, t)            ((x)->type = t)
 #define TOKEN_SET_TYPE_WFLAG(x, t, f)   ((x)->type = t; (x)->flags = f)
 
-#define TOKEN_HAS_TFLAG(x, t, f)        ((((x)->flags & f) == f) && (((x)->type & t) == t))
+#define TOKEN_HAS_TFLAG(x, t, f)        ((((x)->flags & f) == f) && ((x)->type & t))
 #define TOKEN_HAS_FLAG(x, f)            (((x)->flags & f))
 #define TOKEN_IS(x, t)                  (((x)->type & t) == t)
 
@@ -95,7 +96,7 @@ typedef struct __token_t token_t;
 struct __token_t {
     unsigned char type;
     unsigned int flags;
-    int result;
+    result_t result;
 
     zval_t data;
 };

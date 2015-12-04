@@ -17,7 +17,7 @@
 int lineNumber = 1;
 
 /*********************zoznam stavov***********************************/
-enum{
+enum {
     STATE_START = 0,            //pociatocny stav
     STATE_K_OR_ID,              //klucove slovo alebo ID
     STATE_DEV_OR_COM,           // / alebo // alebo /*
@@ -39,23 +39,23 @@ enum{
 };
 
 /***************************inicializacia stringu*************************************/
-int initString(string *s){
-    if((s->str  =(char*) malloc(ALLOC_SIZE)) == NULL)
-        return SYS_ERROR;
+int initString(string *s) {
+    if((s->str = malloc(ALLOC_SIZE)) == NULL)
+        return ESYS;
+
     s->str[0]='\0';
     s->length = 0;
     s->allocSize = ALLOC_SIZE;
-
 }
 
 /***********************prida znak do retazca**************************************
 ********************realokuje v pripade ak je retazec plny ************************/
-int strAdd(string *s, char c){
+int strAdd(string *s, char c) {
 
     if(s->length+1 >= s->allocSize){
-        if((s->str = (char*)realloc(s->str,s->length + ALLOC_SIZE)) == NULL){
+        if((s->str = realloc(s->str, s->length + ALLOC_SIZE)) == NULL){
             free(s);
-            return SYS_ERROR;
+            return ESYS;
         }
         s->allocSize = s->length + ALLOC_SIZE;
     }
@@ -64,16 +64,15 @@ int strAdd(string *s, char c){
     s->str[++s->length] = '\0';
 }
 
-struct T_Token nextToken()
+token_t nextToken(parser_t *parser)
 {
+    token_t token;
     int state = STATE_START;
     int c;
-
 
     string arr;
     arr.str = NULL;
 
-    struct T_Token token;
     token.type = BASIC;
     token.result = EOK;
 
