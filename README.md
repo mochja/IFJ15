@@ -33,8 +33,7 @@ typedef struct {
     int a;
 } my_type_t; // alebo namespacovane tu_my_type_t;
 
-void my_function(const char *s)
-{
+void my_function(const char *s) {
   char *c; // * pred nazov premennej, dovoluje potom char *c, *d, *e; miesto char* c, *d, *e;
   // jeden prazdny riadok za definiciou lok, premennych.
   if (true) {
@@ -48,8 +47,8 @@ void my_function(const char *s)
   }
 }
 
-void __some_internal_fn()
-{
+void __some_internal_fn() {
+
   // ...
 }
 ```
