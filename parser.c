@@ -1379,7 +1379,7 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
 
     if ((result = parser_next_token(parser)) != EOK) { return result; }
 
-    if (TOKEN_IS(&parser->token, ID_TYPE))
+    if (!TOKEN_IS(&parser->token, ID_TYPE))
         return ESYN;
 
     if (parser->fDeclared) {
