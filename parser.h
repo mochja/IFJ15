@@ -15,8 +15,8 @@
 #define PARSER_H_
 
 #include <stdbool.h>
-#include "scaner.h"
-#include "scaner.h"
+#include "scanner.h"
+#include "scanner.h"
 #include "list.h"
 #include "hash.h"
 #include "token.h"

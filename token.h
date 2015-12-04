@@ -96,12 +96,30 @@ typedef struct __token_t token_t;
 struct __token_t {
     unsigned char type;
     unsigned int flags;
-    result_t result;
 
     zval_t data;
 };
 
 #define __token_t_free(x)
 KLIST_INIT(token_list, token_t*, __token_t_free)
+
+INLINED void token_set_type(token_t *dest, const unsigned char type) {
+    dest->type = type;
+}
+
+INLINED void token_set_symbol(token_t *dest, const unsigned int flags) {
+    dest->type = SMBL_TYPE;
+    dest->flags = flags;
+}
+
+INLINED void token_set_flags(token_t *dest, const unsigned int flags) {
+    dest->flags = flags;
+}
+
+INLINED result_t token_init(token_t *dest) {
+    token_set_type(dest, BASIC_TYPE);
+//    token_set_flags();
+    return EOK;
+}
 
 #endif // TOKEN_H_

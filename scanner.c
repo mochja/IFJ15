@@ -11,10 +11,8 @@
  * license.txt file in the root directory of this source tree.
  */
 
-#include "scaner.h"
-
-#define ALLOC_SIZE      8
-int lineNumber = 1;
+#include "scanner.h"
+#include <stdio.h>
 
 /*********************zoznam stavov***********************************/
 enum {
@@ -38,176 +36,134 @@ enum {
     STATE_X,                    // escape sekvencia \xDD , kde dd je hex. cislo
 };
 
-/***************************inicializacia stringu*************************************/
-int initString(string *s) {
-    if((s->str = malloc(ALLOC_SIZE)) == NULL)
+result_t init_scanner(scanner_t *s, const char *source) {
+
+    if ((s->source = malloc(strlen(source) + 1)) == NULL) {
         return ESYS;
-
-    s->str[0]='\0';
-    s->length = 0;
-    s->allocSize = ALLOC_SIZE;
-}
-
-/***********************prida znak do retazca**************************************
-********************realokuje v pripade ak je retazec plny ************************/
-int strAdd(string *s, char c) {
-
-    if(s->length+1 >= s->allocSize){
-        if((s->str = realloc(s->str, s->length + ALLOC_SIZE)) == NULL){
-            free(s);
-            return ESYS;
-        }
-        s->allocSize = s->length + ALLOC_SIZE;
     }
 
-    s->str[s->length] = c;
-    s->str[++s->length] = '\0';
+    strcpy(s->source, source);
+    s->line = 0;
+
+    return EOK;
 }
 
-token_t nextToken(parser_t *parser)
+
+result_t scanner_get_next_token(scanner_t *scanner, token_t *dest)
 {
-    token_t token;
     int state = STATE_START;
-    int c;
+    char c[2];
+    c[1] = '\0';
 
-    string arr;
-    arr.str = NULL;
+    char buff[2048];
+    buff[0] = '\0';
 
-    token.type = BASIC;
-    token.result = EOK;
+//    string_t arr;
 
-    while(1){
+    while ((*c = *(scanner->source++))) {
 
-        c = getc(source);
-
-        /**************koniec suboru *********************/
-        if(c == EOF){
-            token.type = END_OF_FILE;
-            token.result = EEOF;
-            return token;
+        /************** koniec suboru *********************/
+        // TODO: EOF NOT ANYMORE
+        if (*c == EOF) {
+            token_set_type(dest, EOF_TYPE);
+            return EEOF;
         }
 
-        /**************novy riadok ***********************/
-        if( c == '\n'){
-            lineNumber++;
+        /************** novy riadok ***********************/
+        if (*c == '\n') {
+            scanner->line++;
         }
 
-        switch(state){
+        switch (state) {
             case STATE_START:
 
                 /***********mezdera, biely znak*****************/
-                if(isspace(c))
+                if (isspace(*c)) {
                     state = STATE_START;
+                }
 
                 /*************Pismeno alebo znak '_'***********/
-                else if( isalpha(c) || c == '_')
-                    {
-                        if(initString(&arr) ==  SYS_ERROR){
-                            token.result = ESYS;
-                            token.type = SYS_ERROR;
-                        }
-
-                        if(strAdd(&arr,c) == SYS_ERROR){
-                            token.type = SYS_ERROR;
-                            token.result = ESYS;
-                        }
-
-                        state = STATE_K_OR_ID;
-                    }
+                else if (isalpha(*c) || *c == '_') {
+                    strcpy(buff, c);
+                    state = STATE_K_OR_ID;
+                }
 
                 /************cislo *****************************/
-                else if(isdigit(c))
-                    {
-                        if(initString(&arr) == SYS_ERROR){
-                            token.type = SYS_ERROR;
-                            token.result = ESYS;
-                        }
-
-                        if(strAdd(&arr,c) == SYS_ERROR){
-                            token.type = SYS_ERROR;
-                            token.result = ESYS;
-                        }
-
-                        state = STATE_NUMBER;
-                    }
+                else if (isdigit(*c)) {
+                    strcpy(buff, c);
+                    state = STATE_NUMBER;
+                }
                 /*******************string*************************/
-                else if(c == '"')
-                    {
-                        if(initString(&arr) == SYS_ERROR){
-                            token.type = SYS_ERROR;
-                            token.result = ESYS;
-                        }
-
-                        state = STATE_STRING;
-                    }
+                else if (*c == '"') {
+                    buff[0] = '\0';
+                    state = STATE_STRING;
+                }
 
                 /*************komentar alebo delenie ***************/
-                else if( c == '/'){
+                else if (*c == '/') {
                     state = STATE_DEV_OR_COM;
                 }
 
-                else if( c == '='){
+                else if (*c == '=') {
                     state = STATE_EQ_OR_AS;
                 }
 
-                else if ( c == '<'){
+                else if (*c == '<') {
                     state = STATE_L_ARR_LQ;
                 }
 
-                else if ( c == '>'){
+                else if (*c == '>') {
                     state = STATE_R_ARR_MQ;
                 }
 
-                else if ( c == '!'){
+                else if (*c == '!') {
                     state = STATE_NOT;
                 }
 
-                else if ( c == ';' ){
-                    token.type = SEMICOLON;
+                else if (*c == ';') {
+                    token_set_symbol(dest, SEMICOLON_SMBL);
                 }
 
-                else if( c == '('){
-                    token.type = LEFT_CULUM;
+                else if (*c == '(') {
+                    token_set_symbol(dest, LEFT_CULUM_SMBL);
                 }
 
-                else if( c == ')'){
-                    token.type = RIGHT_CULUM;
+                else if (*c == ')') {
+                    token_set_symbol(dest, RIGHT_CULUM_SMBL);
                 }
 
-                else if( c == '{'){
-                    token.type = LEFT_VINCULUM;
+                else if (*c == '{') {
+                    token_set_symbol(dest, LEFT_VINCULUM_SMBL);
                 }
 
-                else if( c == '}'){
-                    token.type = RIGHT_VINCULUM;
+                else if (*c == '}') {
+                    token_set_symbol(dest, RIGHT_VINCULUM_SMBL);
                 }
 
-                else if( c == ','){
-                    token.type = COMMA;
+                else if (*c == ',') {
+                    token_set_symbol(dest, COMMA_SMBL);
                 }
 
-                else if( c == '.'){
-                    token.type = DOT;
+                else if (*c == '.') {
+                    token_set_symbol(dest, DOT_SMBL);
                 }
 
-                else if( c == '+'){
-                    token.type = PLUS;
+                else if (*c == '+') {
+                    token_set_symbol(dest, PLUS_SMBL);
                 }
 
-                else if( c == '-'){
-                    token.type = MINUS;
+                else if (*c == '-') {
+                    token_set_symbol(dest, MINUS_SMBL);
+
                 }
 
-                else if( c == '*'){
-                    token.type = MULTIPLY;
+                else if (*c == '*') {
+                    token_set_symbol(dest, MULTIPLY_SMBL);
                 }
-
-
 
                 else {
-                    fprintf(stderr,"LEX Error: Line: %d , Unknown token: '%c'\n", c,lineNumber);
-                    token.type = LEX_ERROR;
-                    token.result = ELEX;
+                    fprintf(stderr, "LEX Error: Line: %d , Unknown token: '%c'\n", *c, scanner->line);
+                    return ELEX;
                 }
 
             break;
@@ -661,4 +617,6 @@ token_t nextToken(parser_t *parser)
     if(token.type != BASIC)
         return token;
     }
+
+    return EOK;
 }

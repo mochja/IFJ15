@@ -3,7 +3,7 @@ project(IFJ15 C)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -pedantic -Wall -Werror")
 
-add_executable(ifj15 main.c parser.c scaner.c)
+add_executable(ifj15 main.c scanner.c)
 
 enable_testing()
 find_library(cgreen cgreen)

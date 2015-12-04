@@ -14,6 +14,8 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
+#define INLINED static inline __attribute__ ((__unused__))
+
 typedef enum {
     EOK,
     ELEX,
