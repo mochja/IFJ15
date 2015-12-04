@@ -56,8 +56,7 @@
 #define MINUS_SMBL           0x20000U
 #define MULTIPLY_SMBL        0x40000U
 #define DEVIDE_SMBL          0x80000U
-#define UV_SMBL              0x100000U
-#define ASSIGN_SMBL          0x200000U
+#define ASSIGN_SMBL          0x100000U
 
 /*********FUNCTIONS***************/
 #define LENGTH_FN       0x02U

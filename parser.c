@@ -53,7 +53,7 @@ char *generate_var_name(int number) {
 
 result_t parser_run(parser_t *parser) {
 /**overim prvy parser->token**/
-result_t result=EOK;
+    result_t result = parser_next_token(parser);
 
 	if(!TOKEN_HAS_TFLAG(&parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW ))
 		return ESYN;
@@ -141,18 +141,18 @@ result_t result=EOK;
 	}
 	else if(TOKEN_IS(&parser->token,ID_TYPE)){
 		/*****************telo funkcie*************/
-			parser->fName = parser->token.data.sVal;
+            strcpy(parser->fName, ZVAL_GET_STRING(&parser->token.data));
 			char *fLabel = parser->token.data.sVal;
 			parser->fDeclared = false;
 				/********MISSSING: kontrola ts**********************/
 
 				hTabItem * tableItem;
-				if( (tableItem = searchItem(parser->table, parser->fName)) != NULL ){
+				if((tableItem = searchItem(parser->table, parser->fName)) != NULL){
 					parser->fDeclared = true;
 				}
 				else{
 					tableItem=createNewItem();
-					tableItem->name = parser->fName;
+					tableItem->name = parser->fName; // TODO: strcpy
 					tableItem->dataType = fType;
 					tableItem->isDefined = false;
 					insertHashTable(parser->table, tableItem);
@@ -287,7 +287,7 @@ result_t result=EOK;
 		/*******************ID <priradenie> ; <parse_list>************************/
 		if(TOKEN_IS(&parser->token,ID_TYPE)){
 			char * hName=NULL;
-			if((hName = varSearch(&parser->varList,parser->token.data.sVal)) == NULL){
+			if((hName = varSearch(&parser->varList, parser->token.data.sVal)) == NULL){
 				if((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
 					return ESEM;
 			}
@@ -298,7 +298,7 @@ result_t result=EOK;
 
 			if ((result = parser_next_token(parser)) != EOK) {                 return result;             }
 
-			parser->assignVarName=hName;
+            strcpy(parser->assignVarName, hName);
 			result= parse_assign(parser);
 
 			if(result != EOK)
@@ -1346,7 +1346,7 @@ hTabItem * tableItem;
 		tItem1->name=malloc(strlen(hName) + 1);
 		strcpy(tItem1->name,hName);
 		tItem1->dataType = STRING_KW;
-		tItem1->sVal = parser->token.data.sVal;
+        strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token.data));
 		insertHashTable(parser->table,tItem1);
 
 		/**************************************/
