@@ -17,7 +17,7 @@
 #define INLINED static inline __attribute__ ((__unused__))
 
 typedef enum {
-    EOK,
+    EOK = 0,
     ELEX,
     ESYN,
     ESEM,

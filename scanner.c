@@ -35,14 +35,14 @@ enum {
     STATE_X,                    // escape sekvencia \xDD , kde dd je hex. cislo
 };
 
-result_t init_scanner(scanner_t *s, const char *source) {
+result_t init_scanner(scanner_t *s, char *source) {
 
     if ((s->source = malloc(strlen(source) + 1)) == NULL) {
         return ESYS;
     }
 
     strcpy(s->source, source);
-    s->line = 0;
+    s->line = 1;
 
     return EOK;
 }

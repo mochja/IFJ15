@@ -13,7 +13,7 @@
 
 #include "parser.h"
 
-result_t init_parser(parser_t *parser, const char *source) {
+result_t init_parser(parser_t *parser, char *source) {
     listInit(&parser->varList);
     listInit(&parser->paramList);
 
@@ -45,7 +45,6 @@ result_t parser_next_token(parser_t *parser) {
 }
 
 char __nbuffer[64];
-
 char *generate_var_name(int number) {
     sprintf(__nbuffer, "$%d", number);
     return __nbuffer;
@@ -104,8 +103,7 @@ result_t parse_fn(parser_t *parser) {
         tItemPtr item;
         if ((item = calloc(1, sizeof(struct tItem))) == NULL)
             return ESYS;
-        if ((item->data = calloc(1, sizeof(struct Data))) == NULL)
-            return ESYS;
+        kv_init(item->data);
 
         item->functionId = parser->fName;
         insertLast(item, &parser->paramList);
@@ -169,9 +167,7 @@ result_t parse_fn(parser_t *parser) {
         else {
             if ((item = calloc(1, sizeof(struct tItem))) == NULL)
                 return ESYS;
-
-            if ((item->data = calloc(1, sizeof(struct Data))) == NULL)
-                return ESYS;
+            kv_init(item->data);
             item->functionId = parser->fName;
         }
 
@@ -257,9 +253,7 @@ result_t parse_fn_body(parser_t *parser) {
     tItemPtr varBlock;
     if ((varBlock = calloc(1, sizeof(struct tItem))) == NULL)
         return ESYS;
-
-    if ((varBlock->data = calloc(1, sizeof(struct Data))) == NULL)
-        return ESYS;
+    kv_init(varBlock->data);
 
     result = parse_fn_declaration(parser, varBlock);
 
@@ -304,20 +298,20 @@ result_t parse_list(parser_t *parser) {
 
         /***************** { <deklaracia> <parse_list> ****************************/
     else if (TOKEN_HAS_TFLAG(&parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL)) {
+
         tItemPtr varBlock;
         if ((varBlock = calloc(1, sizeof(struct tItem))) == NULL)
             return ESYS;
+        kv_init(varBlock->data);
 
-        if ((varBlock->data = calloc(1, sizeof(struct Data))) == NULL)
-            return ESYS;
         if ((result = parser_next_token(parser)) != EOK) { return result; }
-
 
         result = parse_fn_declaration(parser, varBlock);
         parser->argsCounter = 0;
 
         if (result != EOK)
             return result;
+
         insertLast(varBlock, &parser->varList);
         printf(".....NEW BLOCK.....\n");
         result = parse_list(parser);
@@ -367,9 +361,7 @@ result_t parse_list(parser_t *parser) {
         tItemPtr varBlock;
         if ((varBlock = calloc(1, sizeof(struct tItem))) == NULL)
             return ESYS;
-
-        if ((varBlock->data = calloc(1, sizeof(struct Data))) == NULL)
-            return ESYS;
+        kv_init(varBlock->data);
 
         if ((result = parser_next_token(parser)) != EOK) { return result; }
 
@@ -401,9 +393,7 @@ result_t parse_list(parser_t *parser) {
         tItemPtr varBlock2;
         if ((varBlock2 = calloc(1, sizeof(struct tItem))) == NULL)
             return ESYS;
-
-        if ((varBlock2->data = calloc(1, sizeof(struct Data))) == NULL)
-            return ESYS;
+        kv_init(varBlock2->data);
 
         if ((result = parser_next_token(parser)) != EOK) { return result; }
 
@@ -455,16 +445,15 @@ result_t parse_list(parser_t *parser) {
         tItemPtr varBlock;
         if ((varBlock = calloc(1, sizeof(struct tItem))) == NULL)
             return ESYS;
+        kv_init(varBlock->data);
 
-        if ((varBlock->data = calloc(1, sizeof(struct Data))) == NULL)
-            return ESYS;
+        hName = generate_var_name(parser->hInt++);
 
-        hName = generate_var_name(parser->hInt);
-        parser->hInt++;
-
-        if ((result = init_data_var(&varBlock->data[0], ZVAL_GET_STRING(&parser->token.data), hName)) != EOK) {
+        tData data;
+        if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token.data), hName)) != EOK) {
             return result;
         }
+        item_append_data(varBlock, data);
 
         insertLast(varBlock, &parser->varList);
 
@@ -501,8 +490,7 @@ result_t parse_list(parser_t *parser) {
 
         /*****hack*********/
         if ((result = parser_next_token(parser)) != EOK) { return result; }
-        while (!TOKEN_HAS_TFLAG(&parser->token, SMBL_TYPE,
-                                SEMICOLON_SMBL)) {                ///mala by sa volat precedencna analyza
+        while (!TOKEN_HAS_TFLAG(&parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {                ///mala by sa volat precedencna analyza
             if ((result = parser_next_token(parser)) != EOK) { return result; }
         }
 
@@ -528,8 +516,7 @@ result_t parse_list(parser_t *parser) {
         if ((result = parser_next_token(parser)) != EOK) { return result; }
 
         /*****hack*********/
-        while (!TOKEN_HAS_TFLAG(&parser->token, SMBL_TYPE,
-                                RIGHT_CULUM_SMBL)) {                ///mala by sa volat precedencna analyza
+        while (!TOKEN_HAS_TFLAG(&parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {                ///mala by sa volat precedencna analyza
             if ((result = parser_next_token(parser)) != EOK) { return result; }
         }
 
@@ -547,9 +534,7 @@ result_t parse_list(parser_t *parser) {
         tItemPtr varBlock2;
         if ((varBlock2 = calloc(1, sizeof(struct tItem))) == NULL)
             return ESYS;
-
-        if ((varBlock2->data = calloc(1, sizeof(struct Data))) == NULL)
-            return ESYS;
+        kv_init(varBlock2->data);
 
         if ((result = parser_next_token(parser)) != EOK) { return result; }
 
@@ -676,25 +661,20 @@ result_t parse_adv_declaration(parser_t *parser) {
     if (!TOKEN_IS(&parser->token, ID_TYPE))
         return ESYN;
 
-    int i = 0;
-    while (parser->varList.Last->data[i].id != '\0') {
-        if (!strcmp(parser->token.data.sVal, parser->varList.Last->data[i].id))
-            return ESEM;
-        i++;
+    if ((result = list_foo_bar(parser->varList.Last, ZVAL_GET_STRING(&parser->token.data))) != EOK) {
+        return result;
     }
 
     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) != NULL)
         return ESEM;
 
-    hName = generate_var_name(parser->hInt);
-    parser->hInt++;
+    hName = generate_var_name(parser->hInt++);
 
-    if ((parser->varList.Last->data = realloc(parser->varList.Last->data, sizeof(struct Data) * (i + 1))) == NULL)
-        return ESYS;
-
-    if ((result = init_data_var(&parser->varList.Last->data[i], ZVAL_GET_STRING(&parser->token.data), hName)) != EOK) {
+    tData data;
+    if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token.data), hName)) != EOK) {
         return result;
     }
+    item_append_data(parser->varList.Last, data);
 
     /***vytvorenie novej polozky do TS****/
     tItem = createNewItem();
@@ -707,7 +687,6 @@ result_t parse_adv_declaration(parser_t *parser) {
         if ((result = parser_next_token(parser)) != EOK) {
             return result;
         }
-
 
         if (!TOKEN_HAS_TFLAG(&parser->token, SMBL_TYPE, ASSIGN_SMBL))
             return ESYN;
@@ -752,7 +731,7 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock) {
     char *hName;
     hTabItem *tItem;
 
-    if (!TOKEN_HAS_TFLAG(&parser->token, SMBL_TYPE, INT_KW | DOUBLE_KW | STRING_KW | AUTO_KW))
+    if (!TOKEN_HAS_TFLAG(&parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW | AUTO_KW))
         return EOK;
 
     if ((result = parser_next_token(parser)) != EOK) { return result; }
@@ -763,11 +742,8 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock) {
 
     /***vlozenie do bloku***/
 
-    int i = 0;
-    while (varBlock->data[i].id != NULL) {
-        if (!strcmp(parser->token.data.sVal, varBlock->data[i].id))
-            return ESEM;
-        i++;
+    if ((result = list_foo_bar(varBlock, ZVAL_GET_STRING(&parser->token.data))) != EOK) {
+        return result;
     }
 
     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) != NULL)
@@ -776,15 +752,11 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock) {
     hName = generate_var_name(parser->hInt);
     parser->hInt++;
 
-
-    if ((varBlock->data = realloc(varBlock->data, sizeof(struct Data) * (parser->argsCounter + 1))) == NULL) {
-        return ESYS;
-    }
-
-    if ((result = init_data_var(&varBlock->data[parser->argsCounter++], ZVAL_GET_STRING(&parser->token.data), hName)) !=
-        EOK) {
+    tData data;
+    if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token.data), hName)) != EOK) {
         return result;
     }
+    item_append_data(varBlock, data);
 
     /***vytvorenie novej polozky do TS****/
     tItem = createNewItem();
@@ -875,8 +847,9 @@ result_t parse_assign(parser_t *parser) {
             }
             if (item == NULL)
                 return ESYS;
-            hTabItem *tItem;
 
+
+            hTabItem *tItem;
 
             if ((tItem = searchItem(parser->table, parser->assignVarName)) == NULL)
                 return ESYS;
@@ -1280,7 +1253,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
     if (TOKEN_IS(&parser->token, ID_TYPE)) {
         hTabItem *tItem1;
 
-        if ((tableItem = searchItem(parser->table, item->data[parser->argsCounter1].hid)) == NULL)
+        if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
             return ESYS;
         if ((hName = varSearch(&parser->varList, parser->token.data.sVal)) == NULL) {
             if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token.data.sVal)) == NULL)
@@ -1289,14 +1262,14 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         if ((tItem1 = searchItem(parser->table, hName)) == NULL)
             return ESYS;
 
-        if (tableItem->dataType != AUTO_KW && tableItem->dataType != tItem1->dataType && tItem1->dataType != AUTO_KW)
+        if ((tableItem->dataType != AUTO_KW) && (tableItem->dataType != tItem1->dataType) && (tItem1->dataType != AUTO_KW))
             return ESEM2;
         printf("ID ide\n");
 
         /****************parameter tItem1*****************/
     }
     else if (TOKEN_HAS_TFLAG(&parser->token, CONST_TYPE, INT_CONST)) {
-        if ((tableItem = searchItem(parser->table, item->data[parser->argsCounter1].hid)) == NULL)
+        if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
             return ESYS;
 
         if (tableItem->dataType != INT_KW && tableItem->dataType != AUTO_KW)
@@ -1315,7 +1288,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
 
     }
     else if (TOKEN_HAS_TFLAG(&parser->token, CONST_TYPE, DOUBLE_CONST)) {
-        if ((tableItem = searchItem(parser->table, item->data[parser->argsCounter1].hid)) == NULL)
+        if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
             return ESYS;
 
         if (tableItem->dataType != DOUBLE_KW && tableItem->dataType != AUTO_KW)
@@ -1334,18 +1307,18 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
 
     }
     else if (TOKEN_HAS_TFLAG(&parser->token, CONST_TYPE, TEXT_CONST)) {
-        if ((tableItem = searchItem(parser->table, item->data[parser->argsCounter1].hid)) == NULL)
+        if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
             return ESYS;
 
         if (tableItem->dataType != STRING_KW && tableItem->dataType != AUTO_KW)
             return ESEM2;
 
         hTabItem *tItem1 = createNewItem();
-        hName = generate_var_name(parser->hInt);
-        parser->hInt++;
+        hName = generate_var_name(parser->hInt++);
         tItem1->name = calloc(1, strlen(hName) + 1);
         strcpy(tItem1->name, hName);
         tItem1->dataType = STRING_KW;
+        tItem1->sVal = calloc(1, sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token.data))));
         strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token.data));
         insertHashTable(parser->table, tItem1);
 
@@ -1385,9 +1358,9 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
     if (parser->fDeclared) {
         char *hName = NULL;
         int i = 0;
-        while (item->data[i].id != NULL) {
-            if (!strcmp(parser->token.data.sVal, item->data[i].id)) {
-                hName = item->data[i].hid;
+        while (i < kv_size(item->data)) {
+            if (!strcmp(parser->token.data.sVal, kv_A(item->data, i).id)) {
+                hName = kv_A(item->data, i).hid;
                 break;
             }
             i++;
@@ -1406,23 +1379,20 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
 
     }
     else {
-        char *hName = generate_var_name(parser->hInt);
-        parser->hInt++;
-        int i = 0;
+        char *hName = generate_var_name(parser->hInt++);
 
-        while (item->data[i].id != NULL) {
-            if (!strcmp(parser->token.data.sVal, item->data[i].id))
+        int i = 0;
+        while (i < kv_size(item->data)) {
+            if (!strcmp(parser->token.data.sVal, kv_A(item->data, i).id))
                 return ESEM;
             i++;
         }
 
-        if ((item->data = realloc(item->data, sizeof(struct Data) * (parser->argsCounter + 1))) == NULL) {
-            return ESYS;
-        }
-
-        if ((result = init_data_var(&item->data[parser->argsCounter], ZVAL_GET_STRING(&parser->token.data), hName))) {
+        tData data;
+        if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token.data), hName)) != EOK) {
             return result;
         }
+        item_append_data(item, data);
 
         /*vlozi parameter do TS -nazov, typ, funkciu a poradie*/
         tItem = createNewItem();

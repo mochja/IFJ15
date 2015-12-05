@@ -15,7 +15,7 @@
 #include "globals.h"
 #include "parser.h"
 
-static char* read_source_file(const char *filename) {
+char* read_source_file(const char *filename) {
     FILE *f;
     f = fopen(filename, "r");
 
@@ -29,8 +29,12 @@ static char* read_source_file(const char *filename) {
     fseek(f, 0, SEEK_SET);
 
     char *source;
-    if ((source = malloc(size * sizeof(char))) != NULL) {
+    if ((source = malloc((size + 1) * sizeof(char))) != NULL) {
         fread(source, 1, size, f);
+        source[size] = '\0';
+    } else {
+        puts("asdf.");
+        return NULL;
     }
 
     fclose(f);

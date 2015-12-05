@@ -25,7 +25,7 @@ typedef struct {
     size_t line;
 } scanner_t;
 
-result_t init_scanner(scanner_t *s, const char *source);
+result_t init_scanner(scanner_t *s, char *source);
 result_t scanner_get_next_token(scanner_t *s, token_t *dest);
 void destroy_scanner(scanner_t *s);
 
