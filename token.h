@@ -17,6 +17,7 @@
 #include "klist.h"
 #include "zval.h"
 #include "globals.h"
+#include "list.h"
 
 /********Key words ****************/
 #define AUTO_KW         0x02U
@@ -82,7 +83,7 @@
 
 #define TOKEN_HAS_TFLAG(x, t, f)        ((((x)->type & (t)) == (t)) && ((x)->flags & (f)))
 #define TOKEN_HAS_FLAG(x, f)            (((x)->flags & f))
-#define TOKEN_IS(x, t)                  ((x)->type & t)
+#define TOKEN_IS(x, t)                  (((x)->type & (t)) == t)
 //#define TOKEN_IS(x, t)                  (((x)->type & t) == t)
 
 #define __token_set(x, tt, ff, zvalt, v)                \
@@ -157,8 +158,15 @@ INLINED result_t token_init(token_t *dest) {
 }
 
 INLINED void clean_token(token_t *t) {
-    if (TOKEN_HAS_TFLAG(t, CONST_TYPE, TEXT_CONST) || TOKEN_IS(t, ID_TYPE)) {
-        free(t->data.sVal);
+
+    if (t) {
+        t->type = BASIC_TYPE;
+        t->flags = 0;
+
+        if (ZVAL_IS_STRING(&t->data)) {
+            t->data.type = T_NOOP;
+            free(t->data.sVal);
+        }
     }
 }
 

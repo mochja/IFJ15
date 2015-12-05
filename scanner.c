@@ -35,14 +35,14 @@ enum {
     STATE_X,                    // escape sekvencia \xDD , kde dd je hex. cislo
 };
 
-result_t init_scanner(scanner_t *s, const char *source) {
+result_t init_scanner(scanner_t *s, char *source) {
 
     if ((s->source = malloc(strlen(source) + 1)) == NULL) {
         return ESYS;
     }
 
     strcpy(s->source, source);
-    s->line = 0;
+    s->line = 1;
 
     return EOK;
 }
@@ -53,7 +53,7 @@ void destroy_scanner(scanner_t *s) {
     }
 }
 
-result_t scanner_get_next_token(scanner_t *scanner, token_t *dest)
+result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
 {
     int state = STATE_START;
     char c[2];
@@ -62,15 +62,16 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *dest)
     char buff[2048];
     buff[0] = '\0';
 
+    token_t token;
+    token_t *dest = &token;
     dest->type = EOF_TYPE;
-    clean_token(dest);
+    dest->flags = 0;
 
     while ((c[0] = *(scanner->source++)) != '\0') {
 
         /************** novy riadok ***********************/
         if (*c == '\n') {
             scanner->line++;
-            continue;
         }
 
         switch (state) {
@@ -502,6 +503,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *dest)
         }
 
         if (dest->type != EOF_TYPE) {
+            memcpy(ddest, dest, sizeof(token_t));
             return EOK;
         }
     }

@@ -32,11 +32,11 @@ typedef struct {
 	int label;
 	char * assignVarName;
 	tTable *table;
-    token_t token;
+    token_t *token;
     scanner_t scanner;
 } parser_t;
 
-result_t init_parser(parser_t *parser, const char *source);
+result_t init_parser(parser_t *parser, char *source);
 result_t parser_run(parser_t *parser);
 
 result_t parse_fn(parser_t *parser);
