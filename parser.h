@@ -32,7 +32,7 @@ typedef struct {
 	int label;
 	char * assignVarName;
 	tTable *table;
-    token_t token;
+    token_t *token;
     scanner_t scanner;
 } parser_t;
 

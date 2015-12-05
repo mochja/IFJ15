@@ -11,6 +11,7 @@ void listDispose(tvarList *L) {
     tmp = L->First;
 
     while (tmp != NULL) {
+        kv_destroy(tmp->data);
         L->First = L->First->next;
         free(tmp);
         tmp = L->First;
@@ -35,6 +36,7 @@ void deleteLast(tvarList *L) {
     tmp = L->Last;
 
     if (tmp != NULL) {
+        kv_destroy(tmp->data);
         if (L->Last == L->First) {
             L->First = NULL;
         }

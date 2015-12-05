@@ -45,6 +45,7 @@
 typedef struct __zval_t zval_t;
 
 enum __data_type {
+    T_NOOP = 0,
     T_INT = 9,
     T_DOUBLE,
     T_STRING

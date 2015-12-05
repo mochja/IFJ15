@@ -34,6 +34,7 @@ char* read_source_file(const char *filename) {
         source[size] = '\0';
     } else {
         puts("asdf.");
+        fclose(f);
         return NULL;
     }
 
