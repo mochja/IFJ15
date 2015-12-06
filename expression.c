@@ -57,6 +57,7 @@ klist_t(expr_stack)* build_expression(klist_t(token_list) *tokens) {
         token_t *t = kl_val(p);
 
         expr_t *exp = calloc(1, sizeof(expr_t));
+        zval_init(&exp->val);
 
         if (get_operation(t->type, t->flags) == Op_VAR) {
 

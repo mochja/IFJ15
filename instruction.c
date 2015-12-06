@@ -46,6 +46,7 @@ klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stac
                 a = NULL;
             }
 
+            // GENERATED
             if (EXPR_GET_OPERAND(curr) == Op_PLUS) {
 
                 if ((a != NULL) && (b != NULL)) {

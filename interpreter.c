@@ -49,7 +49,7 @@ interpreter_t *init_interpreter(klist_t(instruction_list) *instructions) {
 
         if (instr->type == I_JMP) {
             copy_instruction(&kv_a(instruction_t, intr->instructions, i), instr);
-            ZVAL_SET_INT(kv_A(intr->instructions, i).first, kv_A(labels, ZVAL_GET_INT(instr->first)));
+            zval_set(kv_A(intr->instructions, i).first, kv_A(labels, ZVAL_GET_INT(instr->first)));
         } else if (instr->type != I_LABEL) {
             copy_instruction(&kv_a(instruction_t, intr->instructions, i), instr);
         }
@@ -93,7 +93,7 @@ typedef struct __stack_t stack_t;
 
 static inline void process_PUSH_instr(stack_t *stack, const int offset) {
     zval_t val;
-    ZVAL_SET_INT(&val, offset);
+    zval_set(&val, offset);
     kv_push(zval_t, stack->data, val);
 }
 

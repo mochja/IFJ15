@@ -84,7 +84,6 @@
 #define TOKEN_HAS_TFLAG(x, t, f)        ((((x)->type & (t)) == (t)) && ((x)->flags & (f)))
 #define TOKEN_HAS_FLAG(x, f)            (((x)->flags & f))
 #define TOKEN_IS(x, t)                  (((x)->type & (t)) == t)
-//#define TOKEN_IS(x, t)                  (((x)->type & t) == t)
 
 #define __token_set(x, tt, ff, zvalt, v)                \
     (x)->type = tt; (x)->flags = ff;                    \
@@ -127,25 +126,25 @@ INLINED void token_set_fn(token_t *dest, const unsigned int flags) {
 INLINED void token_set_var(token_t *dest, const char *name) {
     dest->type = ID_TYPE;
     dest->flags = 0;
-    ZVAL_SET_STRING(&dest->data, name);
+    zval_set(&dest->data, name);
 }
 
 INLINED void token_set_text_const(token_t *dest, const char *val) {
     dest->type = CONST_TYPE;
     dest->flags = TEXT_CONST;
-    ZVAL_SET_STRING(&dest->data, val);
+    zval_set(&dest->data, val);
 }
 
 INLINED void token_set_int_const(token_t *dest, int val) {
     dest->type = CONST_TYPE;
     dest->flags = INT_CONST;
-    ZVAL_SET_INT(&dest->data, val);
+    zval_set(&dest->data, val);
 }
 
 INLINED void token_set_double_const(token_t *dest, double val) {
     dest->type = CONST_TYPE;
     dest->flags = DOUBLE_CONST;
-    ZVAL_SET_DOUBLE(&dest->data, val);
+    zval_set(&dest->data, val);
 }
 
 INLINED void token_set_flags(token_t *dest, const unsigned int flags) {

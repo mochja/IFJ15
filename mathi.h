@@ -34,7 +34,7 @@ if (ZVAL_IS_INT(b_ptr) && ZVAL_IS_INT(a_ptr)) {
         
         int a = ZVAL_GET_INT(a_ptr);
         int res = a + b;
-        ZVAL_SET_INT(&val, res);
+        zval_set(&val, res);
     } else if (ZVAL_IS_DOUBLE(b_ptr) && ZVAL_IS_DOUBLE(a_ptr)) {
         double b = ZVAL_GET_DOUBLE(b_ptr);
         
@@ -63,7 +63,7 @@ INLINED result_t process_ADDI_int_instr(stack_t *stack, const int a, const int b
     zval_t val;
     
     int res = a + b;
-    ZVAL_SET_INT(&val, res);
+    zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
     return EOK;
 }
@@ -73,7 +73,7 @@ INLINED result_t process_ADDI_int_pop_instr(stack_t *stack, const int a) {
     int b = ZVAL_GET_INT(&kv_pop(stack->data));
     
     int res = a + b;
-    ZVAL_SET_INT(&val, res);
+    zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
     return EOK;
 }
@@ -83,7 +83,7 @@ INLINED result_t process_ADDI_pop_int_instr(stack_t *stack, const int b) {
     
     int a = ZVAL_GET_INT(&kv_pop(stack->data));
     int res = a + b;
-    ZVAL_SET_INT(&val, res);
+    zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
     return EOK;
 }
@@ -255,7 +255,7 @@ if (ZVAL_IS_INT(b_ptr) && ZVAL_IS_INT(a_ptr)) {
         
         int a = ZVAL_GET_INT(a_ptr);
         int res = a - b;
-        ZVAL_SET_INT(&val, res);
+        zval_set(&val, res);
     } else if (ZVAL_IS_DOUBLE(b_ptr) && ZVAL_IS_DOUBLE(a_ptr)) {
         double b = ZVAL_GET_DOUBLE(b_ptr);
         
@@ -284,7 +284,7 @@ INLINED result_t process_SUBI_int_instr(stack_t *stack, const int a, const int b
     zval_t val;
     
     int res = a - b;
-    ZVAL_SET_INT(&val, res);
+    zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
     return EOK;
 }
@@ -294,7 +294,7 @@ INLINED result_t process_SUBI_int_pop_instr(stack_t *stack, const int a) {
     int b = ZVAL_GET_INT(&kv_pop(stack->data));
     
     int res = a - b;
-    ZVAL_SET_INT(&val, res);
+    zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
     return EOK;
 }
@@ -304,7 +304,7 @@ INLINED result_t process_SUBI_pop_int_instr(stack_t *stack, const int b) {
     
     int a = ZVAL_GET_INT(&kv_pop(stack->data));
     int res = a - b;
-    ZVAL_SET_INT(&val, res);
+    zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
     return EOK;
 }
@@ -476,7 +476,7 @@ if (ZVAL_IS_INT(b_ptr) && ZVAL_IS_INT(a_ptr)) {
         
         int a = ZVAL_GET_INT(a_ptr);
         int res = a * b;
-        ZVAL_SET_INT(&val, res);
+        zval_set(&val, res);
     } else if (ZVAL_IS_DOUBLE(b_ptr) && ZVAL_IS_DOUBLE(a_ptr)) {
         double b = ZVAL_GET_DOUBLE(b_ptr);
         
@@ -505,7 +505,7 @@ INLINED result_t process_MULI_int_instr(stack_t *stack, const int a, const int b
     zval_t val;
     
     int res = a * b;
-    ZVAL_SET_INT(&val, res);
+    zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
     return EOK;
 }
@@ -515,7 +515,7 @@ INLINED result_t process_MULI_int_pop_instr(stack_t *stack, const int a) {
     int b = ZVAL_GET_INT(&kv_pop(stack->data));
     
     int res = a * b;
-    ZVAL_SET_INT(&val, res);
+    zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
     return EOK;
 }
@@ -525,7 +525,7 @@ INLINED result_t process_MULI_pop_int_instr(stack_t *stack, const int b) {
     
     int a = ZVAL_GET_INT(&kv_pop(stack->data));
     int res = a * b;
-    ZVAL_SET_INT(&val, res);
+    zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
     return EOK;
 }
@@ -697,7 +697,7 @@ if (ZVAL_IS_INT(b_ptr) && ZVAL_IS_INT(a_ptr)) {
         if (b == 0) return ESYS;
         int a = ZVAL_GET_INT(a_ptr);
         int res = a / b;
-        ZVAL_SET_INT(&val, res);
+        zval_set(&val, res);
     } else if (ZVAL_IS_DOUBLE(b_ptr) && ZVAL_IS_DOUBLE(a_ptr)) {
         double b = ZVAL_GET_DOUBLE(b_ptr);
         if (b == 0) return ESYS;
@@ -726,7 +726,7 @@ INLINED result_t process_DIVI_int_instr(stack_t *stack, const int a, const int b
     zval_t val;
     if (b == 0) return ESYS;
     int res = a / b;
-    ZVAL_SET_INT(&val, res);
+    zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
     return EOK;
 }
@@ -736,7 +736,7 @@ INLINED result_t process_DIVI_int_pop_instr(stack_t *stack, const int a) {
     int b = ZVAL_GET_INT(&kv_pop(stack->data));
     if (b == 0) return ESYS;
     int res = a / b;
-    ZVAL_SET_INT(&val, res);
+    zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
     return EOK;
 }
@@ -746,7 +746,7 @@ INLINED result_t process_DIVI_pop_int_instr(stack_t *stack, const int b) {
     if (b == 0) return ESYS;
     int a = ZVAL_GET_INT(&kv_pop(stack->data));
     int res = a / b;
-    ZVAL_SET_INT(&val, res);
+    zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
     return EOK;
 }

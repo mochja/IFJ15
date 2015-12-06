@@ -26,7 +26,7 @@
 
 #define EXPR_SET_OPERAND(x, v)  (x)->flags = 0x00 | 1 << 0; (x)->op_t = v;
 #define EXPR_SET_OFFSET(x, v)   (x)->flags = 0x00 | 1 << 1; (x)->val.iVal = v;
-#define EXPR_SET_INT(x, v)      (x)->flags = 0x00 | 1 << 2; ZVAL_SET_INT(&(x)->val, v);
+#define EXPR_SET_INT(x, v)      (x)->flags = 0x00 | 1 << 2; zval_set(&(x)->val, v);
 #define EXPR_SET_DOUBLE(x, v)   (x)->flags = 0x00 | 1 << 3; (x)->val.dVal = v;
 #define EXPR_SET_STRING(x, v)   (x)->flags = 0x00 | 1 << 4; (x)->val.sVal = v;
 
