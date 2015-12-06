@@ -58,6 +58,8 @@ Ensure(Interpreter, should_add_two_integers) {
     sl = kl_init(instruction_list);
 
     *kl_pushp(instruction_list, sl) = create_ADD_int_instr(5, 2);
+    *kl_pushp(instruction_list, sl) = create_ADD_int_instr(5, 2);
+    *kl_pushp(instruction_list, sl) = create_ADD_pop_instr();
 
     interpreter_t *intr = init_interpreter(sl);
     kl_destroy(instruction_list, sl);
@@ -65,7 +67,7 @@ Ensure(Interpreter, should_add_two_integers) {
     run_interpreter(intr);
 
     assert_equal(kv_size(intr->stack.data), 1);
-    assert_equal(ZVAL_GET_INT(&kv_A(intr->stack.data, 0)), 7);
+    assert_equal(ZVAL_GET_INT(&kv_A(intr->stack.data, 0)), 14);
 
     destroy_interpreter(intr);
 }

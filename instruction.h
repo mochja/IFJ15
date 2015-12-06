@@ -29,7 +29,11 @@ enum __instruction_type {
     I_POP,
     I_PUSH,
     I_JMP,
+
     I_ADD_int,
+    I_ADD_int_pop,
+    I_ADD_pop_int,
+    I_ADD_pop,
 };
 
 struct __instruction_t {
@@ -115,6 +119,32 @@ INSTR_T create_ADD_int_instr(const int a, const int b) {
     i->type = I_ADD_int;
     ZVAL_INIT_INT(i->first, a);
     ZVAL_INIT_INT(i->second, b);
+
+    return i;
+}
+
+INSTR_T create_ADD_int_pop_instr(const int a) {
+    instruction_t *i = calloc(1, sizeof(instruction_t));
+
+    i->type = I_ADD_int_pop;
+    ZVAL_INIT_INT(i->first, a);
+
+    return i;
+}
+
+INSTR_T create_ADD_pop_int_instr(const int b) {
+    instruction_t *i = calloc(1, sizeof(instruction_t));
+
+    i->type = I_ADD_pop_int;
+    ZVAL_INIT_INT(i->first, b);
+
+    return i;
+}
+
+INSTR_T create_ADD_pop_instr() {
+    instruction_t *i = calloc(1, sizeof(instruction_t));
+
+    i->type = I_ADD_pop;
 
     return i;
 }

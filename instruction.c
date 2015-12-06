@@ -20,20 +20,46 @@ klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stac
     klist_t(expr_stack) *buff;
     buff = kl_init(expr_stack);
 
+    int offset = 0;
+
     for (kliter_t(expr_stack) *it = kl_begin(expr); it != kl_end(expr); it = kl_next(it)) {
         expr_t *curr = kl_val(it);
 
         if (EXPR_IS_INT(curr)) {
             *kl_push(expr_stack, buff) = curr;
+            offset++;
         } else if (EXPR_IS_OPERAND(curr)) {
             expr_t *a, *b;
-            kl_shift(expr_stack, buff, &b);
-            kl_shift(expr_stack, buff, &a);
+
+            if (kl_shift(expr_stack, buff, &b) == -1) {
+                b = NULL;
+            }
+
+            if (kl_shift(expr_stack, buff, &a) == -1) {
+                a = NULL;
+            }
 
             if (EXPR_GET_OPERAND(curr) == Op_PLUS) {
-                if (ZVAL_IS_INT(&a->val) && ZVAL_IS_INT(&b->val)) {
-                    *kl_pushp(instruction_list, instr) = create_ADD_int_instr(ZVAL_GET_INT(&a->val), ZVAL_GET_INT(&b->val));
+
+                if ((a != NULL) && (b != NULL)) {
+                    if (ZVAL_IS_INT(&a->val) && ZVAL_IS_INT(&b->val)) {
+                        *kl_pushp(instruction_list, instr) = create_ADD_int_instr(ZVAL_GET_INT(&a->val), ZVAL_GET_INT(&b->val));
+                    }
+                } else if ((a != NULL) && (b == NULL)) {
+                    if (ZVAL_IS_INT(&a->val)) {
+                        *kl_pushp(instruction_list, instr) = create_ADD_int_pop_instr(ZVAL_GET_INT(&a->val));
+                        offset--;
+                    }
+                } else if ((a == NULL) && (b != NULL)) {
+                    if (ZVAL_IS_INT(&b->val)) {
+                        *kl_pushp(instruction_list, instr) = create_ADD_pop_int_instr(ZVAL_GET_INT(&b->val));
+                        offset--;
+                    }
+                } else {
+                    *kl_pushp(instruction_list, instr) = create_ADD_pop_instr();
+                    offset -= 2;
                 }
+
             }
         }
     }

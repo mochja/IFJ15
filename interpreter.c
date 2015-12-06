@@ -88,14 +88,41 @@ void destroy_interpreter(interpreter_t *intr) {
     free(intr);
 }
 
-static inline void process_PUSH_instr(struct __stack_t *stack, const int offset) {
+typedef struct __stack_t stack_t;
+
+static inline void process_PUSH_instr(stack_t *stack, const int offset) {
     zval_t val;
     ZVAL_SET_INT(&val, offset);
     kv_push(zval_t, stack->data, val);
 }
 
-static inline void process_ADD_int_instr(struct __stack_t *stack, const int a, const int b) {
+static inline void process_ADD_int_instr(stack_t *stack, const int a, const int b) {
     zval_t val;
+    int res = a + b;
+    ZVAL_SET_INT(&val, res);
+    kv_push(zval_t, stack->data, val);
+}
+
+static inline void process_ADD_pop_int_instr(stack_t *stack, const int b) {
+    zval_t val;
+    int a = ZVAL_GET_INT(&kv_pop(stack->data));
+    int res = a + b;
+    ZVAL_SET_INT(&val, res);
+    kv_push(zval_t, stack->data, val);
+}
+
+static inline void process_ADD_int_pop_instr(stack_t *stack, const int a) {
+    zval_t val;
+    int b = ZVAL_GET_INT(&kv_pop(stack->data));
+    int res = a + b;
+    ZVAL_SET_INT(&val, res);
+    kv_push(zval_t, stack->data, val);
+}
+
+static inline void process_ADD_pop_instr(stack_t *stack) {
+    zval_t val;
+    int b = ZVAL_GET_INT(&kv_pop(stack->data));
+    int a = ZVAL_GET_INT(&kv_pop(stack->data));
     int res = a + b;
     ZVAL_SET_INT(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -111,6 +138,15 @@ static size_t proccess_instruction(instruction_t *instr, struct __stack_t *stack
             return (size_t) ZVAL_GET_INT(instr->first);
         case I_ADD_int:
             process_ADD_int_instr(stack, ZVAL_GET_INT(instr->first), ZVAL_GET_INT(instr->second));
+            return actual_addr + 1;
+        case I_ADD_int_pop:
+            process_ADD_int_pop_instr(stack, ZVAL_GET_INT(instr->first));
+            return actual_addr + 1;
+        case I_ADD_pop_int:
+            process_ADD_pop_int_instr(stack, ZVAL_GET_INT(instr->second));
+            return actual_addr + 1;
+        case I_ADD_pop:
+            process_ADD_pop_instr(stack);
             return actual_addr + 1;
         default:
             return 0;
