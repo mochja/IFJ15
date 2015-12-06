@@ -78,7 +78,7 @@ result_t parser_run(parser_t *parser) {
 
 
 result_t parse_fn(parser_t *parser) {
-    result_t result = EOK;
+    result_t result;
 
     int fType = parser->token->flags;
 
