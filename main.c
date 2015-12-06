@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include "globals.h"
 #include "parser.h"
+#include "interpreter.h"
 
 char* read_source_file(const char *filename) {
     FILE *f;
@@ -61,6 +62,8 @@ int main(int argc, char *argv[])
 
     if (res == EOK) {
         res = parser_run(&parser);
+        interpreter_t *i = init_interpreter(parser.code);
+        run_interpreter(i);
     }
 
     return res;

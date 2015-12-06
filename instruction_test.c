@@ -46,9 +46,9 @@ Ensure(Instruction, should_create_instruction_list_from_expression) {
     instruction_t *instr;
     kl_shift(instruction_list, l, &instr);
 
-    assert_equal(instr->type, I_ADD);
-    assert_equal(ZVAL_GET_INT(instr->second), 2);
-    assert_equal(ZVAL_GET_INT(instr->third), 5);
+    assert_equal(instr->type, I_ADDI_int);
+    assert_equal(ZVAL_GET_INT(instr->first), 2);
+    assert_equal(ZVAL_GET_INT(instr->second), 5);
 
     kl_destroy(instruction_list, l);
 }

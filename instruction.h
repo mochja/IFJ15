@@ -29,7 +29,36 @@ enum __instruction_type {
     I_POP,
     I_PUSH,
     I_JMP,
-    I_ADD
+    I_COUT_pop,
+
+    I_ADDI_int,
+    I_ADD_pop,
+    I_ADDI_pop_int,
+    I_ADDI_int_pop,
+    I_SUBI_int,
+    I_SUB_pop,
+    I_SUBI_pop_int,
+    I_SUBI_int_pop,
+    I_MULI_int,
+    I_MUL_pop,
+    I_MULI_pop_int,
+    I_MULI_int_pop,
+    I_DIVI_int,
+    I_DIV_pop,
+    I_DIVI_pop_int,
+    I_DIVI_int_pop,
+    I_ADDD_double,
+    I_ADDD_pop_double,
+    I_ADDD_double_pop,
+    I_SUBD_double,
+    I_SUBD_pop_double,
+    I_SUBD_double_pop,
+    I_MULD_double,
+    I_MULD_pop_double,
+    I_MULD_double_pop,
+    I_DIVD_double,
+    I_DIVD_pop_double,
+    I_DIVD_double_pop
 };
 
 struct __instruction_t {
@@ -109,17 +138,6 @@ INSTR_T create_JMP_instr(int label_key) {
     return i;
 }
 
-INSTR_T create_ADD_int_instr(const int store_offset, const int a, const int b) {
-    instruction_t *i = calloc(1, sizeof(instruction_t));
-
-    i->type = I_ADD;
-    ZVAL_INIT_INT(i->first, store_offset);
-    ZVAL_INIT_INT(i->second, a);
-    ZVAL_INIT_INT(i->third, b);
-
-    return i;
-}
-
 INSTR_T create_PUSH_int_instr(const int store_offset) {
     instruction_t *i = calloc(1, sizeof(instruction_t));
 
@@ -129,7 +147,13 @@ INSTR_T create_PUSH_int_instr(const int store_offset) {
     return i;
 }
 
-#undef INSTR_T
+INSTR_T create_COUT_pop_instr() {
+    instruction_t *i = calloc(1, sizeof(instruction_t));
+
+    i->type = I_COUT_pop;
+
+    return i;
+}
 
 klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stack) *expression);
 

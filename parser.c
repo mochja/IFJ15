@@ -26,6 +26,10 @@ result_t init_parser(parser_t *parser, char *source) {
     parser->assignVarName = NULL;
 
     parser->token = calloc(1, sizeof(token_t));
+    parser->code = kl_init(instruction_list);
+
+    // jump to main() on start
+    *kl_pushp(instruction_list, parser->code) = create_JMP_instr(0);
 
     if ((parser->table = initHashTable(MAX_HTSIZE)) == NULL) {
         fprintf(stderr, "Could not initialize hash table.");
@@ -78,7 +82,7 @@ result_t parser_run(parser_t *parser) {
 
 
 result_t parse_fn(parser_t *parser) {
-    result_t result = EOK;
+    result_t result;
 
     int fType = parser->token->flags;
 
@@ -119,8 +123,7 @@ result_t parse_fn(parser_t *parser) {
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL))// {
             return ESYN;
 
-        /********MISSING: vlozenie 3AK -- label zaciatku funkcie main********/
-        printf("LABEL MAIN\n");
+        *kl_pushp(instruction_list, parser->code) = create_LABEL_instr(0);
 
         if ((result = parser_next_token(parser)) != EOK) {
             return result;
@@ -602,6 +605,7 @@ result_t parse_list(parser_t *parser) {
                     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                         return ESEM;
                 }
+                *kl_pushp(instruction_list, parser->code) = create_COUT_pop_instr();
                 /**vlozenie 3AK - vypis na STDOUT z premennej hName**/
                 printf("\tCOUNT STDOUT %s\n", hName);
             }
@@ -825,17 +829,27 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock) {
 result_t parse_assign(parser_t *parser) {
     result_t result = EOK;
 
-    if (TOKEN_HAS_TFLAG(parser->token, FN_TYPE, LENGTH_FN | SUBSTR_FN | CONCAT_FN | FIND_FN | SORT_FN)) {
+    if (TOKEN_HAS_TFLAG(parser->token, FN_TYPE, LENGTH_FN|SUBSTR_FN|CONCAT_FN|FIND_FN|SORT_FN)) {
         result = parse_build_in_fn(parser);
     }
     else if (TOKEN_IS(parser->token, ID_TYPE)) {
         hTabItem *tableItem;
         if ((tableItem = searchItem(parser->table, parser->token->data.sVal)) == NULL) {
-            /*********hack**********/                ///precedencna
+
+            klist_t(token_list) *tokens = kl_init(token_list);
             while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
+                token_t *cpy = calloc(1, sizeof(token_t));
+                copy_token(cpy, parser->token);
+                *kl_pushp(token_list, tokens) = cpy;
                 if ((result = parser_next_token(parser)) != EOK) { return result; }
             }
-            /*********************/
+
+            klist_t(expr_stack) *expr = build_expression(tokens);
+            klist_t(instruction_list) *expr_code = create_instructions_from_expression(expr);
+            for (kliter_t(instruction_list) *it = kl_begin(expr_code); it != kl_end(expr_code); it = kl_next(it)) {
+                *kl_pushp(instruction_list, parser->code) = kl_val(it);
+            }
+
         } else {
             /**volanie uzivatelskej funkcie**/
             tItemPtr item;
@@ -880,10 +894,20 @@ result_t parse_assign(parser_t *parser) {
         }
     } else if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
 
-        /*********hack**********/                ///precedencna
+        klist_t(token_list) *tokens = kl_init(token_list);
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
+            token_t *cpy = calloc(1, sizeof(token_t));
+            copy_token(cpy, parser->token);
+            *kl_pushp(token_list, tokens) = cpy;
             if ((result = parser_next_token(parser)) != EOK) { return result; }
         }
+
+        klist_t(expr_stack) *expr = build_expression(tokens);
+        klist_t(instruction_list) *expr_code = create_instructions_from_expression(expr);
+        for (kliter_t(instruction_list) *it = kl_begin(expr_code); it != kl_end(expr_code); it = kl_next(it)) {
+            *kl_pushp(instruction_list, parser->code) = kl_val(it);
+        }
+
         /*********************/
     } else return ESEM;
     return EOK;

@@ -20,6 +20,7 @@
 #include "kvec.h"
 
 typedef struct __interpreter_t interpreter_t;
+typedef struct __stack_t stack_t;
 
 struct __stack_t {
     kvec_t(zval_t) data;
