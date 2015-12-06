@@ -153,6 +153,22 @@ INLINED void token_set_flags(token_t *dest, const unsigned int flags) {
 
 INLINED result_t token_init(token_t *dest) {
     token_set_type(dest, BASIC_TYPE);
+    zval_init(&dest->data);
+    return EOK;
+}
+
+INLINED result_t copy_token(token_t *dest, token_t *src) {
+
+    if (src == NULL) {
+        return ESYS;
+    }
+
+    memcpy(dest, src, sizeof(token_t));
+
+    if (ZVAL_IS_STRING(&dest->data)) {
+        zval_set_string(&dest->data, ZVAL_GET_STRING(&dest->data));
+    }
+
     return EOK;
 }
 

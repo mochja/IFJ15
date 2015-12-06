@@ -97,6 +97,15 @@ static inline void process_PUSH_instr(stack_t *stack, const int offset) {
     kv_push(zval_t, stack->data, val);
 }
 
+INLINED void process_COUT_pop_instr(stack_t *stack) {
+
+    zval_t *val = &kv_pop(stack->data);
+
+    if (ZVAL_IS_INT(val)) {
+        printf("%d", zval_get_int(val));
+    }
+}
+
 static size_t proccess_instruction(instruction_t *instr, struct __stack_t *stack, const size_t actual_addr) {
 
     switch (instr->type) {
@@ -106,6 +115,9 @@ static size_t proccess_instruction(instruction_t *instr, struct __stack_t *stack
             return actual_addr + 1;
         case I_JMP:
             return (size_t) ZVAL_GET_INT(instr->first);
+        case I_COUT_pop:
+            process_COUT_pop_instr(stack);
+            return actual_addr + 1;
 
         case I_ADDI_int:
             process_ADDI_int_instr(stack, ZVAL_GET_INT(instr->first), ZVAL_GET_INT(instr->second));
@@ -201,6 +213,7 @@ void run_interpreter(interpreter_t *intr) {
 
     while (actual_addr < kv_size(intr->instructions)) {
         instruction_t *i = &kv_A(intr->instructions, actual_addr);
+        printf("[0x%.8lu]: [%d] \n", actual_addr, i->type);
         actual_addr = proccess_instruction(i, &intr->stack, actual_addr);
     };
 }

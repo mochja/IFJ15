@@ -29,6 +29,7 @@ enum __instruction_type {
     I_POP,
     I_PUSH,
     I_JMP,
+    I_COUT_pop,
 
     I_ADDI_int,
     I_ADD_pop,
@@ -142,6 +143,14 @@ INSTR_T create_PUSH_int_instr(const int store_offset) {
 
     i->type = I_PUSH;
     ZVAL_INIT_INT(i->first, store_offset);
+
+    return i;
+}
+
+INSTR_T create_COUT_pop_instr() {
+    instruction_t *i = calloc(1, sizeof(instruction_t));
+
+    i->type = I_COUT_pop;
 
     return i;
 }

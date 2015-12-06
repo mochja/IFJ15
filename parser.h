@@ -20,6 +20,7 @@
 #include "hash.h"
 #include "token.h"
 #include "zval.h"
+#include "instruction.h"
 
 typedef struct {
 	tvarList varList;
@@ -34,6 +35,7 @@ typedef struct {
 	tTable *table;
     token_t *token;
     scanner_t scanner;
+    klist_t(instruction_list) *code;
 } parser_t;
 
 result_t init_parser(parser_t *parser, char *source);
