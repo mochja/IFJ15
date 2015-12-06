@@ -29,7 +29,7 @@ enum __instruction_type {
     I_POP,
     I_PUSH,
     I_JMP,
-    I_ADD
+    I_ADD_int,
 };
 
 struct __instruction_t {
@@ -109,13 +109,12 @@ INSTR_T create_JMP_instr(int label_key) {
     return i;
 }
 
-INSTR_T create_ADD_int_instr(const int store_offset, const int a, const int b) {
+INSTR_T create_ADD_int_instr(const int a, const int b) {
     instruction_t *i = calloc(1, sizeof(instruction_t));
 
-    i->type = I_ADD;
-    ZVAL_INIT_INT(i->first, store_offset);
-    ZVAL_INIT_INT(i->second, a);
-    ZVAL_INIT_INT(i->third, b);
+    i->type = I_ADD_int;
+    ZVAL_INIT_INT(i->first, a);
+    ZVAL_INIT_INT(i->second, b);
 
     return i;
 }

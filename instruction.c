@@ -32,7 +32,7 @@ klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stac
 
             if (EXPR_GET_OPERAND(curr) == Op_PLUS) {
                 if (ZVAL_IS_INT(&a->val) && ZVAL_IS_INT(&b->val)) {
-                    *kl_pushp(instruction_list, instr) = create_ADD_int_instr(64564, ZVAL_GET_INT(&a->val), ZVAL_GET_INT(&b->val));
+                    *kl_pushp(instruction_list, instr) = create_ADD_int_instr(ZVAL_GET_INT(&a->val), ZVAL_GET_INT(&b->val));
                 }
             }
         }

@@ -94,6 +94,13 @@ static inline void process_PUSH_instr(struct __stack_t *stack, const int offset)
     kv_push(zval_t, stack->data, val);
 }
 
+static inline void process_ADD_int_instr(struct __stack_t *stack, const int a, const int b) {
+    zval_t val;
+    int res = a + b;
+    ZVAL_SET_INT(&val, res);
+    kv_push(zval_t, stack->data, val);
+}
+
 static size_t proccess_instruction(instruction_t *instr, struct __stack_t *stack, const size_t actual_addr) {
 
     switch (instr->type) {
@@ -102,13 +109,8 @@ static size_t proccess_instruction(instruction_t *instr, struct __stack_t *stack
             return actual_addr + 1;
         case I_JMP:
             return (size_t) ZVAL_GET_INT(instr->first);
-        case I_ADD:
-            if (ZVAL_IS_INT(instr->second) && ZVAL_IS_INT(instr->third)) {
-                ZVAL_SET_INT(&kv_A(stack->data, stack->base_pointer + ZVAL_GET_INT(instr->first) - 1), ZVAL_GET_INT(instr->second) + ZVAL_GET_INT(instr->third));
-            } else if (ZVAL_IS_DOUBLE(instr->second) && ZVAL_IS_DOUBLE(instr->third)) {
-                ZVAL_SET_DOUBLE(&kv_A(stack->data, stack->base_pointer + ZVAL_GET_INT(instr->first) - 1), ZVAL_IS_DOUBLE(instr->second) + ZVAL_IS_DOUBLE(instr->third));
-            }
-            // TODO: Add double + int
+        case I_ADD_int:
+            process_ADD_int_instr(stack, ZVAL_GET_INT(instr->first), ZVAL_GET_INT(instr->second));
             return actual_addr + 1;
         default:
             return 0;
