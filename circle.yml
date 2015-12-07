@@ -22,7 +22,7 @@ test:
     - make test
     - perl -lne '/Ensure\((\w+)\,\s+(\w+)/ and print "\"$1\" \"$2\""' ../*_test.c | xargs -n2 -L1 sh -c 'valgrind --tool=memcheck --track-origins=yes --leak-check=full --error-exitcode=255 ./run_test $0 $1'
   post:
-    - "./is_it_ok.sh xmochn00.tgz tmp > check.log 2>&1"
+    - "./is_it_ok.sh xmochn00.zip tmp > check.log 2>&1"
     - cat check.log
     - "! grep ERROR check.log"
     - cat tmp/is_it_ok.log
