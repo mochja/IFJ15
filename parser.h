@@ -35,6 +35,7 @@ typedef struct {
 	tTable *table;
     token_t *token;
     scanner_t scanner;
+    int offset_counter;
     klist_t(instruction_list) *code;
 } parser_t;
 

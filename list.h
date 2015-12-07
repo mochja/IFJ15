@@ -10,6 +10,7 @@
 typedef struct {
 	char *id;
 	char hid[64];
+    int offset;
 } tData;
 
 typedef struct tItem {
@@ -31,12 +32,13 @@ void deleteLast(tvarList *L);
 char * varSearch(tvarList *L, char * name);
 char * paramSearch(tvarList *L, char * fid, char *name);
 
-static inline result_t init_data_var(tData *dest, const char *id, const char *hid) {
+static inline result_t init_data_var(tData *dest, const char *id, const char *hid,const int offset) {
 
     dest->id = malloc((strlen(id) + 1) * sizeof(char));
 
     strcpy(dest->id, id);
     strcpy(dest->hid, hid);
+    dest->offset=offset;
 
     return EOK;
 }
