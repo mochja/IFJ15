@@ -13,7 +13,7 @@ checkout:
 general:
   build_dir: .build
   artifacts:
-    - xmochn00.tgz
+    - xmochn00.zip
 test:
   pre:
     - cmake -DCMAKE_BUILD_TYPE=Debug ../
