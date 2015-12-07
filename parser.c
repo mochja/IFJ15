@@ -187,8 +187,7 @@ result_t parse_fn(parser_t *parser) {
             return result;
         }
 
-        if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
-            result = parse_fn_args(parser, item);    //parsovanie argumentov funkcie
+        result = parse_fn_args(parser, item);    //parsovanie argumentov funkcie
 
         if (result != EOK)
             return result;
@@ -230,7 +229,6 @@ result_t parse_fn(parser_t *parser) {
             if (result != EOK)
                 return result;
 
-            /********MISSING: vlozenie 3AK -- navrat z funkcie*******/
             printf("LABEL ENDF %s\n", fLabel);
         }
         else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL) && tableItem->isDefined == true)
@@ -307,7 +305,7 @@ result_t parse_list(parser_t *parser) {
         if (result != EOK)
             return result;
 
-        printf("\tMV TO OFFSET:%d VYRAZ\n", var_offset);
+        printf("\tMV TO OFFSET:%d POP\n", var_offset);
         /*vlozenie 3AK na priradenie vysledku z funkcie parse_assign do hName*/
     }
 
@@ -872,6 +870,8 @@ result_t parse_assign(parser_t *parser) {
 
     if (TOKEN_HAS_TFLAG(parser->token, FN_TYPE, LENGTH_FN|SUBSTR_FN|CONCAT_FN|FIND_FN|SORT_FN)) {
         result = parse_build_in_fn(parser);
+        if(result != EOK)
+            return result;
     }
     else if (TOKEN_IS(parser->token, ID_TYPE)) {
         hTabItem *tableItem;
@@ -917,6 +917,7 @@ result_t parse_assign(parser_t *parser) {
 
             if ((result = parser_next_token(parser)) != EOK) { return result; }
 
+            printf("PUSH \n");
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 result = parse_params(parser, item);
             if (result != EOK)
@@ -924,6 +925,10 @@ result_t parse_assign(parser_t *parser) {
 
             if (kv_size(item->data) != parser->argsCounter1)
                 return ESEM3;
+
+            printf("CALL LABEL\n");
+            for(int i=0;i < parser->argsCounter1; i++)
+                printf("POP\n");
 
             parser->argsCounter1 = 0;
 
@@ -951,6 +956,7 @@ result_t parse_assign(parser_t *parser) {
 
         /*********************/
     } else return ESEM;
+
     return EOK;
 }
 
@@ -959,13 +965,11 @@ result_t parse_build_in_fn(parser_t *parser) {
     char *hName;
     hTabItem *tItem = NULL;
     hTabItem *tItem1 = NULL;
-    hTabItem *tItem2 = NULL;
-    hTabItem *tItem3 = NULL;
     int var_offset=0;
-    var_offset=var_offset;
-    
+
     switch (parser->token->flags) {
         case LENGTH_FN:
+
             /******************Skontrolovat typ assignVarName v TS - musi byt INT**********************/
             if ((tItem = searchItem(parser->table, parser->assignVarName)) == NULL)
                 return ESYS;
@@ -979,26 +983,20 @@ result_t parse_build_in_fn(parser_t *parser) {
             if ((result = parser_next_token(parser)) != EOK) { return result; }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem1 = createNewItem();
-                tItem1->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem1->name, hName);
-                tItem1->dataType = STRING_KW;
-                tItem1->sVal = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token->data));
-                insertHashTable(parser->table, tItem1);
+                printf("PUSH CONST TEXT %s\n", parser->token->data.sVal);
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 /****zkontroluje datovy typ --- musi byt string***/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
                     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                         return ESEM;
-                }
+                    else { var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
+                } else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
                 if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem1->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                printf("PUSH OFFSET: %d\n", var_offset);
             }
             else return ESEM2;
 
@@ -1033,15 +1031,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             if ((result = parser_next_token(parser)) != EOK) { return result; }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem1 = createNewItem();
-                tItem1->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem1->name, hName);
-                tItem1->dataType = STRING_KW;
-                tItem1->sVal  = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token->data));
-                insertHashTable(parser->table, tItem1);
+               printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1051,8 +1041,9 @@ result_t parse_build_in_fn(parser_t *parser) {
                 } else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
                 if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem1->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) { return result; }
@@ -1062,14 +1053,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             if ((result = parser_next_token(parser)) != EOK) { return result; }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem2 = createNewItem();
-                tItem2->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem2->name, hName);
-                tItem2->dataType = INT_KW;
-                tItem2->iVal = parser->token->data.iVal;
-                insertHashTable(parser->table, tItem2);
+               printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1078,10 +1062,11 @@ result_t parse_build_in_fn(parser_t *parser) {
                     else { var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
                 } else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
 
-                if ((tItem2 = searchItem(parser->table, hName)) == NULL)
+                if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem2->dataType != INT_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != INT_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) { return result; }
@@ -1092,14 +1077,7 @@ result_t parse_build_in_fn(parser_t *parser) {
 
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem3 = createNewItem();
-                tItem3->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem3->name, hName);
-                tItem3->dataType = INT_KW;
-                tItem3->iVal = parser->token->data.iVal;
-                insertHashTable(parser->table, tItem3);
+               printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1107,10 +1085,11 @@ result_t parse_build_in_fn(parser_t *parser) {
                         return ESEM;
                     else { var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
                 }else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
-                if ((tItem2 = searchItem(parser->table, hName)) == NULL)
+                if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem2->dataType != INT_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != INT_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                 printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) { return result; }
@@ -1141,15 +1120,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             if ((result = parser_next_token(parser)) != EOK) { return result; }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem1 = createNewItem();
-                tItem1->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem1->name, hName);
-                tItem1->dataType = STRING_KW;
-                tItem1->sVal = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token->data));
-                insertHashTable(parser->table, tItem1);
+                printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1159,8 +1130,9 @@ result_t parse_build_in_fn(parser_t *parser) {
                 }else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
                 if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem1->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) { return result; }
@@ -1170,25 +1142,18 @@ result_t parse_build_in_fn(parser_t *parser) {
             if ((result = parser_next_token(parser)) != EOK) { return result; }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                /**********vyhladame polozku hName v TS*********/
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem2 = createNewItem();
-                tItem2->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem2->name, hName);
-                tItem2->dataType = STRING_KW;
-                tItem2->sVal  = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem2->sVal, ZVAL_GET_STRING(&parser->token->data));
+                printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
                     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                         return ESEM;
                     else { var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
                 }else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
-                if ((tItem2 = searchItem(parser->table, hName)) == NULL)
+                if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem2->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                 printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) { return result; }
@@ -1216,15 +1181,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             if ((result = parser_next_token(parser)) != EOK) { return result; }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem1 = createNewItem();
-                tItem1->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem1->name, hName);
-                tItem1->dataType = STRING_KW;
-                tItem1->sVal = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token->data));
-                insertHashTable(parser->table, tItem1);
+                printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1234,8 +1191,9 @@ result_t parse_build_in_fn(parser_t *parser) {
                 }else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
                 if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem1->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) { return result; }
@@ -1245,15 +1203,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             if ((result = parser_next_token(parser)) != EOK) { return result; }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem2 = createNewItem();
-                tItem2->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem2->name, hName);
-                tItem2->dataType = STRING_KW;
-                tItem2->sVal = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem2->sVal, ZVAL_GET_STRING(&parser->token->data));
-                insertHashTable(parser->table, tItem2);
+                 printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1261,10 +1211,11 @@ result_t parse_build_in_fn(parser_t *parser) {
                         return ESEM;
                     else { var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
                 }else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
-                if ((tItem2 = searchItem(parser->table, hName)) == NULL)
+                if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem2->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) { return result; }
@@ -1274,8 +1225,6 @@ result_t parse_build_in_fn(parser_t *parser) {
             if ((result = parser_next_token(parser)) != EOK) { return result; }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
                 return ESYN;
-
-            //	printf("volanie funkcie find--- parameter 1: %s ,parameter 2: %s\n",  tItem1->value.c, tItem2->value.c);
             break;
         case SORT_FN:
             /******************Skontrolovat typ assignVarName v TS - musi byt STRING**********************/
@@ -1291,15 +1240,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             if ((result = parser_next_token(parser)) != EOK) { return result; }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem1 = createNewItem();
-                tItem1->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem1->name, hName);
-                tItem1->dataType = STRING_KW;
-                tItem1->sVal = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token->data));
-                insertHashTable(parser->table, tItem1);
+                printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1309,8 +1250,10 @@ result_t parse_build_in_fn(parser_t *parser) {
                 }else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
                 if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem1->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW){
                     return ESEM2;
+                    printf("PUSH OFFSET: %d\n", var_offset);
+                }
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) { return result; }
@@ -1331,7 +1274,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
     char *hName;
     hTabItem *tableItem;
     int var_offset=0;
-    var_offset=var_offset;
+
     if (TOKEN_IS(parser->token, ID_TYPE)) {
         hTabItem *tItem1;
 
