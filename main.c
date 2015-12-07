@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
 
     if (res == EOK) {
         res = parser_run(&parser);
-        interpreter_t *i = init_interpreter(parser.code);
-        run_interpreter(i);
+        //interpreter_t *i = init_interpreter(parser.code);
+        //run_interpreter(i);
     }
     return res;
 }
