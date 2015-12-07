@@ -1253,6 +1253,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                 if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW){
                     return ESEM2;
                     printf("PUSH OFFSET: %d\n", var_offset);
+                    
                 }
             } else return ESEM2;
 
