@@ -31,6 +31,9 @@ void insertLast(tItemPtr item, tvarList *L);
 void deleteLast(tvarList *L);
 char * varSearch(tvarList *L, char * name);
 char * paramSearch(tvarList *L, char * fid, char *name);
+int get_var_offset(tvarList *L, char * name);
+int get_param_offset(tvarList *L, char * fid, char *name);
+
 
 static inline result_t init_data_var(tData *dest, const char *id, const char *hid,const int offset) {
 
