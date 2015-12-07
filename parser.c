@@ -24,6 +24,7 @@ result_t init_parser(parser_t *parser, char *source) {
     parser->hInt = 0;
     parser->label = 1;
     parser->assignVarName = NULL;
+    parser->offset_counter=0;
 
     parser->token = calloc(1, sizeof(token_t));
     parser->code = kl_init(instruction_list);
@@ -200,6 +201,13 @@ result_t parse_fn(parser_t *parser) {
                 return ESEM;
         } else {
             tableItem->params = parser->argsCounter;
+            int j=0;
+            for(int i = parser->offset_counter; i > 0; i--){
+                kv_A(item->data,j).offset=-(i);
+                printf("PARAMETER:%s...offset:%d\n",kv_A(item->data, j).id,  kv_A(item->data,j).offset );
+                j++;
+            }
+            parser->offset_counter=0;
             insertLast(item, &parser->paramList);
         }
 
@@ -326,6 +334,12 @@ result_t parse_list(parser_t *parser) {
         /*************** } <parse_list> ***********************/
     else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_VINCULUM_SMBL)) {
         printf("....END BLOCK....\n");
+        tItemPtr item = parser->varList.Last;
+        for(int i = 0; i < kv_size(item->data) ; i++){
+            //POP VARIABLE
+            printf("VARIABLE POP:%s\n",kv_A(item->data, i).id );
+            parser->offset_counter--;
+        }
         deleteLast(&parser->varList);
         return EOK;
     }
@@ -451,9 +465,10 @@ result_t parse_list(parser_t *parser) {
         kv_init(varBlock->data);
 
         hName = generate_var_name(parser->hInt++);
+        parser->offset_counter++;
 
         tData data;
-        if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName)) != EOK) {
+        if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName,parser->offset_counter)) != EOK) {
             return result;
         }
         item_append_data(varBlock, data);
@@ -554,6 +569,8 @@ result_t parse_list(parser_t *parser) {
 
         if (result != EOK)
             return result;
+
+        parser->offset_counter--;
         deleteLast(&parser->varList);
         printf("JMP ASSIGNLABEL %d\n", assignLabel);
         /**vlozenie 3AK - skok na assignLabel**/
@@ -672,12 +689,17 @@ result_t parse_adv_declaration(parser_t *parser) {
     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) != NULL)
         return ESEM;
 
+    if((tItem = searchItem(parser->table, parser->token->data.sVal)) != NULL)
+        return ESEM;
+
     hName = generate_var_name(parser->hInt++);
+    parser->offset_counter++;
 
     tData data;
-    if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName)) != EOK) {
+    if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName,parser->offset_counter)) != EOK) {
         return result;
     }
+    printf("Variable Push %s...offset:%d\n",parser->token->data.sVal,data.offset);
     item_append_data(parser->varList.Last, data);
 
     /***vytvorenie novej polozky do TS****/
@@ -753,14 +775,20 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock) {
     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) != NULL)
         return ESEM;
 
+     if((tItem = searchItem(parser->table, parser->token->data.sVal)) != NULL)
+        return ESEM;
+
     hName = generate_var_name(parser->hInt);
     parser->hInt++;
+    parser->offset_counter++;
 
     tData data;
-    if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName)) != EOK) {
+    if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName,parser->offset_counter)) != EOK) {
         return result;
     }
+    printf("Variable Push %s...offset:%d\n",parser->token->data.sVal,data.offset);
     item_append_data(varBlock, data);
+
 
     /***vytvorenie novej polozky do TS****/
     tItem = createNewItem();
@@ -1418,8 +1446,9 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
             i++;
         }
 
+        parser->offset_counter++;
         tData data;
-        if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName)) != EOK) {
+        if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName,0)) != EOK) {
             return result;
         }
         item_append_data(item, data);

@@ -65,6 +65,5 @@ int main(int argc, char *argv[])
         interpreter_t *i = init_interpreter(parser.code);
         run_interpreter(i);
     }
-
     return res;
 }
