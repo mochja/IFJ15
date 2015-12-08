@@ -31,4 +31,11 @@ typedef enum {
 #define CHECK_FLAG(x, t)                (((x) & (t)) == (t))
 #define HAS_FLAG(x, t)                  ((x) & (t))
 
+
+#define DEBUG 1
+
+#define debug_print(fmt, ...) \
+        do { if (DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
+                                __LINE__, __func__, __VA_ARGS__); } while (0)
+
 #endif // GLOBALS_H_
