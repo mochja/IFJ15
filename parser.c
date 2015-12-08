@@ -1148,17 +1148,14 @@ result_t parse_build_in_fn(parser_t *parser) {
                printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                  /**********vyhladame polozku hName v TS*********/
-                printf("step 1\n");
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
                     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                         return ESEM;
                     else { var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
                 } else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
 
-                printf("step 2\n" );
                 if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                printf("step 3\n");
                 if (tItem1->dataType != INT_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
                 printf("PUSH OFFSET: %d\n", var_offset);
