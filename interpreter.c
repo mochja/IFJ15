@@ -48,10 +48,10 @@ interpreter_t *init_interpreter(klist_t(instruction_list) *instructions) {
         instruction_t *instr = kl_val(it);
 
         if (instr->type == I_JMP) {
-            copy_instruction(&kv_a(instruction_t, intr->instructions, i), instr);
+            instruction_copy(&kv_a(instruction_t, intr->instructions, i), instr);
             zval_set(kv_A(intr->instructions, i).first, kv_A(labels, ZVAL_GET_INT(instr->first)));
         } else if (instr->type != I_LABEL) {
-            copy_instruction(&kv_a(instruction_t, intr->instructions, i), instr);
+            instruction_copy(&kv_a(instruction_t, intr->instructions, i), instr);
         }
 
         if (instr->type != I_LABEL && instr->type != I_NOOP) {
@@ -67,26 +67,15 @@ interpreter_t *init_interpreter(klist_t(instruction_list) *instructions) {
 void destroy_interpreter(interpreter_t *intr) {
 
     for (size_t i = 0; i < kv_size(intr->instructions); i++) {
-        destroy_zval(kv_A(intr->instructions, i).first);
-        destroy_zval(kv_A(intr->instructions, i).second);
-        destroy_zval(kv_A(intr->instructions, i).third);
+        instruction_dispose(&kv_A(intr->instructions, i));
     }
 
     for (size_t i = 0; i < kv_size(intr->stack.data); ++i) {
-        zval_t *val = &kv_A(intr->stack.data, i);
-
-        if (val == NULL) {
-            continue;
-        }
-
-        if (ZVAL_IS_STRING(val)) {
-            free(ZVAL_GET_STRING(val));
-        }
+        zval_dispose(&kv_A(intr->stack.data, i));
     }
 
     kv_destroy(intr->instructions);
     kv_destroy(intr->stack.data);
-    free(intr);
 }
 
 typedef struct __stack_t stack_t;

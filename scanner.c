@@ -37,7 +37,7 @@ enum {
 
 result_t init_scanner(scanner_t *s, char *source) {
 
-    if ((s->source = malloc(strlen(source) + 1)) == NULL) {
+    if ((s->source = malloc(sizeof(char) * (strlen(source) + 1))) == NULL) {
         return ESYS;
     }
 
@@ -69,8 +69,10 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
 
     while ((c[0] = *(scanner->source++)) != '\0') {
 
+        unsigned char *cx = (unsigned char *) c;
+
         /************** novy riadok ***********************/
-        if (*c == '\n') {
+        if (*cx == '\n') {
             scanner->line++;
         }
 
@@ -78,91 +80,91 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
             case STATE_START:
 
                 /***********mezdera, biely znak*****************/
-                if (isspace(*c)) {
+                if (isspace(*cx)) {
                     state = STATE_START;
                 }
 
                 /*************Pismeno alebo znak '_'***********/
-                else if (isalpha(*c) || *c == '_') {
+                else if (isalpha(*cx) || *cx == '_') {
                     strcpy(buff, c);
                     state = STATE_K_OR_ID;
                 }
 
-                /************cislo *****************************/
-                else if (isdigit(*c)) {
+                /************cxislo *****************************/
+                else if (isdigit(*cx)) {
                     strcpy(buff, c);
                     state = STATE_NUMBER;
                 }
                 /*******************string*************************/
-                else if (*c == '"') {
+                else if (*cx == '"') {
                     buff[0] = '\0';
                     state = STATE_STRING;
                 }
 
                 /*************komentar alebo delenie ***************/
-                else if (*c == '/') {
+                else if (*cx == '/') {
                     state = STATE_DEV_OR_COM;
                 }
 
-                else if (*c == '=') {
+                else if (*cx == '=') {
                     state = STATE_EQ_OR_AS;
                 }
 
-                else if (*c == '<') {
+                else if (*cx == '<') {
                     state = STATE_L_ARR_LQ;
                 }
 
-                else if (*c == '>') {
+                else if (*cx == '>') {
                     state = STATE_R_ARR_MQ;
                 }
 
-                else if (*c == '!') {
+                else if (*cx == '!') {
                     state = STATE_NOT;
                 }
 
-                else if (*c == ';') {
+                else if (*cx == ';') {
                     token_set_symbol(dest, SEMICOLON_SMBL);
                 }
 
-                else if (*c == '(') {
+                else if (*cx == '(') {
                     token_set_symbol(dest, LEFT_CULUM_SMBL);
                 }
 
-                else if (*c == ')') {
+                else if (*cx == ')') {
                     token_set_symbol(dest, RIGHT_CULUM_SMBL);
                 }
 
-                else if (*c == '{') {
+                else if (*cx == '{') {
                     token_set_symbol(dest, LEFT_VINCULUM_SMBL);
                 }
 
-                else if (*c == '}') {
+                else if (*cx == '}') {
                     token_set_symbol(dest, RIGHT_VINCULUM_SMBL);
                 }
 
-                else if (*c == ',') {
+                else if (*cx == ',') {
                     token_set_symbol(dest, COMMA_SMBL);
                 }
 
-                else if (*c == '.') {
+                else if (*cx == '.') {
                     token_set_symbol(dest, DOT_SMBL);
                 }
 
-                else if (*c == '+') {
+                else if (*cx == '+') {
                     token_set_symbol(dest, PLUS_SMBL);
                 }
 
-                else if (*c == '-') {
+                else if (*cx == '-') {
                     token_set_symbol(dest, MINUS_SMBL);
 
                 }
 
-                else if (*c == '*') {
+                else if (*cx == '*') {
                     token_set_symbol(dest, MULTIPLY_SMBL);
                 }
 
                 else {
-                    fprintf(stderr, "LEX Error: Line: %lu , Unknown token: '%c'\n", scanner->line, *c);
+                    fprintf(stderr, "LEX Error: Line: %lu , Unknown token: '%c'\n", scanner->line, *cx);
                     return ELEX;
                 }
 
@@ -170,20 +172,20 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
 
             /*****klucove slovlo alebo ID **********/
             case STATE_K_OR_ID:
-                if (isalnum(*c) || *c == '_') {  // ak je c pismeno, cislo alebo znak _ prida sa do retazca
+                if (isalnum(*cx) || *cx == '_') {  // ak je c pismeno, cislo alebo znak _ prida sa do retazca
                     strcat(buff, c);
                 }
 
                 /*ak je c niektory z povolenych znakov*/
-                else if( *c == ';' || *c == '(' || *c == ')' || *c == '{' || *c == '}' || *c == ',' ||
-                         *c == '.' || *c == '=' || *c == '<' || *c == '>' || *c == '!' || *c == '+' ||
-                         *c == '-' || *c == '*' || *c == '/' || *c == '"' || isspace(*c) || *c == EOF)
+                else if( *cx == ';' || *cx == '(' || *cx == ')' || *cx == '{' || *cx == '}' || *cx == ',' ||
+                         *cx == '.' || *cx == '=' || *cx == '<' || *cx == '>' || *cx == '!' || *cx == '+' ||
+                         *cx == '-' || *cx == '*' || *cx == '/' || *cx == '"' || isspace(*cx) || *cx == EOF)
                 {
-                    if (*c == '\n') {
+                    if (*cx == '\n') {
                         scanner->line--;
                     }
 
-                    c[0] = *(--scanner->source);
+                    *cx = (unsigned char) *(--scanner->source);
 
                     /*kontrola ci retazec nie je klucove slovo */
                     if(!strcmp(buff, "auto"))    { token_set_kw(dest, AUTO_KW);   } else
@@ -207,31 +209,31 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     }
                 }
                 else { // v pripade nepovoleneho znaku dochadza k chybe
-                    fprintf(stderr,"LEX Error: Line: %lu , Unknown token: '%c'\n", scanner->line, *c);
+                    fprintf(stderr,"LEX Error: Line: %lu , Unknown token: '%c'\n", scanner->line, *cx);
                     return ELEX;
                 };
             break;
 
             /*****komentar alebo delenie*******/
             case STATE_DEV_OR_COM:
-                if (*c == '/') {
+                if (*cx == '/') {
                     state = STATE_LINE_COM;
                 }
-                else if (*c == '*') {
+                else if (*cx == '*') {
                     state = STATE_BLOCK_COM;
                 }
                 else {
-                    if (*c == '\n') {
+                    if (*cx == '\n') {
                         scanner->line--;
                     }
-                    c[0] = *(--scanner->source);
+                    *cx = (unsigned char) *(--scanner->source);
                     token_set_symbol(dest, DEVIDE_SMBL);
                 }
             break;
 
             /***********riadkovy komentar**********/
             case STATE_LINE_COM:
-                if (*c == '\n') {
+                if (*cx == '\n') {
                     state = STATE_START;
                 }
             break;
@@ -239,109 +241,109 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
             /**********blokovy komentar ************/
 
             case STATE_BLOCK_COM:
-                if (*c == '*') {
+                if (*cx == '*') {
                     state = STATE_BLOCK_COM_END;
                 }
             break;
 
             /*********koniec blokoveho komentara ******/
             case STATE_BLOCK_COM_END:
-                if (*c == '/') {
+                if (*cx == '/') {
                     state = STATE_START;
                 }
                 else {
-                    if (*c == '\n') {
+                    if (*cx == '\n') {
                         scanner->line--;
                     }
-                    c[0] = *(--scanner->source);
+                    *cx = (unsigned char) *(--scanner->source);
                     state = STATE_BLOCK_COM;
                 }
             break;
 
             /************* = alebo == ***********************/
             case STATE_EQ_OR_AS:
-                if (*c == '=') {
+                if (*cx == '=') {
                     token_set_symbol(dest, EQUALS_SMBL);
                 }
                 else {
-                    if (*c == '\n') {
+                    if (*cx == '\n') {
                         scanner->line--;
                     }
-                    c[0] = *(--scanner->source);
+                    *cx = (unsigned char) *(--scanner->source);
                     token_set_symbol(dest, ASSIGN_SMBL);
                 }
             break;
 
             /***************< alebo << alebo <= **************/
             case STATE_L_ARR_LQ:
-                if (*c == '<')
+                if (*cx == '<')
                     token_set_symbol(dest, DBL_ARR_LEFT_SMBL);
-                else if (*c == '=')
+                else if (*cx == '=')
                     token_set_symbol(dest, LESS_OR_EQUAL_SMBL);
                 else {
-                    if (*c == '\n') {
+                    if (*cx == '\n') {
                         scanner->line--;
                     }
-                    c[0] = *(--scanner->source);
+                    *cx = (unsigned char) *(--scanner->source);
                     token_set_symbol(dest, LEFT_ARROW_SMBL);
                 }
             break;
 
             /*************** > alebo >> alebo >= **************/
             case STATE_R_ARR_MQ:
-                if (*c == '>')
+                if (*cx == '>')
                     token_set_symbol(dest, DBL_ARR_RIGHT_SMBL);
-                else if (*c == '=')
+                else if (*cx == '=')
                     token_set_symbol(dest, MORE_OR_EQUAL_SMBL);
                 else {
-                    if (*c == '\n') {
+                    if (*cx == '\n') {
                         scanner->line--;
                     }
-                    c[0] = *(--scanner->source);
+                    *cx = (unsigned char) *(--scanner->source);
                     token_set_symbol(dest, RIGHT_ARROW_SMBL);
                 }
             break;
 
             /********************* !=  *********************************/
             case STATE_NOT:
-                if(*c == '=')
+                if(*cx == '=')
                     token_set_symbol(dest, NOT_EQUAL_SMBL);
                 else{
                     return ELEX;
                 }
             break;
 
-            /*************************cislo******************************/
+            /*************************cxislo******************************/
             case STATE_NUMBER:
 
-                if (isdigit(*c)) {                         //ak je znak cislo prida sa do retazca
+                if (isdigit(*cx)) {                         //ak je znak cislo prida sa do retazca
                     strcat(buff, c);
                 }
 
-                else if (*c == '.') {                      //ak je znak '.' prechadza sa do stavu cisla double, pridame ro retazca
+                else if (*cx == '.') {                      //ak je znak '.' prechadza sa do stavu cisla double, pridame ro retazca
                     strcat(buff, c);
                     state = STATE_D_NUMBER;
                 }
 
-                else if(*c == 'E' || *c == 'e') {          // ak je c E alebo e prechadza sa do stavu cisla s exp , pridame do retazca
+                else if(*cx == 'E' || *cx == 'e') {          // ak je c E alebo e prechadza sa do stavu cisla s exp , pridame do retazca
                     strcat(buff, c);
                     state = STATE_E;
                 }
 
                 // c je niektory z povloenych znakov
-                else if( *c == ';' || *c == '(' || *c == ')' || *c == '{' || *c == '}' || *c == ',' ||
-                         *c == '=' || *c == '<' || *c == '>' || *c == '!' || *c == '+' || *c == '-' ||
-                         *c == '*' || *c == '/' || *c == '"' || isspace(*c))
+                else if( *cx == ';' || *cx == '(' || *cx == ')' || *cx == '{' || *cx == '}' || *cx == ',' ||
+                         *cx == '=' || *cx == '<' || *cx == '>' || *cx == '!' || *cx == '+' || *cx == '-' ||
+                         *cx == '*' || *cx == '/' || *cx == '"' || isspace(*cx))
                 {
-                    if (*c == '\n') {
+                    if (*cx == '\n') {
                         scanner->line--;
                     }
-                    c[0] = *(--scanner->source);
+                    *cx = (unsigned char) *(--scanner->source);
 
                     token_set_int_const(dest, (int) strtol(buff, NULL, 10));
                 }
                 else {   //Lex. chyba pri zadani nepovolenych znakov
-                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *c);
+                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *cx);
                     return ELEX;
                 }
             break;
@@ -349,92 +351,92 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
             /******** prvy stav cisla double - sem sa dostaneme napr s cislom 1. ********
             ******************v tomto stave ocakavame iba cislo**************************/
             case STATE_D_NUMBER:
-                if (isdigit(*c)) {         // ak je znak c cislo pokracujeme do stavu STATE_D_NUMBER2 , pridame do retazca
+                if (isdigit(*cx)) {         // ak je znak c cislo pokracujeme do stavu STATE_D_NUMBER2 , pridame do retazca
                     strcat(buff, c);
                     state = STATE_D_NUMBER2;
                 }
                 else {                   // ak je c nieje cislo jedna sa o Lex. chybu
-                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *c);
+                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *cx);
                     return ELEX;
                 }
             break;
 
             /***************************druhy stav cisla double****************************************/
             case STATE_D_NUMBER2:
-                if (*c == 'E' || *c == 'e') {       // znak c je pismeno e alebo E - cislo double s exponentom , pridame do retazca
+                if (*cx == 'E' || *cx == 'e') {       // znak c je pismeno e alebo E - cislo double s exponentom , pridame do retazca
                     strcat(buff, c);
                     state = STATE_E;
                 }
 
-                else if (isdigit(*c)) {            // znak c je cislo - prida sa do retazca
+                else if (isdigit(*cx)) {            // znak c je cislo - prida sa do retazca
                     strcat(buff, c);
                 }
 
                 //c je niektory z povolenych znakov
-                else if (*c == ';' || *c == '(' || *c == ')' || *c == '{' || *c == '}' || *c == ',' ||
-                         *c == '=' || *c == '<' || *c == '>' || *c == '!' || *c == '+' || *c == '-' ||
-                         *c == '*' || *c == '/' || *c == '"' || isspace(*c))
+                else if (*cx == ';' || *cx == '(' || *cx == ')' || *cx == '{' || *cx == '}' || *cx == ',' ||
+                         *cx == '=' || *cx == '<' || *cx == '>' || *cx == '!' || *cx == '+' || *cx == '-' ||
+                         *cx == '*' || *cx == '/' || *cx == '"' || isspace(*cx))
                 {
-                    if (*c == '\n') {
+                    if (*cx == '\n') {
                         scanner->line--;
                     }
-                    c[0] = *(--scanner->source);
+                    *cx = (unsigned char) *(--scanner->source);
 
                     token_set_double_const(dest, strtod(buff, NULL));
                 }
                 else {  //ak je c nepovoleny znak - Lex chyba
-                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *c);
+                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *cx);
                     return ELEX;
                 }
             break;
 
             /*****stav cisla s exponentom,  sem sa dostavame napr s cislom 1e alebo 1,1e*******/
             case STATE_E:
-                if(*c == '-' || *c == '+' || isdigit(*c)){ //nasledujuci znak musi byt bud cislo, + alebo -
+                if(*cx == '-' || *cx == '+' || isdigit(*cx)){ //nasledujuci znak musi byt bud cislo, + alebo -
                     strcat(buff, c);
                     state = STATE_E2;
                 }
                 else {   //v pripade nepovoleneho znaku - Lex. chyba
-                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *c);
+                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *cx);
                     return ELEX;
                 }
             break;
 
             /*****************pokracovanie cisla s exp ********************************/
             case STATE_E2:
-                if (isdigit(*c)) {     //ak je c cislo prida sa do retazca
+                if (isdigit(*cx)) {     //ak je c cislo prida sa do retazca
                     strcat(buff, c);
                 }
 
                 //ak je c povoleny znak
-                else if(*c == ';' || *c == '(' || *c == ')' || *c == '{' || *c == '}' || *c == ',' ||
-                        *c == '=' || *c == '<' || *c == '>' || *c == '!' || *c == '+' || *c == '-' ||
-                        *c == '*' || *c == '/' || *c == '"' || isspace(*c))
+                else if(*cx == ';' || *cx == '(' || *cx == ')' || *cx == '{' || *cx == '}' || *cx == ',' ||
+                        *cx == '=' || *cx == '<' || *cx == '>' || *cx == '!' || *cx == '+' || *cx == '-' ||
+                        *cx == '*' || *cx == '/' || *cx == '"' || isspace(*cx))
                 {
-                    if (*c == '\n') {
+                    if (*cx == '\n') {
                         scanner->line--;
                     }
-                    c[0] = *(--scanner->source);
+                    *cx = (unsigned char) *(--scanner->source);
 
                     token_set_double_const(dest, strtod(buff, NULL));
                 }
                 else { // nepovoleny znak - Lex chyba
-                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *c);
+                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *cx);
                     return ELEX;
                 }
             break;
 
             /******************STRING******************************/
             case STATE_STRING:
-                if (*c == '"') {  //ak c je znak " znamena to ukoncenie retazca - nastavy sa token a pointer na string
+                if (*cx == '"') {  //ak c je znak " znamena to ukoncenie retazca - nastavy sa token a pointer na string
                     token_set_text_const(dest, buff);
                 }
-                else if (*c == '\\') {        //znak \ - pokracuje sa do escape sekvencie
+                else if (*cx == '\\') {        //znak \ - pokracuje sa do escape sekvencie
                     state = STATE_ESCAPE;
                 }
-                else if (*c == EOF || *c == '\0')          // koniec suboru alebo retazca - Lex chyba
+                else if (*cx == EOF || *cx == '\0')          // koniec suboru alebo retazca - Lex chyba
                 {
-                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *c);
+                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *cx);
                     return ELEX;
                 }
                 else{           // prida znak do retazca
@@ -444,30 +446,30 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
 
             /************** ESCAPE SEKVENCIA NAPR \n**********************/
             case STATE_ESCAPE:
-                if (*c == 'x') {       // ak je znak za  \ x prejdeme do stavu STATE_X
+                if (*cx == 'x') {       // ak je znak za  \ x prejdeme do stavu STATE_X
                     state = STATE_X;
                 }
-                else if (*c == 'n') {  //c je znak n pridame do retazca '\n'
+                else if (*cx == 'n') {  //c je znak n pridame do retazca '\n'
                     strcat(buff, "\n");
                     state = STATE_STRING;
                 }
 
-                else if (*c == 't') {  //c je znak t pridame do retazca '\t'
+                else if (*cx == 't') {  //c je znak t pridame do retazca '\t'
                     strcat(buff, "\t");
                     state = STATE_STRING;
                 }
 
-                else if (*c == '\\') { //c je znak \ pridame do retazca '\\'
+                else if (*cx == '\\') { //c je znak \ pridame do retazca '\\'
                     strcat(buff, "\\");
                     state = STATE_STRING;
                 }
 
-                else if (*c == '"') { //c je znak " pridame do retazca '\"'
+                else if (*cx == '"') { //c je znak " pridame do retazca '\"'
                     strcat(buff, "\"");
                     state = STATE_STRING;
                 }
                 else {   //iny znak znamena Lex. chybu
-                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *c);
+                    fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *cx);
                     return ELEX;
                 }
             break;
@@ -479,22 +481,22 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                 ascii[2] = '\0';
 
                 for(int counter = 0 ; counter < 2 ; counter++){ //nacitaju sa 2 znaky
-                    if ((*c < 30 && *c > 39) && (*c < 41 && *c > 46) && (*c < 61 && *c > 66)){ // kontorla podmienky znaku
-                        fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *c);
+                    if ((*cx < 30 && *cx > 39) && (*cx < 41 && *cx > 46) && (*cx < 61 && *cx > 66)){ // kontorla podmienky znaku
+                        fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *cx);
                         return ELEX;
                     }
                     else {//ak bol znak spravny prida sa do pola ascii[];
-                        ascii[counter] = *c;
-                        c[0] = *(scanner->source++);
+                        ascii[counter] = *cx;
+                        *cx = (unsigned char) *(scanner->source++);
                     }
                 }
 
-                if (*c == '\n') {
+                if (*cx == '\n') {
                     scanner->line--;
                 }
                 --scanner->source;
 
-                c[0] = (char) strtol(ascii, NULL, 16);
+                *cx = (unsigned char) strtol(ascii, NULL, 16);
 
                 strcat(buff, c);
                 state = STATE_STRING;

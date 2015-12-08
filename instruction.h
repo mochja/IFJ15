@@ -69,38 +69,59 @@ struct __instruction_t {
     zval_t *third;
 };
 
-static inline __attribute__ ((__unused__)) void destroy_instruction(instruction_t *i) {
+INLINED void instruction_init(instruction_t *i) {
+
+    i->type = I_NOOP;
+
+    i->first = NULL;
+    i->second = NULL;
+    i->third = NULL;
+}
+
+INLINED void instruction_dispose(instruction_t *i) {
+
     if (i == NULL) {
         return;
     }
 
-    destroy_zval(i->first);
-    destroy_zval(i->second);
-    destroy_zval(i->third);
+    zval_dispose(i->first); free(i->first);
+    zval_dispose(i->second); free(i->second);
+    zval_dispose(i->third); free(i->third);
 
-    free(i);
+    i->first = NULL;
+    i->second = NULL;
+    i->third = NULL;
 }
 
 #define __copy_if_src_exists(name, dest, src)        \
     if ((src)->name) {                               \
         (dest)->name = malloc(sizeof(zval_t));       \
-        copy_zval((dest)->name, (src)->name);        \
+        zval_copy((dest)->name, (src)->name);        \
     } else (dest)->name = 0;
 
-static inline __attribute__ ((__unused__)) void copy_instruction(instruction_t *dest, instruction_t *src) {
+INLINED void instruction_copy(instruction_t *dest, instruction_t *src) {
     if (dest == NULL || src == NULL) {
+        if (dest != NULL) {
+            dest->type = I_NOOP;
+        }
         return;
     }
 
-    memcpy(dest, src, sizeof(instruction_t));
+    dest->type = src->type;
 
     __copy_if_src_exists(first, dest, src);
     __copy_if_src_exists(second, dest, src);
     __copy_if_src_exists(third, dest, src);
 }
 
-#define __instruction_free(x) destroy_instruction(kl_val(x))
+#define __instruction_free(x) instruction_dispose(kl_val(x)); free(kl_val(x));
 KLIST_INIT(instruction_list, instruction_t*, __instruction_free)
+
+
+/**
+ * Create instructions from given expression
+ */
+klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stack) *expression);
 
 /**
  * Instruction factories
@@ -120,6 +141,9 @@ INSTR_T create_POP_instr(int addr_offset) {
     return i;
 }
 
+
+
+
 INSTR_T create_LABEL_instr(int key) {
     instruction_t *i = calloc(1, sizeof(instruction_t));
 
@@ -128,6 +152,9 @@ INSTR_T create_LABEL_instr(int key) {
 
     return i;
 }
+
+
+
 
 INSTR_T create_JMP_instr(int label_key) {
     instruction_t *i = calloc(1, sizeof(instruction_t));
@@ -138,6 +165,9 @@ INSTR_T create_JMP_instr(int label_key) {
     return i;
 }
 
+
+
+
 INSTR_T create_PUSH_int_instr(const int store_offset) {
     instruction_t *i = calloc(1, sizeof(instruction_t));
 
@@ -147,6 +177,9 @@ INSTR_T create_PUSH_int_instr(const int store_offset) {
     return i;
 }
 
+
+
+
 INSTR_T create_COUT_pop_instr() {
     instruction_t *i = calloc(1, sizeof(instruction_t));
 
@@ -155,6 +188,5 @@ INSTR_T create_COUT_pop_instr() {
     return i;
 }
 
-klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stack) *expression);
 
 #endif // INSTRUCTION_H

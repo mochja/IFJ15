@@ -24,7 +24,8 @@ Ensure(Instruction, should_create_POP_instruction) {
     assert_true(ZVAL_IS_INT(pop->first));
     assert_equal(ZVAL_GET_INT(pop->first), 5);
 
-    destroy_instruction(pop);
+    instruction_dispose(pop);
+    free(pop);
 }
 
 Ensure(Instruction, should_create_instruction_list_from_expression) {

@@ -31,7 +31,6 @@ Ensure(Interpreter, should_replace_labels_with_addresses_on_initialize) {
     *kl_pushp(instruction_list, sl) = create_LABEL_instr(1);
     *kl_pushp(instruction_list, sl) = create_POP_instr(100); // 3
 
-
     interpreter_t *intr = init_interpreter(sl);
     kl_destroy(instruction_list, sl);
 
@@ -52,6 +51,7 @@ Ensure(Interpreter, should_replace_labels_with_addresses_on_initialize) {
     assert_equal(ZVAL_GET_INT(fval), 100);
 
     destroy_interpreter(intr);
+    free(intr);
 }
 
 Ensure(Interpreter, should_add_two_integers) {
@@ -73,6 +73,7 @@ Ensure(Interpreter, should_add_two_integers) {
     assert_equal(ZVAL_GET_INT(&kv_A(intr->stack.data, 0)), 24);
 
     destroy_interpreter(intr);
+    free(intr);
 }
 
 Ensure(Interpreter, should_add_two_doubles) {
@@ -92,6 +93,7 @@ Ensure(Interpreter, should_add_two_doubles) {
     assert_double_equal(ZVAL_GET_DOUBLE(&kv_A(intr->stack.data, 0)), 22.2);
 
     destroy_interpreter(intr);
+    free(intr);
 }
 
 Ensure(Interpreter, should_do_some_adv_math) {
@@ -113,6 +115,7 @@ Ensure(Interpreter, should_do_some_adv_math) {
     assert_equal(ZVAL_GET_INT(&kv_A(intr->stack.data, 0)), 30);
 
     destroy_interpreter(intr);
+    free(intr);
 }
 
 Ensure(Interpreter, should_do_some_adv_math_on_doubles) {
@@ -134,6 +137,7 @@ Ensure(Interpreter, should_do_some_adv_math_on_doubles) {
     assert_double_equal(ZVAL_GET_DOUBLE(&kv_A(intr->stack.data, 0)), 35);
 
     destroy_interpreter(intr);
+    free(intr);
 }
 
 TestSuite *interpreter_suite() {

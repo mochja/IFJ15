@@ -25,13 +25,13 @@
 typedef struct {
 	tvarList varList;
 	tvarList paramList;
-	char * fName;
+	char *fName;
 	int argsCounter;
 	int argsCounter1;
 	bool fDeclared;
 	int hInt;
 	int label;
-	char * assignVarName;
+	char *assignVarName;
 	tTable *table;
     token_t *token;
     scanner_t scanner;
@@ -40,6 +40,7 @@ typedef struct {
 } parser_t;
 
 result_t init_parser(parser_t *parser, char *source);
+result_t destroy_parser(parser_t *parser);
 result_t parser_run(parser_t *parser);
 
 result_t parse_fn(parser_t *parser);
