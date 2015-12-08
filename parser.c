@@ -48,6 +48,13 @@ result_t init_parser(parser_t *parser, char *source) {
     return EOK;
 }
 
+result_t parser_dispose(parser_t *parser) {
+
+    token_dispose(parser->token);
+
+    return EOK;
+}
+
 result_t parser_next_token(parser_t *parser) {
     return scanner_get_next_token(&parser->scanner, parser->token);
 }
@@ -497,7 +504,6 @@ result_t parse_list(parser_t *parser) {
         int endLabel = ++parser->label;
         parser->label++;
         char *hName = NULL;
-        char *hNameID = NULL;
         hTabItem *tItem;
         int var_offset=0;
 
@@ -1033,8 +1039,6 @@ result_t parse_build_in_fn(parser_t *parser) {
     char *hName;
     hTabItem *tItem = NULL;
     hTabItem *tItem1 = NULL;
-    hTabItem *tItem2 = NULL;
-    hTabItem *tItem3 = NULL;
     int var_offset = 0;
 
     switch (parser->token->flags) {

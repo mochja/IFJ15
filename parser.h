@@ -40,13 +40,12 @@ typedef struct {
 } parser_t;
 
 result_t init_parser(parser_t *parser, char *source);
-result_t destroy_parser(parser_t *parser);
+result_t parser_dispose(parser_t *parser);
 result_t parser_run(parser_t *parser);
 
 result_t parse_fn(parser_t *parser);
 result_t parse_fn_body(parser_t *parser);
 result_t parse_fn_args(parser_t *parser, tItemPtr item);
-result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock);
 result_t parse_list(parser_t *parser);
 result_t parse_assign(parser_t *parser);
 result_t parse_adv_declaration(parser_t *parser);
