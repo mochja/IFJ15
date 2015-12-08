@@ -11,6 +11,7 @@
  * license.txt file in the root directory of this source tree.
  */
 
+int debug = 1;
 #include "parser.h"
 
 result_t init_parser(parser_t *parser, char *source) {
@@ -44,11 +45,6 @@ result_t init_parser(parser_t *parser, char *source) {
         return res;
     }
 
-    return EOK;
-}
-
-result_t destroy_parser(parser_t *parser) {
-    token_dispose(parser->token);
     return EOK;
 }
 
@@ -93,6 +89,7 @@ result_t parse_fn(parser_t *parser) {
     int fType = parser->token->flags;
 
     if ((result = parser_next_token(parser)) != EOK) {
+        if (debug) printf("r92: %d, get_next_token in parse_fn\n", result);
         return result;
     }
 
@@ -101,28 +98,32 @@ result_t parse_fn(parser_t *parser) {
         parser->fName = "main";
 
         if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r101: %d, parser_next_token in parse_fn\n", result);
             return result;
         }
 
-        if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL)) // (
+        if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))  {
             return ESYN;
-
+        }
         if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r109: %d, parser_next_token in parse_fn\n", result);
             return result;
         }
 
-        if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))    // )
+        if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {   // )
             return ESYN;
-
+        }
         tItemPtr item;
-        if ((item = calloc(1, sizeof(struct tItem))) == NULL)
+        if ((item = calloc(1, sizeof(struct tItem))) == NULL){
             return ESYS;
+        }
         kv_init(item->data);
 
         item->functionId = parser->fName;
         insertLast(item, &parser->paramList);
 
         if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r126: %d, parser_next_token in parse_fn\n", result);
             return result;
         }
 
@@ -132,6 +133,7 @@ result_t parse_fn(parser_t *parser) {
         *kl_pushp(instruction_list, parser->code) = create_LABEL_instr(0);
 
         if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r135: %d, parser_next_token in parse_fn\n", result);
             return result;
         }
 
@@ -182,6 +184,7 @@ result_t parse_fn(parser_t *parser) {
         }
 
         if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r187: %d, parser_next_token in parse_fn\n", result);
             return result;
         }
 
@@ -189,14 +192,17 @@ result_t parse_fn(parser_t *parser) {
             return ESYN;
 
         if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r195: %d, parser_next_token in parse_fn\n", result);
             return result;
         }
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
             result = parse_fn_args(parser, item);    //parsovanie argumentov funkcie
 
-        if (result != EOK)
+        if (result != EOK){
+            if (debug) printf("r203: %d, parse_fn_args in parse_fn\n", result);
             return result;
+        }
 
         if ((tableItem = searchItem(parser->table, parser->fName)) == NULL)
             return ESYS;
@@ -219,6 +225,7 @@ result_t parse_fn(parser_t *parser) {
         parser->argsCounter = 0;
         //uz sa nekontroluje parser->token ")" pretoze funkcia parse_args sa vrati vzdy uspesne ukoncena tymto parser->tokenom
         if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r228: %d, parser_next_token in parse_fn\n", result);
             return result;
         }
 
@@ -226,9 +233,10 @@ result_t parse_fn(parser_t *parser) {
             tableItem->isDefined = true;
             /********MISSING: vlozenie 3AK -- label zaciatku funkcie*******/
             printf("LABEL F %s\n", fLabel);
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
-
-
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r237: %d, parser_next_token in parse_fn\n", result);
+                            return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_VINCULUM_SMBL))        //ak nie je funkcia prazdna
                 result = parse_fn_body(parser);
 
@@ -245,9 +253,10 @@ result_t parse_fn(parser_t *parser) {
         else
             return ESYN;
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
-
-
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r257: %d, parser_next_token in parse_fn\n", result);
+            return result;
+        }
         if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW))    ///mala by nasledovat dalsia funkcia
             result = parse_fn(parser);        //rekurzivne volanie pre spracovanie dalsej funkcie
         else if (TOKEN_IS(parser->token, EOF_TYPE))
@@ -273,8 +282,10 @@ result_t parse_fn_body(parser_t *parser) {
 
     result = parse_fn_declaration(parser, varBlock);
 
-    if (result != EOK)
+    if (result != EOK){
+        if (debug) printf("r286: %d, parse_fn_declaration in parse_fn_body\n", result);
         return result;
+    }
 
     insertLast(varBlock, &parser->varList);
     parser->argsCounter = 0;
@@ -296,21 +307,32 @@ result_t parse_list(parser_t *parser) {
         if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
             if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                 return ESEM;
-            else { var_offset=get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal);}
-        }else { var_offset = get_var_offset(&parser->varList, parser->token->data.sVal); }
+            else {
+                var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal);
+            }
+        } else {
+            var_offset = get_var_offset(&parser->varList, parser->token->data.sVal);
+        }
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r310: %d, parser_next_token in parse_list\n", result);
+            return result;
+        }
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ASSIGN_SMBL))
             return ESYN;
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r317: %d, parser_next_token in parse_list\n", result);
+            return result;
+        }
         parser->assignVarName = hName;
         result = parse_assign(parser);
 
-        if (result != EOK)
+        if (result != EOK) {
+            if (debug) printf("r324: %d, parse_assign in parse_list\n", result);
             return result;
+        }
 
         printf("\tMV TO OFFSET:%d VYRAZ\n", var_offset);
         /*vlozenie 3AK na priradenie vysledku z funkcie parse_assign do hName*/
@@ -324,20 +346,26 @@ result_t parse_list(parser_t *parser) {
             return ESYS;
         kv_init(varBlock->data);
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r340: %d, parser_next_token in parse_list\n", result);
+            return result;
+        }
         result = parse_fn_declaration(parser, varBlock);
         parser->argsCounter = 0;
 
-        if (result != EOK)
+        if (result != EOK){
+            if (debug) printf("r347: %d, parse_fn_declaration in parse_list\n", result);
             return result;
+        }
 
         insertLast(varBlock, &parser->varList);
         printf(".....NEW BLOCK.....\n");
         result = parse_list(parser);
 
-        if (result != EOK)
+        if (result != EOK){
+            if (debug) printf("r356: %d, parse_list in parse_list\n", result);
             return result;
+        }
     }
 
         /*************** } <parse_list> ***********************/
@@ -359,16 +387,24 @@ result_t parse_list(parser_t *parser) {
         int endLabel = ++parser->label;
         parser->label++;
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r381: %d, parse_assign in parse_list\n", result);
+            return result;
+        }
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
             return ESYN;
 
 
         /*********hack vyrazu ******/
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r381: %d, parser_next_token in parse_list\n", result);
+            return result;
+        }
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r395: %d, parse_next_token in parse_list\n", result);
+                return result;
+            }
         }
         /********hack vyrazu********/
 
@@ -379,7 +415,10 @@ result_t parse_list(parser_t *parser) {
         printf("JMPF %d\n", elseLabel);
         /**vlozenie 3AK - podmieneny skok ak podmienka nebola splnena na elseLabel**/
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r409: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL))
             return ESYN;
@@ -389,7 +428,10 @@ result_t parse_list(parser_t *parser) {
             return ESYS;
         kv_init(varBlock->data);
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r422: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
 
         result = parse_fn_declaration(parser, varBlock);
         parser->argsCounter = 0;
@@ -404,14 +446,20 @@ result_t parse_list(parser_t *parser) {
         printf("JMP %d\n", endLabel);
         /*vlozenie 3AK - skok na endLabel*/
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r440: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
 
         if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, ELSE_KW))
             return ESYN;
         /******vlozenie 3AK - elseLabel*******/
         printf("LABEL ELSE %d\n", elseLabel);
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r450: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL))
             return ESYN;
@@ -421,13 +469,17 @@ result_t parse_list(parser_t *parser) {
             return ESYS;
         kv_init(varBlock2->data);
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r463: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
 
         result = parse_fn_declaration(parser, varBlock2);
         parser->argsCounter = 0;
-        if (result != EOK)
+        if (result != EOK){
+            if (debug) printf("r470: %d, parse_fn_declaration in parse_list\n", result);
             return result;
-
+        }
         insertLast(varBlock2, &parser->varList);
         result = parse_list(parser);
 
@@ -449,13 +501,18 @@ result_t parse_list(parser_t *parser) {
         hTabItem *tItem;
         int var_offset=0;
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r494: %d, parse_fn_declaration in parse_list\n", result);
+            return result;
+        }
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
             return ESYN;
 
         /**deklaracia riadiacej premennej**/
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r502: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
 
 
         if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW | AUTO_KW))
@@ -463,7 +520,10 @@ result_t parse_list(parser_t *parser) {
 
         int varType = parser->token->flags;
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r494: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
 
 
         if (!TOKEN_IS(parser->token, ID_TYPE))
@@ -485,6 +545,7 @@ result_t parse_list(parser_t *parser) {
 
         tData data;
         if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName,parser->offset_counter)) != EOK) {
+            if (debug) printf("r531: %d, init_data_var in parse_list\n", result);
             return result;
         }
         item_append_data(varBlock, data);
@@ -498,16 +559,26 @@ result_t parse_list(parser_t *parser) {
         tItem->dataType = varType;
         insertHashTable(parser->table, tItem);
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r546: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
         if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ASSIGN_SMBL)) {
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+            if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r551: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
             /*********hack vyrazu ******/
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r556: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
             while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
-                if ((result = parser_next_token(parser)) != EOK) { return result; }
-            }
+                if ((result = parser_next_token(parser)) != EOK) {
+                    if (debug) printf("r561: %d, parse_next_token in parse_list\n", result);
+                    return result;
+                }
+        }
             /********hack vyrazu********/
 
             /**vlozenie hodnoty riadiacej premennej podla vysledku parse_assign()**/
@@ -523,9 +594,15 @@ result_t parse_list(parser_t *parser) {
 
 
         /*****hack*********/
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r581: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {                ///mala by sa volat precedencna analyza
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r586: %d, parse_next_token in parse_list\n", result);
+                return result;
+            }
         }
 
 
@@ -537,23 +614,41 @@ result_t parse_list(parser_t *parser) {
 
         printf("LABEL ASSIGNLABEL %d\n", assignLabel);
         /**vlozenie 3AK - label assignLabel**/
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r601: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
         if (!TOKEN_IS(parser->token, ID_TYPE))
             return ESYN;
-        if ((hNameID = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
-            if ((hNameID = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
+        if (varSearch(&parser->varList, parser->token->data.sVal) == NULL) {
+            if (paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal) == NULL)
                 return ESEM;
-            else { var_offset=get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
-        }else { var_offset=get_var_offset(&parser->varList, parser->token->data.sVal); }
+            else {
+                var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal);
+            }
+        } else {
+            var_offset = get_var_offset(&parser->varList, parser->token->data.sVal);
+        }
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r611: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
+
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ASSIGN_SMBL))
             return ESYN;
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r617: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
 
         /*****hack*********/
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {                ///mala by sa volat precedencna analyza
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r624: %d, parse_next_token in parse_list\n", result);
+                return result;
+            }
         }
 
         printf("ASSING EXP\n");
@@ -563,7 +658,10 @@ result_t parse_list(parser_t *parser) {
         printf("JMP EXPLABEL %d\n", expLabel);
         /**vlozenie 3AK - skok na label expLabel**/
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r637: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL))
             return ESYN;
 
@@ -572,22 +670,26 @@ result_t parse_list(parser_t *parser) {
             return ESYS;
         kv_init(varBlock2->data);
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r649: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
         result = parse_fn_declaration(parser, varBlock2);
         parser->argsCounter = 0;
-        if (result != EOK)
+        if (result != EOK){
+            if (debug) printf("r655: %d, parse_fn_declaration in parse_list\n", result);
             return result;
-
+        }
         insertLast(varBlock2, &parser->varList);
 
         /**vlozenie 3AK - label beginLabel**/
         printf("LABEL BEGIN %d \n", beginLabel);
         result = parse_list(parser);
 
-        if (result != EOK)
+        if (result != EOK){
+            if (debug) printf("r494: %d, parse_list in parse_list\n", result);
             return result;
-
+        }
         parser->offset_counter--;
         deleteLast(&parser->varList);
         printf("JMP ASSIGNLABEL %d\n", assignLabel);
@@ -601,13 +703,18 @@ result_t parse_list(parser_t *parser) {
     else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, CIN_KW)) {
         int var_offset=0;
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r682: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, DBL_ARR_RIGHT_SMBL))
             return ESYN;
 
         while (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, DBL_ARR_RIGHT_SMBL)) {
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r690: %d, parse_next_token in parse_list\n", result);
+                return result;
+            }
             if (!TOKEN_IS(parser->token, ID_TYPE))
                 return ESEM4;
             if ((var_offset = get_var_offset(&parser->varList, parser->token->data.sVal)) == 0) {
@@ -617,7 +724,10 @@ result_t parse_list(parser_t *parser) {
             /**vygenerovanie 3AK - nacitanie zo SV do premennej hName**/
             printf("\tCIN STDIN %d\n", var_offset);
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r703: %d, parse_next_token in parse_list\n", result);
+                return result;
+            }
         }
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
@@ -628,13 +738,18 @@ result_t parse_list(parser_t *parser) {
     else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, COUT_KW)) {
         int var_offset=0;
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r717: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, DBL_ARR_LEFT_SMBL))
             return ESYN;
 
         while (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, DBL_ARR_LEFT_SMBL)) {
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r725: %d, parse_next_token in parse_list\n", result);
+                return result;
+            }
             if (TOKEN_IS(parser->token, ID_TYPE)) {
                 if ((var_offset = get_var_offset(&parser->varList, parser->token->data.sVal)) == 0) {
                     if ((var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal)) == 0)
@@ -656,7 +771,10 @@ result_t parse_list(parser_t *parser) {
             else return ESEM4;
 
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r750: %d, parse_next_token in parse_list\n", result);
+                return result;
+            }
         }
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
             return ESYN;
@@ -666,9 +784,15 @@ result_t parse_list(parser_t *parser) {
     else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, RETURN_KW)) {
 
         /*********hack**********/
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK){
+            if (debug) printf("r763: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r768: %d, parse_next_token in parse_list\n", result);
+                return result;
+            }
         }
         /*********************/
 
@@ -684,7 +808,10 @@ result_t parse_list(parser_t *parser) {
     }
     else return ESYN;
 
-    if ((result = parser_next_token(parser)) != EOK) { return result; }
+    if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r787: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
     result = parse_list(parser);
     return result;
 }
@@ -695,12 +822,16 @@ result_t parse_adv_declaration(parser_t *parser) {
     char *hName;
     hTabItem *tItem;
 
-    if ((result = parser_next_token(parser)) != EOK) { return result; }
+    if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r801: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
 
     if (!TOKEN_IS(parser->token, ID_TYPE))
         return ESYN;
 
     if ((result = list_foo_bar(parser->varList.Last, ZVAL_GET_STRING(&parser->token->data))) != EOK) {
+        if (debug) printf("r809: %d, parse_next_token in parse_list\n", result);
         return result;
     }
 
@@ -715,6 +846,7 @@ result_t parse_adv_declaration(parser_t *parser) {
 
     tData data;
     if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName,parser->offset_counter)) != EOK) {
+        if (debug) printf("r824: %d, init_data_var in parse_list\n", result);
         return result;
     }
     printf("Variable Push %s...offset:%d\n",parser->token->data.sVal,data.offset);
@@ -729,37 +861,44 @@ result_t parse_adv_declaration(parser_t *parser) {
 
     if (varType == AUTO_KW) {
         if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r839: %d, parse_next_token in parse_list\n", result);
             return result;
         }
-
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ASSIGN_SMBL))
-            return ESYN;
+            return ESEM3;
 
         if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r846: %d, parse_next_token in parse_list\n", result);
             return result;
         }
         parser->assignVarName = hName;
         result = parse_assign(parser);
 
-        if (result != EOK)
+        if (result != EOK){
+            if (debug) printf("r853: %d, parse_assing in parse_list\n", result);
             return result;
-        /*******3AK , MV , #1 ,NULL, hName******/
+        }/*******3AK , MV , #1 ,NULL, hName******/
 
     } else {
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r839: %d, parse_next_token in parse_list\n", result);
+            return result;
+        }
 
         if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
             return EOK;
         } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ASSIGN_SMBL)) {
             if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r867: %d, parse_next_token in parse_list\n", result);
                 return result;
             }
             parser->assignVarName = hName;
             result = parse_assign(parser);
 
-            if (result != EOK)
+            if (result != EOK){
+                if (debug) printf("r874: %d, parse_next_token in parse_list\n", result);
                 return result;
-
+            }
             return EOK;
 
             /*******3AK , MV , #1 ,NULL, hName******/
@@ -778,7 +917,10 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock) {
     if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW | AUTO_KW))
         return EOK;
 
-    if ((result = parser_next_token(parser)) != EOK) { return result; }
+    if ((result = parser_next_token(parser)) != EOK) {
+        if (debug) printf("r896: %d, parse_next_token in parse_fn_declaration\n", result);
+        return result;
+    }
 
 
     if (!TOKEN_IS(parser->token, ID_TYPE))
@@ -787,6 +929,7 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock) {
     /***vlozenie do bloku***/
 
     if ((result = list_foo_bar(varBlock, ZVAL_GET_STRING(&parser->token->data))) != EOK) {
+        if (debug) printf("r907: %d, list_foo_bar in parse_fn_declaration\n", result);
         return result;
     }
 
@@ -802,6 +945,7 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock) {
 
     tData data;
     if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName,parser->offset_counter)) != EOK) {
+        if (debug) printf("r923: %d, parse_next_token in parse_fn_declaration\n", result);
         return result;
     }
     printf("Variable Push %s...offset:%d\n",parser->token->data.sVal,data.offset);
@@ -817,35 +961,43 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock) {
 
     if (varType == AUTO_KW) {
         if ((result = parser_next_token(parser)) != EOK) {
-            return result;
-        }
+        if (debug) printf("r939: %d, parse_next_token in parse_fn_declaration\n", result);
+        return result;
+    }
 
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ASSIGN_SMBL))
-            return ESYN;
+            return ESEM3;
 
         if ((result = parser_next_token(parser)) != EOK) {
-            return result;
-        }
+        if (debug) printf("r948: %d, parse_next_token in parse_fn_declaration\n", result);
+        return result;
+    }
         parser->assignVarName = hName;
         result = parse_assign(parser);
 
         if (result != EOK)
             return result;
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+        if (debug) printf("r958: %d, parse_next_token in parse_fn_declaration\n", result);
+        return result;
+    }
         result = parse_fn_declaration(parser, varBlock);
 
         /*******3AK , MV , #1 ,NULL, hName******/
 
     } else { //typ int, double alebo string
 
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+        if ((result = parser_next_token(parser)) != EOK) {
+        if (debug) printf("r968: %d, parse_next_token in parse_fn_declaration\n", result);
+        return result;
+    }
         printf("LOCAL VAR\n");
 
         if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
             if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r975: %d, parse_next_token in parse_fn_declaration\n", result);
                 return result;
             }
 
@@ -854,17 +1006,21 @@ result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock) {
         else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ASSIGN_SMBL)) {
 
             if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r984: %d, parse_next_token in parse_fn_declaration\n", result);
                 return result;
             }
-
             parser->assignVarName = hName;
 
             result = parse_assign(parser);
 
-            if (result != EOK)
+            if (result != EOK){
+                if (debug) printf("r992: %d, parse_assign in parse_fn_declaration\n", result);
                 return result;
-
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r996: %d, parse_next_token in parse_fn_declaration\n", result);
+                return result;
+            }
             result = parse_fn_declaration(parser, varBlock);
 
         } else return ESYN;
@@ -877,17 +1033,31 @@ result_t parse_assign(parser_t *parser) {
 
     if (TOKEN_HAS_TFLAG(parser->token, FN_TYPE, LENGTH_FN|SUBSTR_FN|CONCAT_FN|FIND_FN|SORT_FN)) {
         result = parse_build_in_fn(parser);
+        if(result != EOK){
+            if (debug) printf("r1012: %d, parse_build_in_fn in parse_assign\n", result);
+            return result;
+        }
     }
     else if (TOKEN_IS(parser->token, ID_TYPE)) {
+        char * hName;
+
         hTabItem *tableItem;
         if ((tableItem = searchItem(parser->table, parser->token->data.sVal)) == NULL) {
+
+            if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
+                if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
+                    return ESEM;
+            }
 
             klist_t(token_list) *tokens = kl_init(token_list);
             while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
                 token_t *cpy = calloc(1, sizeof(token_t));
                 token_copy(cpy, parser->token);
                 *kl_pushp(token_list, tokens) = cpy;
-                if ((result = parser_next_token(parser)) != EOK) { return result; }
+                if ((result = parser_next_token(parser)) != EOK) {
+                    if (debug) printf("r1022: %d, parse_next_token in parse_assign\n", result);
+                    return result;
+                }
             }
 
             klist_t(expr_stack) *expr = kl_init(expr_stack);
@@ -922,23 +1092,33 @@ result_t parse_assign(parser_t *parser) {
             if (tItem->dataType != tableItem->dataType && tItem->dataType != AUTO_KW)
                 return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1054: %d, parse_next_token in parse_fn_declaration\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1061: %d, parse_next_token in parse_fn_declaration\n", result);
+                return result;
+            }
 
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 result = parse_params(parser, item);
-            if (result != EOK)
+            if (result != EOK){
+                if (debug) printf("r1068: %d, parse_params in parse_fn_declaration\n", result);
                 return result;
-
+            }
             if (kv_size(item->data) != parser->argsCounter1)
-                return ESEM3;
+                return ESEM2;
 
             parser->argsCounter1 = 0;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1077: %d, parse_next_token in parse_fn_declaration\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
                 return ESYN;
 
@@ -949,25 +1129,21 @@ result_t parse_assign(parser_t *parser) {
         klist_t(token_list) *tokens = kl_init(token_list);
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
             token_t *cpy = calloc(1, sizeof(token_t));
-            token_copy(cpy, parser->token);
+            copy_token(cpy, parser->token);
             *kl_pushp(token_list, tokens) = cpy;
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1093: %d, parse_next_token in parse_fn_declaration\n", result);
+                return result;
+            }
         }
-
-        klist_t(expr_stack) *expr = kl_init(expr_stack);
-
-        if ((result = expr_from_tokens(expr, tokens)) != EOK) {
-            kl_destroy(expr_stack, expr);
-            return result;
-        }
-
+        klist_t(expr_stack) *expr = build_expression(tokens);
         klist_t(instruction_list) *expr_code = create_instructions_from_expression(expr);
         for (kliter_t(instruction_list) *it = kl_begin(expr_code); it != kl_end(expr_code); it = kl_next(it)) {
             *kl_pushp(instruction_list, parser->code) = kl_val(it);
         }
 
         /*********************/
-    } else return ESEM;
+    } else return ESYN;
     return EOK;
 }
 
@@ -978,9 +1154,8 @@ result_t parse_build_in_fn(parser_t *parser) {
     hTabItem *tItem1 = NULL;
     hTabItem *tItem2 = NULL;
     hTabItem *tItem3 = NULL;
-    int var_offset=0;
-    var_offset=var_offset;
-    
+    int var_offset = 0;
+
     switch (parser->token->flags) {
         case LENGTH_FN:
             /******************Skontrolovat typ assignVarName v TS - musi byt INT**********************/
@@ -989,43 +1164,47 @@ result_t parse_build_in_fn(parser_t *parser) {
             if (tItem->dataType != INT_KW && tItem->dataType != AUTO_KW)
                 return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1125: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+            if ((result = parser_next_token(parser)) != EOK){
+                if (debug) printf("r1125: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
                 hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem1 = createNewItem();
-                tItem1->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem1->name, hName);
-                tItem1->dataType = STRING_KW;
-                tItem1->sVal = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token->data));
-                insertHashTable(parser->table, tItem1);
+                 printf("PUSH CONST TEXT %s\n", parser->token->data.sVal);
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
-                /**********vyhladame polozku hName v TS*********/
+               /**********vyhladame polozku hName v TS*********/
                 /****zkontroluje datovy typ --- musi byt string***/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
                     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                         return ESEM;
-                }
+                    else { var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
+                } else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
                 if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem1->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                printf("PUSH OFFSET: %d\n", var_offset);
             }
             else return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1160: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1167: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
                 return ESYN;
 
@@ -1043,24 +1222,20 @@ result_t parse_build_in_fn(parser_t *parser) {
             if (tItem->dataType != STRING_KW && tItem->dataType != AUTO_KW)
                 return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1188: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
                 return ESYN;
-
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1194: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem1 = createNewItem();
-                tItem1->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem1->name, hName);
-                tItem1->dataType = STRING_KW;
-                tItem1->sVal  = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token->data));
-                insertHashTable(parser->table, tItem1);
+                printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
-                /**********vyhladame polozku hName v TS*********/
+                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
                     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                         return ESEM;
@@ -1068,55 +1243,55 @@ result_t parse_build_in_fn(parser_t *parser) {
                 } else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
                 if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem1->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1220: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, COMMA_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
-
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1227: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem2 = createNewItem();
-                tItem2->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem2->name, hName);
-                tItem2->dataType = INT_KW;
-                tItem2->iVal = parser->token->data.iVal;
-                insertHashTable(parser->table, tItem2);
+               printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
-                /**********vyhladame polozku hName v TS*********/
+                 /**********vyhladame polozku hName v TS*********/
+                printf("step 1\n");
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
                     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                         return ESEM;
                     else { var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
                 } else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
 
-                if ((tItem2 = searchItem(parser->table, hName)) == NULL)
+                printf("step 2\n" );
+                if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem2->dataType != INT_KW && tItem2->dataType != AUTO_KW)
+                printf("step 3\n");
+                if (tItem1->dataType != INT_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1253: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, COMMA_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
-
-
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1260: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem3 = createNewItem();
-                tItem3->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem3->name, hName);
-                tItem3->dataType = INT_KW;
-                tItem3->iVal = parser->token->data.iVal;
-                insertHashTable(parser->table, tItem3);
+                printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1124,17 +1299,25 @@ result_t parse_build_in_fn(parser_t *parser) {
                         return ESEM;
                     else { var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
                 }else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
-                if ((tItem2 = searchItem(parser->table, hName)) == NULL)
+
+                if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem2->dataType != INT_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != INT_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                 printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1285: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1292: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
                 return ESYN;
 
@@ -1151,24 +1334,22 @@ result_t parse_build_in_fn(parser_t *parser) {
             if (tItem->dataType != STRING_KW && tItem->dataType != AUTO_KW)
                 return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1312: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1319: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem1 = createNewItem();
-                tItem1->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem1->name, hName);
-                tItem1->dataType = STRING_KW;
-                tItem1->sVal = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token->data));
-                insertHashTable(parser->table, tItem1);
+                printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
-                /**********vyhladame polozku hName v TS*********/
+                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
                     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                         return ESEM;
@@ -1176,43 +1357,50 @@ result_t parse_build_in_fn(parser_t *parser) {
                 }else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
                 if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem1->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1346: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, COMMA_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1353: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                /**********vyhladame polozku hName v TS*********/
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem2 = createNewItem();
-                tItem2->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem2->name, hName);
-                tItem2->dataType = STRING_KW;
-                tItem2->sVal  = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem2->sVal, ZVAL_GET_STRING(&parser->token->data));
+               printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
-                if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
+               if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
                     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                         return ESEM;
                     else { var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
                 }else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
-                if ((tItem2 = searchItem(parser->table, hName)) == NULL)
+
+                if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem2->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                 printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1379: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1386: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
                 return ESYN;
 
@@ -1226,22 +1414,20 @@ result_t parse_build_in_fn(parser_t *parser) {
             if (tItem->dataType != INT_KW && tItem->dataType != AUTO_KW)
                 return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1403: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1410: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem1 = createNewItem();
-                tItem1->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem1->name, hName);
-                tItem1->dataType = STRING_KW;
-                tItem1->sVal = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token->data));
-                insertHashTable(parser->table, tItem1);
+                printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1251,26 +1437,25 @@ result_t parse_build_in_fn(parser_t *parser) {
                 }else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
                 if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem1->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1437: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, COMMA_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1444: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem2 = createNewItem();
-                tItem2->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem2->name, hName);
-                tItem2->dataType = STRING_KW;
-                tItem2->sVal = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem2->sVal, ZVAL_GET_STRING(&parser->token->data));
-                insertHashTable(parser->table, tItem2);
+                 printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1278,17 +1463,25 @@ result_t parse_build_in_fn(parser_t *parser) {
                         return ESEM;
                     else { var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
                 }else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
-                if ((tItem2 = searchItem(parser->table, hName)) == NULL)
+
+                if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem2->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
+                printf("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1471: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1478: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
                 return ESYN;
 
@@ -1301,22 +1494,20 @@ result_t parse_build_in_fn(parser_t *parser) {
             if (tItem->dataType != STRING_KW && tItem->dataType != AUTO_KW)
                 return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1494: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1501: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                hName = generate_var_name(parser->hInt);
-                parser->hInt++;
-                tItem1 = createNewItem();
-                tItem1->name = calloc(1, strlen(hName) + 1);
-                strcpy(tItem1->name, hName);
-                tItem1->dataType = STRING_KW;
-                tItem1->sVal = malloc((sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data)))));
-                strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token->data));
-                insertHashTable(parser->table, tItem1);
+                printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1326,15 +1517,24 @@ result_t parse_build_in_fn(parser_t *parser) {
                 }else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
                 if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                if (tItem1->dataType != STRING_KW && tItem2->dataType != AUTO_KW)
+                if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW){
                     return ESEM2;
+                    printf("PUSH OFFSET: %d\n", var_offset);
+
+                }
             } else return ESEM2;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1528: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 return ESYN;
 
-            if ((result = parser_next_token(parser)) != EOK) { return result; }
+            if ((result = parser_next_token(parser)) != EOK) {
+                if (debug) printf("r1535: %d, parse_next_token in parse_build_in_fn\n", result);
+                return result;
+            }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
                 return ESYN;
 
@@ -1347,8 +1547,8 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
     result_t result = EOK;
     char *hName;
     hTabItem *tableItem;
-    int var_offset=0;
-    var_offset=var_offset;
+    int var_offset = 0;
+
     if (TOKEN_IS(parser->token, ID_TYPE)) {
         hTabItem *tItem1;
 
@@ -1364,7 +1564,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
 
         if ((tableItem->dataType != AUTO_KW) && (tableItem->dataType != tItem1->dataType) && (tItem1->dataType != AUTO_KW))
             return ESEM2;
-        printf("ID ide\n");
+        printf("PUSH PARAM ID: %s OFFSET: %d\n", parser->token->data.sVal,var_offset);
 
         /****************parameter tItem1*****************/
     }
@@ -1375,14 +1575,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         if (tableItem->dataType != INT_KW && tableItem->dataType != AUTO_KW)
             return ESEM2;
 
-        hTabItem *tItem1 = createNewItem();
-        hName = generate_var_name(parser->hInt);
-        parser->hInt++;
-        tItem1->name = calloc(1, strlen(hName) + 1);
-        strcpy(tItem1->name, hName);
-        tItem1->dataType = INT_KW;
-        tItem1->iVal = parser->token->data.iVal;
-        insertHashTable(parser->table, tItem1);
+       printf("PUSH PARAM %d\n",parser->token->data.iVal);
 
         /**************************************/
 
@@ -1394,14 +1587,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         if (tableItem->dataType != DOUBLE_KW && tableItem->dataType != AUTO_KW)
             return ESEM2;
 
-        hTabItem *tItem1 = createNewItem();
-        hName = generate_var_name(parser->hInt);
-        parser->hInt++;
-        tItem1->name = calloc(1, strlen(hName) + 1);
-        strcpy(tItem1->name, hName);
-        tItem1->dataType = DOUBLE_KW;
-        tItem1->dVal = parser->token->data.dVal;
-        insertHashTable(parser->table, tItem1);
+        printf("PUSH PARAM %lf\n",parser->token->data.dVal);
 
         /****************************************/
 
@@ -1413,14 +1599,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         if (tableItem->dataType != STRING_KW && tableItem->dataType != AUTO_KW)
             return ESEM2;
 
-        hTabItem *tItem1 = createNewItem();
-        hName = generate_var_name(parser->hInt++);
-        tItem1->name = calloc(1, strlen(hName) + 1);
-        strcpy(tItem1->name, hName);
-        tItem1->dataType = STRING_KW;
-        tItem1->sVal = calloc(1, sizeof(char) * (1 + strlen(ZVAL_GET_STRING(&parser->token->data))));
-        strcpy(tItem1->sVal, ZVAL_GET_STRING(&parser->token->data));
-        insertHashTable(parser->table, tItem1);
+       printf("PUSH PARAM %s\n",parser->token->data.sVal );
 
         /**************************************/
     }
@@ -1440,7 +1619,6 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
 
     return result;
 }
-
 result_t parse_fn_args(parser_t *parser, tItemPtr item) {
     /******spracovanie argumentov funkcii********/
     result_t result;
@@ -1448,9 +1626,12 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
     int varType = parser->token->flags;
     hTabItem *tItem;
     if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW))
-        return ESYN;
+        return ESEM4;
 
-    if ((result = parser_next_token(parser)) != EOK) { return result; }
+    if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r1582: %d, parse_next_token in parse_fn_args\n", result);
+            return result;
+        }
 
     if (!TOKEN_IS(parser->token, ID_TYPE))
         return ESYN;
@@ -1465,6 +1646,7 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
             }
             i++;
         }
+
         if (hName == NULL)
             return ESEM;
 
@@ -1488,9 +1670,13 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
             i++;
         }
 
+        if((tItem = searchItem(parser->table, parser->token->data.sVal)) != NULL)
+            return ESEM;
+
         parser->offset_counter++;
         tData data;
-        if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName,0)) != EOK) {
+        if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName,0)) != EOK)  {
+            if (debug) printf("r1629: %d, init_data_var in parse_fn_args\n", result);
             return result;
         }
         item_append_data(item, data);
@@ -1509,13 +1695,19 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
     /*ak je dalsi parser->token , rekurzivne sa zavola funckia parse_args a nacitava sa dalsi parameter*/
     /*ak je to zatvorka tak sa vracia EOK*/
     /*iny parser->token znamena chybu*/
-    if ((result = parser_next_token(parser)) != EOK) { return result; }
+    if ((result = parser_next_token(parser)) != EOK) {
+        if (debug) printf("r1720: %d, parse_next_token in parse_build_in_fn\n", result);
+        return result;
+    }
 
     if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {
         return EOK;
     }
     else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, COMMA_SMBL)) {
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
+        if ((result = parser_next_token(parser)) != EOK) {
+            if (debug) printf("r1729: %d, parse_next_token in parse_build_in_fn\n", result);
+            return result;
+        }
         result = parse_fn_args(parser, item);
     }
     else return ESYN;
