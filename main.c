@@ -65,17 +65,17 @@ int main(int argc, char *argv[])
 
     if (res == EOK) {
         if ((res = parser_run(&parser)) != EOK) {
-            destroy_parser(&parser);
+            parser_dispose(&parser);
             return res;
         }
 
         vm_t vm;
         if ((res = vm_init(&vm, parser.code)) != EOK) {
-            destroy_parser(&parser);
+            parser_dispose(&parser);
             return res;
         }
 
-        if ((res = destroy_parser(&parser)) != EOK) {
+        if ((res = parser_dispose(&parser)) != EOK) {
             return res;
         }
 

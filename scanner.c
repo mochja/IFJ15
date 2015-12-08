@@ -146,10 +146,6 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     token_set_symbol(dest, COMMA_SMBL);
                 }
 
-                else if (*cx == '.') {
-                    token_set_symbol(dest, DOT_SMBL);
-                }
-
                 else if (*cx == '+') {
                     token_set_symbol(dest, PLUS_SMBL);
                 }
@@ -496,6 +492,9 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                 }
                 --scanner->source;
 
+                if (ascii[0] == '0' && ascii[1] == '0') {
+                    return ELEX;
+                }
                 *cx = (unsigned char) strtol(ascii, NULL, 16);
 
                 strcat(buff, c);

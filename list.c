@@ -88,3 +88,47 @@ char *paramSearch(tvarList *L, char *fid, char *name) {
 
     return result;
 }
+
+int get_var_offset(tvarList *L, char * name){
+    tItemPtr tmp;
+    tmp = L->Last;
+
+    int result = 0;
+
+    while (tmp != NULL) {
+        int i = 0;
+        while (i < kv_size(tmp->data)) {
+            if (!strcmp(name, kv_A(tmp->data, i).id)) {
+                result = kv_A(tmp->data, i).offset;
+                return result;
+            }
+            i++;
+        }
+        tmp = tmp->prev;
+    }
+
+    return result;
+}
+
+int get_param_offset(tvarList *L, char * fid, char *name){
+    tItemPtr tmp;
+    tmp = L->First;
+    int result = 0;
+
+    while (tmp != NULL) {
+        if (!strcmp(tmp->functionId, fid)) {
+            int i = 0;
+            while (i < kv_size(tmp->data)) {
+                if (!strcmp(name, kv_A(tmp->data, i).id)) {
+                    result = kv_A(tmp->data, i).offset;
+                    break;
+                }
+                i++;
+            }
+            return result;
+        }
+        tmp = tmp->next;
+    }
+
+    return result;
+}
