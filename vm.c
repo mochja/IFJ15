@@ -13,7 +13,6 @@
 
 #include <stdio.h>
 #include "vm.h"
-#include "mathi.h"
 
 result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions) {
     kv_init(vm->instructions);
@@ -108,90 +107,6 @@ static size_t proccess_instruction(instruction_t *instr, struct __stack_t *stack
             process_COUT_pop_instr(stack);
             return actual_addr + 1;
 
-        case I_ADDI_int:
-            process_ADDI_int_instr(stack, ZVAL_GET_INT(instr->first), ZVAL_GET_INT(instr->second));
-            return actual_addr + 1;
-        case I_ADDI_int_pop:
-            process_ADDI_int_pop_instr(stack, ZVAL_GET_INT(instr->first));
-            return actual_addr + 1;
-        case I_ADDI_pop_int:
-            process_ADDI_pop_int_instr(stack, ZVAL_GET_INT(instr->first));
-            return actual_addr + 1;
-        case I_ADD_pop:
-            process_ADD_pop_instr(stack);
-            return actual_addr + 1;
-        case I_SUBI_int:
-            process_SUBI_int_instr(stack, ZVAL_GET_INT(instr->first), ZVAL_GET_INT(instr->second));
-            return actual_addr + 1;
-        case I_SUBI_int_pop:
-            process_SUBI_int_pop_instr(stack, ZVAL_GET_INT(instr->first));
-            return actual_addr + 1;
-        case I_SUBI_pop_int:
-            process_SUBI_pop_int_instr(stack, ZVAL_GET_INT(instr->first));
-            return actual_addr + 1;
-        case I_SUB_pop:
-            process_SUB_pop_instr(stack);
-            return actual_addr + 1;
-        case I_MULI_int:
-            process_MULI_int_instr(stack, ZVAL_GET_INT(instr->first), ZVAL_GET_INT(instr->second));
-            return actual_addr + 1;
-        case I_MULI_int_pop:
-            process_MULI_int_pop_instr(stack, ZVAL_GET_INT(instr->first));
-            return actual_addr + 1;
-        case I_MULI_pop_int:
-            process_MULI_pop_int_instr(stack, ZVAL_GET_INT(instr->first));
-            return actual_addr + 1;
-        case I_MUL_pop:
-            process_MUL_pop_instr(stack);
-            return actual_addr + 1;
-        case I_DIVI_int:
-            process_DIVI_int_instr(stack, ZVAL_GET_INT(instr->first), ZVAL_GET_INT(instr->second));
-            return actual_addr + 1;
-        case I_DIVI_int_pop:
-            process_DIVI_int_pop_instr(stack, ZVAL_GET_INT(instr->first));
-            return actual_addr + 1;
-        case I_DIVI_pop_int:
-            process_DIVI_pop_int_instr(stack, ZVAL_GET_INT(instr->first));
-            return actual_addr + 1;
-        case I_DIV_pop:
-            process_DIV_pop_instr(stack);
-            return actual_addr + 1;
-        case I_ADDD_double:
-            process_ADDD_double_instr(stack, ZVAL_GET_DOUBLE(instr->first), ZVAL_GET_DOUBLE(instr->second));
-            return actual_addr + 1;
-        case I_ADDD_double_pop:
-            process_ADDD_double_pop_instr(stack, ZVAL_GET_DOUBLE(instr->first));
-            return actual_addr + 1;
-        case I_ADDD_pop_double:
-            process_ADDD_pop_double_instr(stack, ZVAL_GET_DOUBLE(instr->first));
-            return actual_addr + 1;
-        case I_SUBD_double:
-            process_SUBD_double_instr(stack, ZVAL_GET_DOUBLE(instr->first), ZVAL_GET_DOUBLE(instr->second));
-            return actual_addr + 1;
-        case I_SUBD_double_pop:
-            process_SUBD_double_pop_instr(stack, ZVAL_GET_DOUBLE(instr->first));
-            return actual_addr + 1;
-        case I_SUBD_pop_double:
-            process_SUBD_pop_double_instr(stack, ZVAL_GET_DOUBLE(instr->first));
-            return actual_addr + 1;
-        case I_MULD_double:
-            process_MULD_double_instr(stack, ZVAL_GET_DOUBLE(instr->first), ZVAL_GET_DOUBLE(instr->second));
-            return actual_addr + 1;
-        case I_MULD_double_pop:
-            process_MULD_double_pop_instr(stack, ZVAL_GET_DOUBLE(instr->first));
-            return actual_addr + 1;
-        case I_MULD_pop_double:
-            process_MULD_pop_double_instr(stack, ZVAL_GET_DOUBLE(instr->first));
-            return actual_addr + 1;
-        case I_DIVD_double:
-            process_DIVD_double_instr(stack, ZVAL_GET_DOUBLE(instr->first), ZVAL_GET_DOUBLE(instr->second));
-            return actual_addr + 1;
-        case I_DIVD_double_pop:
-            process_DIVD_double_pop_instr(stack, ZVAL_GET_DOUBLE(instr->first));
-            return actual_addr + 1;
-        case I_DIVD_pop_double:
-            process_DIVD_pop_double_instr(stack, ZVAL_GET_DOUBLE(instr->first));
-            return actual_addr + 1;
         default:
             return 0;
     }

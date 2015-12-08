@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "globals.h"
 
 #define zval_set(v, T) _Generic((T),                        \
@@ -128,6 +129,10 @@ INLINED result_t zval_set_string(zval_t *val, const char *str) {
     strcpy(val->sVal, str);
 
     return EOK;
+}
+
+INLINED bool zval_is_numeric(zval_t *val) {
+    return ZVAL_IS_INT(val) || ZVAL_IS_DOUBLE(val);
 }
 
 INLINED void zval_dispose(zval_t *val) {
