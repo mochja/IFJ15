@@ -48,13 +48,14 @@ int main(int argc, char *argv[])
 {
     result_t res;
 
-    if (argc < 2) {
+    if (argc < 2 ) {
         // print help, usage...
         printf("usage %s source_file\n", argv[0]);
-        return ESYS;
+        return ESYS; // ?
     }
 
-    char *source = read_source_file(argv[1]);
+    char *source;
+    if (( source = read_source_file(argv[1])) == NULL){ return ESYS; } // if file does not exist it it error
 
     parser_t parser;
     res = init_parser(&parser, source);
