@@ -31,7 +31,6 @@ Ensure(Interpreter, should_replace_labels_with_addresses_on_initialize) {
     *kl_pushp(instruction_list, sl) = create_LABEL_instr(1);
     *kl_pushp(instruction_list, sl) = create_POP_instr(100); // 3
 
-
     interpreter_t *intr = init_interpreter(sl);
     kl_destroy(instruction_list, sl);
 

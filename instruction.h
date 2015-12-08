@@ -80,6 +80,10 @@ INLINED void instruction_init(instruction_t *i) {
 
 INLINED void instruction_dispose(instruction_t *i) {
 
+    if (i == NULL) {
+        return;
+    }
+
     zval_dispose(i->first); free(i->first);
     zval_dispose(i->second); free(i->second);
     zval_dispose(i->third); free(i->third);

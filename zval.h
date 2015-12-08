@@ -130,6 +130,7 @@ INLINED result_t zval_set_string(zval_t *val, const char *str) {
 }
 
 INLINED void zval_dispose(zval_t *val) {
+
     if (val == NULL) {
         return;
     }
