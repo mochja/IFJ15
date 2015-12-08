@@ -12,17 +12,15 @@
  */
 
 #include <stdio.h>
-#include "interpreter.h"
+#include "vm.h"
 #include "mathi.h"
 
-interpreter_t *init_interpreter(klist_t(instruction_list) *instructions) {
-    interpreter_t *intr = calloc(1, sizeof(interpreter_t));
+result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions) {
+    kv_init(vm->instructions);
+    kv_init(vm->stack.data);
 
-    kv_init(intr->instructions);
-    kv_init(intr->stack.data);
-
-    kv_resize(instruction_t, intr->instructions, 50);
-    kv_resize(zval_t, intr->stack.data, 100);
+    kv_resize(instruction_t, vm->instructions, 50);
+    kv_resize(zval_t, vm->stack.data, 100);
 
     kvec_t(size_t) labels;
     kv_init(labels);
@@ -48,10 +46,10 @@ interpreter_t *init_interpreter(klist_t(instruction_list) *instructions) {
         instruction_t *instr = kl_val(it);
 
         if (instr->type == I_JMP) {
-            instruction_copy(&kv_a(instruction_t, intr->instructions, i), instr);
-            zval_set(kv_A(intr->instructions, i).first, kv_A(labels, ZVAL_GET_INT(instr->first)));
+            instruction_copy(&kv_a(instruction_t, vm->instructions, i), instr);
+            zval_set(kv_A(vm->instructions, i).first, kv_A(labels, ZVAL_GET_INT(instr->first)));
         } else if (instr->type != I_LABEL) {
-            instruction_copy(&kv_a(instruction_t, intr->instructions, i), instr);
+            instruction_copy(&kv_a(instruction_t, vm->instructions, i), instr);
         }
 
         if (instr->type != I_LABEL && instr->type != I_NOOP) {
@@ -61,21 +59,23 @@ interpreter_t *init_interpreter(klist_t(instruction_list) *instructions) {
 
     kv_destroy(labels);
 
-    return intr;
+    return EOK;
 }
 
-void destroy_interpreter(interpreter_t *intr) {
+result_t vm_dispose(vm_t *vm) {
 
-    for (size_t i = 0; i < kv_size(intr->instructions); i++) {
-        instruction_dispose(&kv_A(intr->instructions, i));
+    for (size_t i = 0; i < kv_size(vm->instructions); i++) {
+        instruction_dispose(&kv_A(vm->instructions, i));
     }
 
-    for (size_t i = 0; i < kv_size(intr->stack.data); ++i) {
-        zval_dispose(&kv_A(intr->stack.data, i));
+    for (size_t i = 0; i < kv_size(vm->stack.data); ++i) {
+        zval_dispose(&kv_A(vm->stack.data, i));
     }
 
-    kv_destroy(intr->instructions);
-    kv_destroy(intr->stack.data);
+    kv_destroy(vm->instructions);
+    kv_destroy(vm->stack.data);
+
+    return EOK;
 }
 
 typedef struct __stack_t stack_t;
@@ -197,12 +197,14 @@ static size_t proccess_instruction(instruction_t *instr, struct __stack_t *stack
     }
 }
 
-void run_interpreter(interpreter_t *intr) {
+result_t vm_exec(vm_t *vm) {
     size_t actual_addr = 0;
 
-    while (actual_addr < kv_size(intr->instructions)) {
-        instruction_t *i = &kv_A(intr->instructions, actual_addr);
+    while (actual_addr < kv_size(vm->instructions)) {
+        instruction_t *i = &kv_A(vm->instructions, actual_addr);
         printf("[0x%.8lu]: [%d] \n", actual_addr, i->type);
-        actual_addr = proccess_instruction(i, &intr->stack, actual_addr);
+        actual_addr = proccess_instruction(i, &vm->stack, actual_addr);
     };
+
+    return EOK;
 }
