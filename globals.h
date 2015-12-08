@@ -14,15 +14,17 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
+#define INLINED static inline __attribute__ ((__unused__))
+
 typedef enum {
-    EOK,
-    ELEX,
-    ESYN,
-    ESEM,
-    ESEM2,
-    ESEM3,
-    ESEM4,
-    EEOF,
+    EOK = 0,
+    ELEX,       //1
+    ESYN,       //2
+    ESEM,       //3
+    ESEM2,      //4
+    ESEM3,      //5
+    ESEM4,      //6
+    EEOF,       //7
     ESYS = 99,
 } result_t;
 

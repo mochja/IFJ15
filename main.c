@@ -12,8 +12,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "globals.h"
+#include "parser.h"
+#include "interpreter.h"
 
-static char* read_source_file(const char *filename) {
+char* read_source_file(const char *filename) {
     FILE *f;
     f = fopen(filename, "r");
 
@@ -27,8 +30,13 @@ static char* read_source_file(const char *filename) {
     fseek(f, 0, SEEK_SET);
 
     char *source;
-    if ((source = malloc(size * sizeof(char))) != NULL) {
+    if ((source = malloc((size + 1) * sizeof(char))) != NULL) {
         fread(source, 1, size, f);
+        source[size] = '\0';
+    } else {
+        puts("asdf.");
+        fclose(f);
+        return NULL;
     }
 
     fclose(f);
@@ -38,15 +46,24 @@ static char* read_source_file(const char *filename) {
 
 int main(int argc, char *argv[])
 {
+    result_t res;
 
     if (argc < 2) {
         // print help, usage...
         printf("usage %s source_file\n", argv[0]);
-        return 1;
+        return ESYS;
     }
 
     char *source = read_source_file(argv[1]);
 
+    parser_t parser;
+    res = init_parser(&parser, source);
     free(source);
-    return 0;
+
+    if (res == EOK) {
+        res = parser_run(&parser);
+        interpreter_t *i = init_interpreter(parser.code);
+        run_interpreter(i);
+    }
+    return res;
 }

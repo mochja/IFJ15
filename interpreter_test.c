@@ -13,6 +13,7 @@
 
 #include <cgreen/cgreen.h>
 #include "interpreter.h"
+#include "mathi.h"
 
 Describe(Interpreter)
 BeforeEach(Interpreter) {}
@@ -57,8 +58,11 @@ Ensure(Interpreter, should_add_two_integers) {
     klist_t(instruction_list) *sl;
     sl = kl_init(instruction_list);
 
-    *kl_pushp(instruction_list, sl) = create_PUSH_int_instr(0);
-    *kl_pushp(instruction_list, sl) = create_ADD_int_instr(1, 5, 2);
+    *kl_pushp(instruction_list, sl) = create_ADDI_int_instr(5, 2);
+    *kl_pushp(instruction_list, sl) = create_ADDI_int_instr(5, 2);
+    *kl_pushp(instruction_list, sl) = create_ADD_pop_instr();
+    *kl_pushp(instruction_list, sl) = create_ADDI_int_pop_instr(5);
+    *kl_pushp(instruction_list, sl) = create_ADDI_pop_int_instr(5);
 
     interpreter_t *intr = init_interpreter(sl);
     kl_destroy(instruction_list, sl);
@@ -66,7 +70,7 @@ Ensure(Interpreter, should_add_two_integers) {
     run_interpreter(intr);
 
     assert_equal(kv_size(intr->stack.data), 1);
-    assert_equal(ZVAL_GET_INT(&kv_A(intr->stack.data, 0)), 7);
+    assert_equal(ZVAL_GET_INT(&kv_A(intr->stack.data, 0)), 24);
 
     destroy_interpreter(intr);
 }
@@ -75,19 +79,61 @@ Ensure(Interpreter, should_add_two_doubles) {
     klist_t(instruction_list) *sl;
     sl = kl_init(instruction_list);
 
-    instruction_t *add = calloc(1, sizeof(instruction_t));
-    add->type = I_ADD;
+    *kl_pushp(instruction_list, sl) = create_ADDD_double_instr(5.32, 5.28);
+    *kl_pushp(instruction_list, sl) = create_ADDD_double_instr(3.12, 8.48);
+    *kl_pushp(instruction_list, sl) = create_ADD_pop_instr();
 
-    ZVAL_INIT_DOUBLE(add->second, 2.33);
-    ZVAL_INIT_DOUBLE(add->third, 1.27);
-
-    ZVAL_INIT_INT(add->first, /* offset */ 1);
-
-    *kl_pushp(instruction_list, sl) = add;
-
-//    interpret(sl);
-
+    interpreter_t *intr = init_interpreter(sl);
     kl_destroy(instruction_list, sl);
+
+    run_interpreter(intr);
+
+    assert_equal(kv_size(intr->stack.data), 1);
+    assert_double_equal(ZVAL_GET_DOUBLE(&kv_A(intr->stack.data, 0)), 22.2);
+
+    destroy_interpreter(intr);
+}
+
+Ensure(Interpreter, should_do_some_adv_math) {
+    klist_t(instruction_list) *sl;
+    sl = kl_init(instruction_list);
+
+    *kl_pushp(instruction_list, sl) = create_MULI_int_instr(5, 5);   // 25
+    *kl_pushp(instruction_list, sl) = create_ADDI_pop_int_instr(5);  // 30
+    *kl_pushp(instruction_list, sl) = create_DIVI_int_instr(5, 10);  // 5 / 10 = 0.5
+    *kl_pushp(instruction_list, sl) = create_MULI_pop_int_instr(10); // 0
+    *kl_pushp(instruction_list, sl) = create_ADD_pop_instr();        // 30 + 0
+
+    interpreter_t *intr = init_interpreter(sl);
+    kl_destroy(instruction_list, sl);
+
+    run_interpreter(intr);
+
+    assert_equal(kv_size(intr->stack.data), 1);
+    assert_equal(ZVAL_GET_INT(&kv_A(intr->stack.data, 0)), 30);
+
+    destroy_interpreter(intr);
+}
+
+Ensure(Interpreter, should_do_some_adv_math_on_doubles) {
+    klist_t(instruction_list) *sl;
+    sl = kl_init(instruction_list);
+
+    *kl_pushp(instruction_list, sl) = create_MULD_double_instr(5, 5);   // 25
+    *kl_pushp(instruction_list, sl) = create_ADDD_pop_double_instr(5);  // 30
+    *kl_pushp(instruction_list, sl) = create_DIVD_double_instr(5, 10);  // 5 / 10 = 0.5
+    *kl_pushp(instruction_list, sl) = create_MULD_pop_double_instr(10); // 0.5 * 10 = 5
+    *kl_pushp(instruction_list, sl) = create_ADD_pop_instr();           // 30 + 5
+
+    interpreter_t *intr = init_interpreter(sl);
+    kl_destroy(instruction_list, sl);
+
+    run_interpreter(intr);
+
+    assert_equal(kv_size(intr->stack.data), 1);
+    assert_double_equal(ZVAL_GET_DOUBLE(&kv_A(intr->stack.data, 0)), 35);
+
+    destroy_interpreter(intr);
 }
 
 TestSuite *interpreter_suite() {
@@ -95,5 +141,7 @@ TestSuite *interpreter_suite() {
     add_test_with_context(suite, Interpreter, should_replace_labels_with_addresses_on_initialize);
     add_test_with_context(suite, Interpreter, should_add_two_integers);
     add_test_with_context(suite, Interpreter, should_add_two_doubles);
+    add_test_with_context(suite, Interpreter, should_do_some_adv_math);
+    add_test_with_context(suite, Interpreter, should_do_some_adv_math_on_doubles);
     return suite;
 }

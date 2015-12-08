@@ -13,7 +13,6 @@
 
 #include <cgreen/cgreen.h>
 #include "hash.h"
-#include "zval.h"
 
 Describe(Hash)
 BeforeEach(Hash) {}
@@ -37,18 +36,19 @@ Ensure(Hash, can_hold_an_item) {
     assert_that(item, is_not_equal_to(NULL));
 
     item->name = "test";
-    ZVAL_INIT_STRING(item->data, "abcdabcd12" );
+    item->dataType = 18;
+    item->sVal = malloc(sizeof(char) * (10 + 1));
+    strcpy(item->sVal, "abcdabcd12");
 
     insertHashTable(table, item);
 
     hTabItem *ret = searchItem(table, "test");
     assert_that(ret, is_not_equal_to(NULL));
     assert_that(ret, is_equal_to(item));
-    assert_that(ZVAL_GET_TYPE(ret), is_equal_to(T_STRING));
-    assert_that(ZVAL_GET_TYPE(ret), is_equal_to(T_STRING));
-    assert_string_equal("abcdabcd12", ret->data->sVal);
-    free(item->data->sVal);
-    free(item->data);
+    assert_that(ret->dataType, is_equal_to(18));
+    assert_that(ret->dataType, is_equal_to(18));
+    assert_string_equal("abcdabcd12", ret->sVal);
+    free(item->sVal);
 
     freeHashTable(table);
 }

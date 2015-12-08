@@ -57,6 +57,7 @@ klist_t(expr_stack)* build_expression(klist_t(token_list) *tokens) {
         token_t *t = kl_val(p);
 
         expr_t *exp = calloc(1, sizeof(expr_t));
+        zval_init(&exp->val);
 
         if (get_operation(t->type, t->flags) == Op_VAR) {
 
@@ -66,12 +67,13 @@ klist_t(expr_stack)* build_expression(klist_t(token_list) *tokens) {
 
             *kl_pushp(expr_stack, stack) = exp;
         } else {
-            EXPR_SET_OPERAND(exp, t->flags);
+            unsigned int op = get_operation(t->type, t->flags);
+            EXPR_SET_OPERAND(exp, op);
 
             while (kl_begin(op_stack) != kl_end(op_stack)) {
                 expr_t *top = kl_val(kl_begin(op_stack));
 
-                if (get_rule(get_operation(SMBL_TYPE, EXPR_GET_OPERAND(top)), get_operation(t->type, t->flags)) == M) {
+                if (get_rule(EXPR_GET_OPERAND(top), op) == M) {
                     kl_shift(expr_stack, op_stack, kl_pushp(expr_stack, stack));
                 } else {
                     break;

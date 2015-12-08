@@ -11,49 +11,22 @@
  * license.txt file in the root directory of this source tree.
  */
 
-#ifndef SCANER_H_
-#define SCANER_H_
+#ifndef SCANNER_H_
+#define SCANNER_H_
 
 #include <stdio.h>
 #include <ctype.h>
-#include <malloc.h>
-#include <string.h>
-#include <stdlib.h>
+#include "globals.h"
+#include "token.h"
+#include "string.h"
 
-typedef enum Result
-{
-    EOK,
-    ELEX,
-    ESYN,
-    ESEM,
-    ESEM2,
-    ESEM3,
-    ESEM4,
-    EEOF,
-    ESYS = 99,
-}tresult;
+typedef struct {
+    char *source;
+    size_t line;
+} scanner_t;
 
+result_t init_scanner(scanner_t *s, char *source);
+result_t scanner_get_next_token(scanner_t *s, token_t *dest);
+void destroy_scanner(scanner_t *s);
 
-typedef struct
-{
-  char* str;
-  int length;
-  int allocSize;
-} string;
-
-struct T_Token
-{
-    int type;
-    union
-    {
-        char*   s;
-        int     i;
-        double  d;
-    }data;
-    tresult result;
-};
-
-FILE *source;
-struct T_Token nextToken();
-
-#endif // SCANER_H_
+#endif // SCANNER_H_

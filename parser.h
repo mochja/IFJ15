@@ -14,20 +14,44 @@
 #ifndef PARSER_H_
 #define PARSER_H_
 
-#include "scaner.h"
+#include <stdbool.h>
+#include "scanner.h"
+#include "list.h"
+#include "hash.h"
+#include "token.h"
+#include "zval.h"
+#include "instruction.h"
 
-struct T_Token token;
+typedef struct {
+	tvarList varList;
+	tvarList paramList;
+	char * fName;
+	int argsCounter;
+	int argsCounter1;
+	bool fDeclared;
+	int hInt;
+	int label;
+	char * assignVarName;
+	tTable *table;
+    token_t *token;
+    scanner_t scanner;
+    int offset_counter;
+    klist_t(instruction_list) *code;
+} parser_t;
 
-tresult parse();
-tresult program();
-tresult function();
-tresult body();
-tresult declaration();
-tresult advDeclaration();
-tresult args();
-tresult buildInF();
-tresult params();
-tresult assign();
-tresult list();
+result_t init_parser(parser_t *parser, char *source);
+result_t parser_run(parser_t *parser);
+
+result_t parse_fn(parser_t *parser);
+result_t parse_fn_body(parser_t *parser);
+result_t parse_fn_args(parser_t *parser, tItemPtr item);
+result_t parse_fn_declaration(parser_t *parser, tItemPtr varBlock);
+result_t parse_list(parser_t *parser);
+result_t parse_assign(parser_t *parser);
+result_t parse_adv_declaration(parser_t *parser);
+result_t parse_build_in_fn(parser_t *parser);
+result_t parse_params(parser_t *parser, tItemPtr item);
+
+result_t parser_next_token(parser_t *parser);
 
 #endif // PARSER_H_

@@ -16,6 +16,8 @@
 
 #include "klist.h"
 #include "zval.h"
+#include "globals.h"
+#include "list.h"
 
 /********Key words ****************/
 #define AUTO_KW         0x02U
@@ -79,9 +81,9 @@
 #define TOKEN_SET_TYPE(x, t)            ((x)->type = t)
 #define TOKEN_SET_TYPE_WFLAG(x, t, f)   ((x)->type = t; (x)->flags = f)
 
-#define TOKEN_HAS_TFLAG(x, t, f)        ((((x)->flags & f) == f) && (((x)->type & t) == t))
+#define TOKEN_HAS_TFLAG(x, t, f)        ((((x)->type & (t)) == (t)) && ((x)->flags & (f)))
 #define TOKEN_HAS_FLAG(x, f)            (((x)->flags & f))
-#define TOKEN_IS(x, t)                  (((x)->type & t) == t)
+#define TOKEN_IS(x, t)                  (((x)->type & (t)) == t)
 
 #define __token_set(x, tt, ff, zvalt, v)                \
     (x)->type = tt; (x)->flags = ff;                    \
@@ -95,12 +97,97 @@ typedef struct __token_t token_t;
 struct __token_t {
     unsigned char type;
     unsigned int flags;
-    int result;
 
     zval_t data;
 };
 
 #define __token_t_free(x)
 KLIST_INIT(token_list, token_t*, __token_t_free)
+
+INLINED void token_set_type(token_t *dest, const unsigned char type) {
+    dest->type = type;
+}
+
+INLINED void token_set_symbol(token_t *dest, const unsigned int flags) {
+    dest->type = SMBL_TYPE;
+    dest->flags = flags;
+}
+
+INLINED void token_set_kw(token_t *dest, const unsigned int flags) {
+    dest->type = KW_TYPE;
+    dest->flags = flags;
+}
+
+INLINED void token_set_fn(token_t *dest, const unsigned int flags) {
+    dest->type = FN_TYPE;
+    dest->flags = flags;
+}
+
+INLINED void token_set_var(token_t *dest, const char *name) {
+    dest->type = ID_TYPE;
+    dest->flags = 0;
+    zval_set(&dest->data, name);
+}
+
+INLINED void token_set_text_const(token_t *dest, const char *val) {
+    dest->type = CONST_TYPE;
+    dest->flags = TEXT_CONST;
+    zval_set(&dest->data, val);
+}
+
+INLINED void token_set_int_const(token_t *dest, int val) {
+    dest->type = CONST_TYPE;
+    dest->flags = INT_CONST;
+    zval_set(&dest->data, val);
+}
+
+INLINED void token_set_double_const(token_t *dest, double val) {
+    dest->type = CONST_TYPE;
+    dest->flags = DOUBLE_CONST;
+    zval_set(&dest->data, val);
+}
+
+INLINED void token_set_flags(token_t *dest, const unsigned int flags) {
+    dest->flags = flags;
+}
+
+INLINED result_t token_init(token_t *dest) {
+    token_set_type(dest, BASIC_TYPE);
+    zval_init(&dest->data);
+    return EOK;
+}
+
+INLINED result_t copy_token(token_t *dest, token_t *src) {
+
+    if (src == NULL) {
+        return ESYS;
+    }
+
+    memcpy(dest, src, sizeof(token_t));
+
+    if (ZVAL_IS_STRING(&dest->data)) {
+        zval_set_string(&dest->data, ZVAL_GET_STRING(&dest->data));
+    }
+
+    return EOK;
+}
+
+INLINED void clean_token(token_t *t) {
+
+    if (t) {
+        t->type = BASIC_TYPE;
+        t->flags = 0;
+
+        if (ZVAL_IS_STRING(&t->data)) {
+            t->data.type = T_NOOP;
+            free(t->data.sVal);
+        }
+    }
+}
+
+INLINED void destroy_token(token_t *t) {
+    clean_token(t);
+    free(t);
+}
 
 #endif // TOKEN_H_

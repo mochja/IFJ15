@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.2.0)
 project(IFJ15 C)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -pedantic -Wall -Werror")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -pedantic -Wall -Werror -Werror=maybe-uninitialized")
 
-add_executable(ifj15 main.c)
+add_executable(ifj15 main.c scanner.c parser.c list.c hash.c token.h zval.h expression.c instruction.c interpreter.c)
 
 enable_testing()
 find_library(cgreen cgreen)
