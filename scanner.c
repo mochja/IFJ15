@@ -37,7 +37,7 @@ enum {
 
 result_t init_scanner(scanner_t *s, char *source) {
 
-    if ((s->source = malloc(strlen(source) + 1)) == NULL) {
+    if ((s->source = malloc(sizeof(char) * (strlen(source) + 1))) == NULL) {
         return ESYS;
     }
 
