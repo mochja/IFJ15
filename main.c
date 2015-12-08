@@ -21,7 +21,7 @@ char* read_source_file(const char *filename) {
     f = fopen(filename, "r");
 
     if (f == NULL) {
-        puts("could not read a file");
+        fprintf(stderr, "Could not find file %s\n", filename);
         return NULL;
     }
 
@@ -34,7 +34,7 @@ char* read_source_file(const char *filename) {
         fread(source, 1, size, f);
         source[size] = '\0';
     } else {
-        puts("asdf.");
+        fprintf(stderr, "Nou mor memory.\n");
         fclose(f);
         return NULL;
     }
@@ -55,24 +55,36 @@ int main(int argc, char *argv[])
     }
 
     char *source;
-    if (( source = read_source_file(argv[1])) == NULL){ return ESYS; } // if file does not exist it is error
+    if ((source = read_source_file(argv[1])) == NULL) {
+        return ESYS;
+    }
 
     parser_t parser;
     res = init_parser(&parser, source);
     free(source);
 
     if (res == EOK) {
-
         if ((res = parser_run(&parser)) != EOK) {
             destroy_parser(&parser);
             return res;
         }
 
         vm_t vm;
+        if ((res = vm_init(&vm, parser.code)) != EOK) {
+            destroy_parser(&parser);
+            return res;
+        }
 
-        vm_init(&vm, parser.code);
-        vm_exec(&vm);
-        vm_dispose(&vm);
+        if ((res = destroy_parser(&parser)) != EOK) {
+            return res;
+        }
+
+        if ((res = vm_exec(&vm)) != EOK) {
+            vm_dispose(&vm);
+            return res;
+        }
+
+        res = vm_dispose(&vm);
     }
 
     return res;
