@@ -48,10 +48,10 @@ interpreter_t *init_interpreter(klist_t(instruction_list) *instructions) {
         instruction_t *instr = kl_val(it);
 
         if (instr->type == I_JMP) {
-            copy_instruction(&kv_a(instruction_t, intr->instructions, i), instr);
+            instruction_copy(&kv_a(instruction_t, intr->instructions, i), instr);
             zval_set(kv_A(intr->instructions, i).first, kv_A(labels, ZVAL_GET_INT(instr->first)));
         } else if (instr->type != I_LABEL) {
-            copy_instruction(&kv_a(instruction_t, intr->instructions, i), instr);
+            instruction_copy(&kv_a(instruction_t, intr->instructions, i), instr);
         }
 
         if (instr->type != I_LABEL && instr->type != I_NOOP) {
@@ -67,9 +67,9 @@ interpreter_t *init_interpreter(klist_t(instruction_list) *instructions) {
 void destroy_interpreter(interpreter_t *intr) {
 
     for (size_t i = 0; i < kv_size(intr->instructions); i++) {
-        destroy_zval(kv_A(intr->instructions, i).first);
-        destroy_zval(kv_A(intr->instructions, i).second);
-        destroy_zval(kv_A(intr->instructions, i).third);
+        zval_dispose(kv_A(intr->instructions, i).first);
+        zval_dispose(kv_A(intr->instructions, i).second);
+        zval_dispose(kv_A(intr->instructions, i).third);
     }
 
     for (size_t i = 0; i < kv_size(intr->stack.data); ++i) {

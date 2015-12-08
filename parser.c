@@ -47,6 +47,11 @@ result_t init_parser(parser_t *parser, char *source) {
     return EOK;
 }
 
+result_t destroy_parser(parser_t *parser) {
+    token_dispose(parser->token);
+    return EOK;
+}
+
 result_t parser_next_token(parser_t *parser) {
     return scanner_get_next_token(&parser->scanner, parser->token);
 }
@@ -867,7 +872,7 @@ result_t parse_assign(parser_t *parser) {
             klist_t(token_list) *tokens = kl_init(token_list);
             while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
                 token_t *cpy = calloc(1, sizeof(token_t));
-                copy_token(cpy, parser->token);
+                token_copy(cpy, parser->token);
                 *kl_pushp(token_list, tokens) = cpy;
                 if ((result = parser_next_token(parser)) != EOK) { return result; }
             }
@@ -925,7 +930,7 @@ result_t parse_assign(parser_t *parser) {
         klist_t(token_list) *tokens = kl_init(token_list);
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
             token_t *cpy = calloc(1, sizeof(token_t));
-            copy_token(cpy, parser->token);
+            token_copy(cpy, parser->token);
             *kl_pushp(token_list, tokens) = cpy;
             if ((result = parser_next_token(parser)) != EOK) { return result; }
         }

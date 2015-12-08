@@ -24,7 +24,7 @@
         long unsigned int: zval_set_int,                    \
         double: zval_set_double,                            \
         char *: zval_set_string,                            \
-        const char *: zval_set_cstring)(v, T)
+        const char *: zval_set_string)(v, T)
 
 #define ZVAL_GET_INT(x)     (zval_get_int((x)))
 #define ZVAL_GET_DOUBLE(x)  (zval_get_double((x)))
@@ -116,7 +116,7 @@ INLINED result_t zval_set_double(zval_t *val, const double n) {
     return EOK;
 }
 
-INLINED result_t zval_set_string(zval_t *val, char *str) {
+INLINED result_t zval_set_string(zval_t *val, const char *str) {
 
     val->type = T_STRING;
 
@@ -129,20 +129,7 @@ INLINED result_t zval_set_string(zval_t *val, char *str) {
     return EOK;
 }
 
-INLINED result_t zval_set_cstring(zval_t *val, const char *str) {
-
-    val->type = T_STRING;
-
-    if ((val->sVal = malloc(sizeof(char) * (1 + strlen(str)))) == NULL) {
-        return ESYS;
-    }
-
-    strcpy(val->sVal, str);
-
-    return EOK;
-}
-
-INLINED void destroy_zval(zval_t *val) {
+INLINED void zval_dispose(zval_t *val) {
     if (val == NULL) {
         return;
     }
@@ -150,20 +137,23 @@ INLINED void destroy_zval(zval_t *val) {
     if (ZVAL_IS_STRING(val)) {
         free(val->sVal);
     }
-
-    free(val);
 }
 
-INLINED void copy_zval(zval_t *dest, zval_t *src) {
+INLINED result_t zval_copy(zval_t *dest, zval_t *src) {
+
     if (dest == NULL || src == NULL) {
-        return;
+        return ESYS;
     }
 
-    memcpy(dest, src, sizeof(zval_t));
+    dest->dVal = src->dVal;
+    dest->iVal = src->iVal;
+    dest->type = src->type;
 
     if (ZVAL_IS_STRING(dest)) {
-        ZVAL_SET_STRING(dest, ZVAL_GET_STRING(src));
+        return zval_set_string(dest, ZVAL_GET_STRING(src));
     }
+
+    return EOK;
 }
 
 #endif // ZVAL_H_

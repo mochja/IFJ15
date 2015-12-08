@@ -62,9 +62,15 @@ int main(int argc, char *argv[])
     free(source);
 
     if (res == EOK) {
-        res = parser_run(&parser);
+
+        if ((res = parser_run(&parser)) != EOK) {
+            destroy_parser(&parser);
+            return res;
+        }
+
         interpreter_t *i = init_interpreter(parser.code);
         run_interpreter(i);
     }
+
     return res;
 }

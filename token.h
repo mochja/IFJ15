@@ -78,19 +78,16 @@
 #define EOF_TYPE        0x20
 #define CONST_TYPE      0x40
 
-#define TOKEN_SET_TYPE(x, t)            ((x)->type = t)
-#define TOKEN_SET_TYPE_WFLAG(x, t, f)   ((x)->type = t; (x)->flags = f)
-
 #define TOKEN_HAS_TFLAG(x, t, f)        ((((x)->type & (t)) == (t)) && ((x)->flags & (f)))
 #define TOKEN_HAS_FLAG(x, f)            (((x)->flags & f))
 #define TOKEN_IS(x, t)                  (((x)->type & (t)) == t)
 
-#define __token_set(x, tt, ff, zvalt, v)                \
+#define __token_set(x, tt, ff, v)                       \
     (x)->type = tt; (x)->flags = ff;                    \
-    ZVAL_SET_##zvalt(&(x)->data, v)
+    zval_set(&(x)->data, v)
 
 #define TOKEN_SET_CONST_INT(t, v)                       \
-    __token_set((t), CONST_TYPE, INT_CONST, INT, (v))
+    __token_set((t), CONST_TYPE, INT_CONST, (v))
 
 typedef struct __token_t token_t;
 
@@ -157,37 +154,20 @@ INLINED result_t token_init(token_t *dest) {
     return EOK;
 }
 
-INLINED result_t copy_token(token_t *dest, token_t *src) {
+INLINED result_t token_copy(token_t *dest, token_t *src) {
 
-    if (src == NULL) {
-        return ESYS;
-    }
+    dest->type = src->type;
+    dest->flags = src->flags;
 
-    memcpy(dest, src, sizeof(token_t));
-
-    if (ZVAL_IS_STRING(&dest->data)) {
-        zval_set_string(&dest->data, ZVAL_GET_STRING(&dest->data));
-    }
-
-    return EOK;
+    return zval_copy(&dest->data, &src->data);
 }
 
-INLINED void clean_token(token_t *t) {
+INLINED void token_dispose(token_t *t) {
 
-    if (t) {
-        t->type = BASIC_TYPE;
-        t->flags = 0;
+    t->type = BASIC_TYPE;
+    t->flags = 0;
 
-        if (ZVAL_IS_STRING(&t->data)) {
-            t->data.type = T_NOOP;
-            free(t->data.sVal);
-        }
-    }
-}
-
-INLINED void destroy_token(token_t *t) {
-    clean_token(t);
-    free(t);
+    zval_dispose(&t->data);
 }
 
 #endif // TOKEN_H_
