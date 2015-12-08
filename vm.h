@@ -11,15 +11,15 @@
  * license.txt file in the root directory of this source tree.
  */
 
-#ifndef INTERPRETER_H_
-#define INTERPRETER_H_
+#ifndef VM_H_
+#define VM_H_
 
 #include "klist.h"
 #include "zval.h"
 #include "instruction.h"
 #include "kvec.h"
 
-typedef struct __interpreter_t interpreter_t;
+typedef struct __vm_t vm_t;
 typedef struct __stack_t stack_t;
 
 struct __stack_t {
@@ -27,13 +27,14 @@ struct __stack_t {
     size_t base_pointer;
 };
 
-struct __interpreter_t {
+struct __vm_t {
     kvec_t(instruction_t) instructions;
     struct __stack_t stack;
 };
 
-void destroy_interpreter(interpreter_t *intr);
-interpreter_t *init_interpreter(klist_t(instruction_list) *instructions);
-void run_interpreter(interpreter_t *intr);
+result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions);
+result_t vm_dispose(vm_t *vm);
 
-#endif // INTERPRETER_H_
+result_t vm_exec(vm_t *vm);
+
+#endif // VM_H_

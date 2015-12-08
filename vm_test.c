@@ -12,14 +12,14 @@
  */
 
 #include <cgreen/cgreen.h>
-#include "interpreter.h"
+#include "vm.h"
 #include "mathi.h"
 
-Describe(Interpreter)
-BeforeEach(Interpreter) {}
-AfterEach(Interpreter) {}
+Describe(VM)
+BeforeEach(VM) {}
+AfterEach(VM) {}
 
-Ensure(Interpreter, should_replace_labels_with_addresses_on_initialize) {
+Ensure(VM, should_replace_labels_with_addresses_on_initialize) {
     klist_t(instruction_list) *sl;
     sl = kl_init(instruction_list);
 
@@ -31,30 +31,30 @@ Ensure(Interpreter, should_replace_labels_with_addresses_on_initialize) {
     *kl_pushp(instruction_list, sl) = create_LABEL_instr(1);
     *kl_pushp(instruction_list, sl) = create_POP_instr(100); // 3
 
-    interpreter_t *intr = init_interpreter(sl);
+    vm_t vm;
+    vm_init(&vm, sl);
     kl_destroy(instruction_list, sl);
 
-    zval_t *fval = kv_A(intr->instructions, 0).first;
-    assert_true(ZVAL_IS_INT(fval));
-    assert_equal(ZVAL_GET_INT(fval), 2);
+    zval_t *first = kv_A(vm.instructions, 0).first;
+    assert_true(ZVAL_IS_INT(first));
+    assert_equal(ZVAL_GET_INT(first), 2);
 
-    fval = kv_A(intr->instructions, 1).first;
-    assert_true(ZVAL_IS_INT(fval));
-    assert_equal(ZVAL_GET_INT(fval), 3);
+    first = kv_A(vm.instructions, 1).first;
+    assert_true(ZVAL_IS_INT(first));
+    assert_equal(ZVAL_GET_INT(first), 3);
 
-    fval = kv_A(intr->instructions, 2).first;
-    assert_true(ZVAL_IS_INT(fval));
-    assert_equal(ZVAL_GET_INT(fval), 1);
+    first = kv_A(vm.instructions, 2).first;
+    assert_true(ZVAL_IS_INT(first));
+    assert_equal(ZVAL_GET_INT(first), 1);
 
-    fval = kv_A(intr->instructions, 3).first;
-    assert_true(ZVAL_IS_INT(fval));
-    assert_equal(ZVAL_GET_INT(fval), 100);
+    first = kv_A(vm.instructions, 3).first;
+    assert_true(ZVAL_IS_INT(first));
+    assert_equal(ZVAL_GET_INT(first), 100);
 
-    destroy_interpreter(intr);
-    free(intr);
+    vm_dispose(&vm);
 }
 
-Ensure(Interpreter, should_add_two_integers) {
+Ensure(VM, should_add_two_integers) {
     klist_t(instruction_list) *sl;
     sl = kl_init(instruction_list);
 
@@ -64,19 +64,19 @@ Ensure(Interpreter, should_add_two_integers) {
     *kl_pushp(instruction_list, sl) = create_ADDI_int_pop_instr(5);
     *kl_pushp(instruction_list, sl) = create_ADDI_pop_int_instr(5);
 
-    interpreter_t *intr = init_interpreter(sl);
+    vm_t vm;
+    vm_init(&vm, sl);
     kl_destroy(instruction_list, sl);
 
-    run_interpreter(intr);
+    vm_exec(&vm);
 
-    assert_equal(kv_size(intr->stack.data), 1);
-    assert_equal(ZVAL_GET_INT(&kv_A(intr->stack.data, 0)), 24);
+    assert_equal(kv_size(vm.stack.data), 1);
+    assert_equal(ZVAL_GET_INT(&kv_A(vm.stack.data, 0)), 24);
 
-    destroy_interpreter(intr);
-    free(intr);
+    vm_dispose(&vm);
 }
 
-Ensure(Interpreter, should_add_two_doubles) {
+Ensure(VM, should_add_two_doubles) {
     klist_t(instruction_list) *sl;
     sl = kl_init(instruction_list);
 
@@ -84,19 +84,19 @@ Ensure(Interpreter, should_add_two_doubles) {
     *kl_pushp(instruction_list, sl) = create_ADDD_double_instr(3.12, 8.48);
     *kl_pushp(instruction_list, sl) = create_ADD_pop_instr();
 
-    interpreter_t *intr = init_interpreter(sl);
+    vm_t vm;
+    vm_init(&vm, sl);
     kl_destroy(instruction_list, sl);
 
-    run_interpreter(intr);
+    vm_exec(&vm);
 
-    assert_equal(kv_size(intr->stack.data), 1);
-    assert_double_equal(ZVAL_GET_DOUBLE(&kv_A(intr->stack.data, 0)), 22.2);
+    assert_equal(kv_size(vm.stack.data), 1);
+    assert_double_equal(ZVAL_GET_DOUBLE(&kv_A(vm.stack.data, 0)), 22.2);
 
-    destroy_interpreter(intr);
-    free(intr);
+    vm_dispose(&vm);
 }
 
-Ensure(Interpreter, should_do_some_adv_math) {
+Ensure(VM, should_do_some_adv_math) {
     klist_t(instruction_list) *sl;
     sl = kl_init(instruction_list);
 
@@ -106,19 +106,19 @@ Ensure(Interpreter, should_do_some_adv_math) {
     *kl_pushp(instruction_list, sl) = create_MULI_pop_int_instr(10); // 0
     *kl_pushp(instruction_list, sl) = create_ADD_pop_instr();        // 30 + 0
 
-    interpreter_t *intr = init_interpreter(sl);
+    vm_t vm;
+    vm_init(&vm, sl);
     kl_destroy(instruction_list, sl);
 
-    run_interpreter(intr);
+    vm_exec(&vm);
 
-    assert_equal(kv_size(intr->stack.data), 1);
-    assert_equal(ZVAL_GET_INT(&kv_A(intr->stack.data, 0)), 30);
+    assert_equal(kv_size(vm.stack.data), 1);
+    assert_equal(ZVAL_GET_INT(&kv_A(vm.stack.data, 0)), 30);
 
-    destroy_interpreter(intr);
-    free(intr);
+    vm_dispose(&vm);
 }
 
-Ensure(Interpreter, should_do_some_adv_math_on_doubles) {
+Ensure(VM, should_do_some_adv_math_on_doubles) {
     klist_t(instruction_list) *sl;
     sl = kl_init(instruction_list);
 
@@ -128,24 +128,24 @@ Ensure(Interpreter, should_do_some_adv_math_on_doubles) {
     *kl_pushp(instruction_list, sl) = create_MULD_pop_double_instr(10); // 0.5 * 10 = 5
     *kl_pushp(instruction_list, sl) = create_ADD_pop_instr();           // 30 + 5
 
-    interpreter_t *intr = init_interpreter(sl);
+    vm_t vm;
+    vm_init(&vm, sl);
     kl_destroy(instruction_list, sl);
 
-    run_interpreter(intr);
+    vm_exec(&vm);
 
-    assert_equal(kv_size(intr->stack.data), 1);
-    assert_double_equal(ZVAL_GET_DOUBLE(&kv_A(intr->stack.data, 0)), 35);
+    assert_equal(kv_size(vm.stack.data), 1);
+    assert_double_equal(ZVAL_GET_DOUBLE(&kv_A(vm.stack.data, 0)), 35);
 
-    destroy_interpreter(intr);
-    free(intr);
+    vm_dispose(&vm);
 }
 
-TestSuite *interpreter_suite() {
+TestSuite *vm_suite() {
     TestSuite *suite = create_test_suite();
-    add_test_with_context(suite, Interpreter, should_replace_labels_with_addresses_on_initialize);
-    add_test_with_context(suite, Interpreter, should_add_two_integers);
-    add_test_with_context(suite, Interpreter, should_add_two_doubles);
-    add_test_with_context(suite, Interpreter, should_do_some_adv_math);
-    add_test_with_context(suite, Interpreter, should_do_some_adv_math_on_doubles);
+    add_test_with_context(suite, VM, should_replace_labels_with_addresses_on_initialize);
+    add_test_with_context(suite, VM, should_add_two_integers);
+    add_test_with_context(suite, VM, should_add_two_doubles);
+    add_test_with_context(suite, VM, should_do_some_adv_math);
+    add_test_with_context(suite, VM, should_do_some_adv_math_on_doubles);
     return suite;
 }

@@ -16,7 +16,7 @@
 
 TestSuite *hash_suite();
 TestSuite *ial_suite();
-TestSuite *interpreter_suite();
+TestSuite *vm_suite();
 TestSuite *expression_suite();
 TestSuite *instruction_suite();
 
@@ -31,8 +31,8 @@ int main(int argc, char **argv) {
             add_suite(suite, hash_suite());
         } else if (!strcmp("Ial", argv[1])) {
             add_suite(suite, ial_suite());
-        } else if (!strcmp("Interpreter", argv[1])) {
-            add_suite(suite, interpreter_suite());
+        } else if (!strcmp("VM", argv[1])) {
+            add_suite(suite, vm_suite());
         } else if (!strcmp("Expression", argv[1])) {
             add_suite(suite, expression_suite());
         } else if (!strcmp("Instruction", argv[1])) {
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     } else {
         add_suite(suite, hash_suite());
         add_suite(suite, ial_suite());
-        add_suite(suite, interpreter_suite());
+        add_suite(suite, vm_suite());
         add_suite(suite, expression_suite());
         add_suite(suite, instruction_suite());
         result = run_test_suite(suite, reporter);

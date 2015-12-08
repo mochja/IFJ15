@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "instruction.h"
-#include "interpreter.h"
+#include "vm.h"
 #include "globals.h"
 
 
@@ -31,17 +31,17 @@ INLINED result_t process_ADD_pop_instr(stack_t *stack) {
 
 if (ZVAL_IS_INT(b_ptr) && ZVAL_IS_INT(a_ptr)) {
         int b = ZVAL_GET_INT(b_ptr);
-        
+
         int a = ZVAL_GET_INT(a_ptr);
         int res = a + b;
         zval_set(&val, res);
     } else if (ZVAL_IS_DOUBLE(b_ptr) && ZVAL_IS_DOUBLE(a_ptr)) {
         double b = ZVAL_GET_DOUBLE(b_ptr);
-        
+
         double a = ZVAL_GET_DOUBLE(a_ptr);
         double res = a + b;
         ZVAL_SET_DOUBLE(&val, res);
-    } 
+    }
 
     kv_push(zval_t, stack->data, val);
     return EOK;
@@ -61,7 +61,7 @@ INSTR_T create_ADD_pop_instr() {
 
 INLINED result_t process_ADDI_int_instr(stack_t *stack, const int a, const int b) {
     zval_t val;
-    
+
     int res = a + b;
     zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -71,7 +71,7 @@ INLINED result_t process_ADDI_int_instr(stack_t *stack, const int a, const int b
 INLINED result_t process_ADDI_int_pop_instr(stack_t *stack, const int a) {
     zval_t val;
     int b = ZVAL_GET_INT(&kv_pop(stack->data));
-    
+
     int res = a + b;
     zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -80,7 +80,7 @@ INLINED result_t process_ADDI_int_pop_instr(stack_t *stack, const int a) {
 
 INLINED result_t process_ADDI_pop_int_instr(stack_t *stack, const int b) {
     zval_t val;
-    
+
     int a = ZVAL_GET_INT(&kv_pop(stack->data));
     int res = a + b;
     zval_set(&val, res);
@@ -154,7 +154,7 @@ INSTR_T create_ADDI_int_pop_instr(const int a) {
 
 INLINED result_t process_ADDD_double_instr(stack_t *stack, const double a, const double b) {
     zval_t val;
-    
+
     double res = a + b;
     ZVAL_SET_DOUBLE(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -164,7 +164,7 @@ INLINED result_t process_ADDD_double_instr(stack_t *stack, const double a, const
 INLINED result_t process_ADDD_double_pop_instr(stack_t *stack, const double a) {
     zval_t val;
     double b = ZVAL_GET_DOUBLE(&kv_pop(stack->data));
-    
+
     double res = a + b;
     ZVAL_SET_DOUBLE(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -173,7 +173,7 @@ INLINED result_t process_ADDD_double_pop_instr(stack_t *stack, const double a) {
 
 INLINED result_t process_ADDD_pop_double_instr(stack_t *stack, const double b) {
     zval_t val;
-    
+
     double a = ZVAL_GET_DOUBLE(&kv_pop(stack->data));
     double res = a + b;
     ZVAL_SET_DOUBLE(&val, res);
@@ -252,17 +252,17 @@ INLINED result_t process_SUB_pop_instr(stack_t *stack) {
 
 if (ZVAL_IS_INT(b_ptr) && ZVAL_IS_INT(a_ptr)) {
         int b = ZVAL_GET_INT(b_ptr);
-        
+
         int a = ZVAL_GET_INT(a_ptr);
         int res = a - b;
         zval_set(&val, res);
     } else if (ZVAL_IS_DOUBLE(b_ptr) && ZVAL_IS_DOUBLE(a_ptr)) {
         double b = ZVAL_GET_DOUBLE(b_ptr);
-        
+
         double a = ZVAL_GET_DOUBLE(a_ptr);
         double res = a - b;
         ZVAL_SET_DOUBLE(&val, res);
-    } 
+    }
 
     kv_push(zval_t, stack->data, val);
     return EOK;
@@ -282,7 +282,7 @@ INSTR_T create_SUB_pop_instr() {
 
 INLINED result_t process_SUBI_int_instr(stack_t *stack, const int a, const int b) {
     zval_t val;
-    
+
     int res = a - b;
     zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -292,7 +292,7 @@ INLINED result_t process_SUBI_int_instr(stack_t *stack, const int a, const int b
 INLINED result_t process_SUBI_int_pop_instr(stack_t *stack, const int a) {
     zval_t val;
     int b = ZVAL_GET_INT(&kv_pop(stack->data));
-    
+
     int res = a - b;
     zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -301,7 +301,7 @@ INLINED result_t process_SUBI_int_pop_instr(stack_t *stack, const int a) {
 
 INLINED result_t process_SUBI_pop_int_instr(stack_t *stack, const int b) {
     zval_t val;
-    
+
     int a = ZVAL_GET_INT(&kv_pop(stack->data));
     int res = a - b;
     zval_set(&val, res);
@@ -375,7 +375,7 @@ INSTR_T create_SUBI_int_pop_instr(const int a) {
 
 INLINED result_t process_SUBD_double_instr(stack_t *stack, const double a, const double b) {
     zval_t val;
-    
+
     double res = a - b;
     ZVAL_SET_DOUBLE(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -385,7 +385,7 @@ INLINED result_t process_SUBD_double_instr(stack_t *stack, const double a, const
 INLINED result_t process_SUBD_double_pop_instr(stack_t *stack, const double a) {
     zval_t val;
     double b = ZVAL_GET_DOUBLE(&kv_pop(stack->data));
-    
+
     double res = a - b;
     ZVAL_SET_DOUBLE(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -394,7 +394,7 @@ INLINED result_t process_SUBD_double_pop_instr(stack_t *stack, const double a) {
 
 INLINED result_t process_SUBD_pop_double_instr(stack_t *stack, const double b) {
     zval_t val;
-    
+
     double a = ZVAL_GET_DOUBLE(&kv_pop(stack->data));
     double res = a - b;
     ZVAL_SET_DOUBLE(&val, res);
@@ -473,17 +473,17 @@ INLINED result_t process_MUL_pop_instr(stack_t *stack) {
 
 if (ZVAL_IS_INT(b_ptr) && ZVAL_IS_INT(a_ptr)) {
         int b = ZVAL_GET_INT(b_ptr);
-        
+
         int a = ZVAL_GET_INT(a_ptr);
         int res = a * b;
         zval_set(&val, res);
     } else if (ZVAL_IS_DOUBLE(b_ptr) && ZVAL_IS_DOUBLE(a_ptr)) {
         double b = ZVAL_GET_DOUBLE(b_ptr);
-        
+
         double a = ZVAL_GET_DOUBLE(a_ptr);
         double res = a * b;
         ZVAL_SET_DOUBLE(&val, res);
-    } 
+    }
 
     kv_push(zval_t, stack->data, val);
     return EOK;
@@ -503,7 +503,7 @@ INSTR_T create_MUL_pop_instr() {
 
 INLINED result_t process_MULI_int_instr(stack_t *stack, const int a, const int b) {
     zval_t val;
-    
+
     int res = a * b;
     zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -513,7 +513,7 @@ INLINED result_t process_MULI_int_instr(stack_t *stack, const int a, const int b
 INLINED result_t process_MULI_int_pop_instr(stack_t *stack, const int a) {
     zval_t val;
     int b = ZVAL_GET_INT(&kv_pop(stack->data));
-    
+
     int res = a * b;
     zval_set(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -522,7 +522,7 @@ INLINED result_t process_MULI_int_pop_instr(stack_t *stack, const int a) {
 
 INLINED result_t process_MULI_pop_int_instr(stack_t *stack, const int b) {
     zval_t val;
-    
+
     int a = ZVAL_GET_INT(&kv_pop(stack->data));
     int res = a * b;
     zval_set(&val, res);
@@ -596,7 +596,7 @@ INSTR_T create_MULI_int_pop_instr(const int a) {
 
 INLINED result_t process_MULD_double_instr(stack_t *stack, const double a, const double b) {
     zval_t val;
-    
+
     double res = a * b;
     ZVAL_SET_DOUBLE(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -606,7 +606,7 @@ INLINED result_t process_MULD_double_instr(stack_t *stack, const double a, const
 INLINED result_t process_MULD_double_pop_instr(stack_t *stack, const double a) {
     zval_t val;
     double b = ZVAL_GET_DOUBLE(&kv_pop(stack->data));
-    
+
     double res = a * b;
     ZVAL_SET_DOUBLE(&val, res);
     kv_push(zval_t, stack->data, val);
@@ -615,7 +615,7 @@ INLINED result_t process_MULD_double_pop_instr(stack_t *stack, const double a) {
 
 INLINED result_t process_MULD_pop_double_instr(stack_t *stack, const double b) {
     zval_t val;
-    
+
     double a = ZVAL_GET_DOUBLE(&kv_pop(stack->data));
     double res = a * b;
     ZVAL_SET_DOUBLE(&val, res);
@@ -704,7 +704,7 @@ if (ZVAL_IS_INT(b_ptr) && ZVAL_IS_INT(a_ptr)) {
         double a = ZVAL_GET_DOUBLE(a_ptr);
         double res = a / b;
         ZVAL_SET_DOUBLE(&val, res);
-    } 
+    }
 
     kv_push(zval_t, stack->data, val);
     return EOK;

@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include "globals.h"
 #include "parser.h"
-#include "interpreter.h"
+#include "vm.h"
 
 char* read_source_file(const char *filename) {
     FILE *f;
@@ -68,8 +68,11 @@ int main(int argc, char *argv[])
             return res;
         }
 
-        interpreter_t *i = init_interpreter(parser.code);
-        run_interpreter(i);
+        vm_t vm;
+
+        vm_init(&vm, parser.code);
+        vm_exec(&vm);
+        vm_dispose(&vm);
     }
 
     return res;
