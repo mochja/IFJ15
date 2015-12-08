@@ -24,35 +24,21 @@
 #define EXPR_IS_DOUBLE(x)   (((x)->flags >> 3) & 1)
 #define EXPR_IS_STRING(x)   (((x)->flags >> 4) & 1)
 
-#define EXPR_SET_OPERAND(x, v)  (x)->flags = 0x00 | 1 << 0; (x)->op_t = v;
-#define EXPR_SET_OFFSET(x, v)   (x)->flags = 0x00 | 1 << 1; (x)->val.iVal = v;
+#define EXPR_SET_OPERAND(x, v)  (x)->flags = 0x00 | 1 << 0; zval_set(&(x)->val, v);
+#define EXPR_SET_OFFSET(x, v)   (x)->flags = 0x00 | 1 << 1; zval_set(&(x)->val, v);
 #define EXPR_SET_INT(x, v)      (x)->flags = 0x00 | 1 << 2; zval_set(&(x)->val, v);
-#define EXPR_SET_DOUBLE(x, v)   (x)->flags = 0x00 | 1 << 3; (x)->val.dVal = v;
-#define EXPR_SET_STRING(x, v)   (x)->flags = 0x00 | 1 << 4; (x)->val.sVal = v;
+#define EXPR_SET_DOUBLE(x, v)   (x)->flags = 0x00 | 1 << 3; zval_set(&(x)->val, v);
+#define EXPR_SET_STRING(x, v)   (x)->flags = 0x00 | 1 << 4; zval_set(&(x)->val, v);
 
-#define EXPR_GET_OPERAND(x)  ((x)->op_t)
-#define EXPR_GET_OFFSET(x)   ((x)->val.iVal)
-#define EXPR_GET_INT(x)      ((x)->val.iVal)
-#define EXPR_GET_DOUBLE(x)   ((x)->val.dVal)
-#define EXPR_GET_STRING(x)   ((x)->val.sVal)
+#define EXPR_GET_OPERAND(x)  (zval_get_int(&(x)->val))
+#define EXPR_GET_OFFSET(x)   (zval_get_int(&(x)->val))
+#define EXPR_GET_INT(x)      (zval_get_int(&(x)->val))
+#define EXPR_GET_DOUBLE(x)   (zval_get_double(&(x)->val))
+#define EXPR_GET_STRING(x)   (zval_get_string(&(x)->val))
 
-typedef struct __expr_t expr_t;
-
-struct __expr_t {
-    unsigned short flags;
-
-    union {
-        unsigned int op_t;
-        zval_t val;
-    };
-};
-
-#define __expr_t_free(x)
-KLIST_INIT(expr_stack, expr_t*, __expr_t_free)
-
-const static enum {
+enum __priority {
     L, M, E, O
-} __op;
+};
 
 const static unsigned char __table[][14] = {
 /*           0   1   2   3   4   5   6   7   8   9   10  11  12  13   */
@@ -73,7 +59,7 @@ const static unsigned char __table[][14] = {
 /*| 13 $ |*/{L,  L,  L,  L,  L,  L,  L,  L,  L,  L,  L,  O,  L,  O, },
 };
 
-const static enum {
+enum __operator_type {
     Op_PLUS = 0,    //0  +
     Op_MINUS,       //1  -
     Op_MUL,         //2  *
@@ -84,13 +70,26 @@ const static enum {
     Op_MEQ,         //7  >=
     Op_EQ,          //8  ==
     Op_NEQ,         //9  !=
-    Op_LB,          //10  left bracket
+    Op_LB,          //10 left bracket
     Op_RB,          //11 right bracket
     Op_VAR,         //12 variable
     Op_DOL,         //13 dollar
     Op_ERR,         //14 Error
-} __op_code;
+};
 
-klist_t(expr_stack)* build_expression(klist_t(token_list) *tokens);
+typedef struct __expr_t expr_t;
+
+struct __expr_t {
+    unsigned short flags;
+    zval_t val;
+};
+
+#define __expr_t_free(x)
+KLIST_INIT(expr_stack, expr_t*, __expr_t_free)
+
+result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens);
+
+result_t expr_init(expr_t *expr);
+result_t expr_dispose(expr_t *expr);
 
 #endif // EXPRESSION_H_

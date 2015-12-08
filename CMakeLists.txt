@@ -3,7 +3,7 @@ project(IFJ15 C)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -pedantic -Wall -Werror -Werror=maybe-uninitialized")
 
-add_executable(ifj15 main.c scanner.c parser.c list.c hash.c token.h zval.h expression.c instruction.c vm.c)
+add_executable(ifj15 main.c scanner.c parser.c list.c hash.c token.h zval.h expr.c instruction.c vm.c)
 
 enable_testing()
 find_library(cgreen cgreen)
@@ -11,7 +11,7 @@ find_library(cgreen cgreen)
 add_library(hash_test hash_test.c hash.c)
 add_library(ial_test ial_test.c ial.c)
 add_library(vm_test vm_test.c vm.c instruction.c)
-add_library(expression_test expression_test.c expression.c)
+add_library(expression_test expr_test.c expr.c)
 add_library(instruction_test instruction_test.c instruction.c)
 
 add_executable(run_test run_test.c)

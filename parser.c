@@ -877,7 +877,13 @@ result_t parse_assign(parser_t *parser) {
                 if ((result = parser_next_token(parser)) != EOK) { return result; }
             }
 
-            klist_t(expr_stack) *expr = build_expression(tokens);
+            klist_t(expr_stack) *expr = kl_init(expr_stack);
+
+            if ((result = expr_from_tokens(expr, tokens)) != EOK) {
+                kl_destroy(expr_stack, expr);
+                return result;
+            }
+
             klist_t(instruction_list) *expr_code = create_instructions_from_expression(expr);
             for (kliter_t(instruction_list) *it = kl_begin(expr_code); it != kl_end(expr_code); it = kl_next(it)) {
                 *kl_pushp(instruction_list, parser->code) = kl_val(it);
@@ -935,7 +941,13 @@ result_t parse_assign(parser_t *parser) {
             if ((result = parser_next_token(parser)) != EOK) { return result; }
         }
 
-        klist_t(expr_stack) *expr = build_expression(tokens);
+        klist_t(expr_stack) *expr = kl_init(expr_stack);
+
+        if ((result = expr_from_tokens(expr, tokens)) != EOK) {
+            kl_destroy(expr_stack, expr);
+            return result;
+        }
+
         klist_t(instruction_list) *expr_code = create_instructions_from_expression(expr);
         for (kliter_t(instruction_list) *it = kl_begin(expr_code); it != kl_end(expr_code); it = kl_next(it)) {
             *kl_pushp(instruction_list, parser->code) = kl_val(it);

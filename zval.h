@@ -20,6 +20,7 @@
 #include "globals.h"
 
 #define zval_set(v, T) _Generic((T),                        \
+        unsigned int: zval_set_int,                         \
         int: zval_set_int,                                  \
         long unsigned int: zval_set_int,                    \
         double: zval_set_double,                            \
