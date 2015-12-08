@@ -21,6 +21,7 @@ AfterEach(Expression) {}
 
 Ensure(Expression, can_contain_a_number) {
     expr_t *expr = calloc(1, sizeof(expr_t));
+    expr_init(expr);
 
     EXPR_SET_INT(expr, 1);
     assert_true(EXPR_IS_INT(expr));
@@ -34,11 +35,14 @@ Ensure(Expression, can_contain_a_number) {
     assert_false(EXPR_IS_STRING(expr));
     assert_false(EXPR_IS_OPERAND(expr));
 
+    expr_dispose(expr);
     free(expr);
 }
 
 Ensure(Expression, can_contain_a_operand) {
     expr_t *expr = calloc(1, sizeof(expr_t));
+    expr_init(expr);
+
     EXPR_SET_OPERAND(expr, '+');
 
     assert_true(EXPR_IS_OPERAND(expr));
@@ -46,12 +50,15 @@ Ensure(Expression, can_contain_a_operand) {
     assert_false(EXPR_IS_STRING(expr));
     assert_false(EXPR_IS_DOUBLE(expr));
 
+    expr_dispose(expr);
     free(expr);
 }
 
 // This one is maybe, bla bla
 Ensure(Expression, can_contain_a_string) {
     expr_t *expr = calloc(1, sizeof(expr_t));
+    expr_init(expr);
+
 
     EXPR_SET_STRING(expr, "string");
 
@@ -60,6 +67,7 @@ Ensure(Expression, can_contain_a_string) {
     assert_false(EXPR_IS_INT(expr));
     assert_false(EXPR_IS_DOUBLE(expr));
 
+    expr_dispose(expr);
     free(expr);
 }
 
@@ -95,43 +103,51 @@ Ensure(Expression, should_be_able_to_generate_expr_stack) {
     *kl_pushp(token_list, l) = &t6;
     *kl_pushp(token_list, l) = &t7;
 
-    klist_t(expr_stack) *s = expression_from_tokens(NULL, l);
+    klist_t(expr_stack) *s = kl_init(expr_stack);
+    expr_from_tokens(s, l);
     kliter_t(expr_stack) *it = kl_begin(s);
     expr_t *expr;
 
     expr = kl_val(it);
     assert_true(EXPR_IS_INT(expr));
     assert_equal(EXPR_GET_INT(expr), 1);
+    expr_dispose(expr);
     free(expr); it = kl_next(it);
 
     expr = kl_val(it);
     assert_true(EXPR_IS_INT(expr));
     assert_equal(EXPR_GET_INT(expr), 3);
+    expr_dispose(expr);
     free(expr); it = kl_next(it);
 
     expr = kl_val(it);
     assert_true(EXPR_IS_INT(expr));
     assert_equal(EXPR_GET_INT(expr), 5);
+    expr_dispose(expr);
     free(expr); it = kl_next(it);
 
     expr = kl_val(it);
     assert_true(EXPR_IS_OPERAND(expr));
     assert_equal(EXPR_GET_OPERAND(expr), Op_MUL);
+    expr_dispose(expr);
     free(expr); it = kl_next(it);
 
     expr = kl_val(it);
     assert_true(EXPR_IS_OPERAND(expr));
     assert_equal(EXPR_GET_OPERAND(expr), Op_PLUS);
+    expr_dispose(expr);
     free(expr); it = kl_next(it);
 
     expr = kl_val(it);
     assert_true(EXPR_IS_INT(expr));
     assert_equal(EXPR_GET_INT(expr), 9);
+    expr_dispose(expr);
     free(expr); it = kl_next(it);
 
     expr = kl_val(it);
     assert_true(EXPR_IS_OPERAND(expr));
     assert_equal(EXPR_GET_OPERAND(expr), Op_MINUS);
+    expr_dispose(expr);
     free(expr);
 
     // We should end up at end of parse_list
