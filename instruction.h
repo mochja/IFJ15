@@ -18,7 +18,7 @@
 #include <string.h>
 #include "klist.h"
 #include "zval.h"
-#include "expression.h"
+#include "expr.h"
 #include "kvec.h"
 
 typedef struct __instruction_t instruction_t;

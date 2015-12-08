@@ -12,8 +12,31 @@
  */
 
 #include <stdio.h>
-#include "expression.h"
+#include "expr.h"
 #include "globals.h"
+
+
+
+
+result_t expr_init(expr_t *expr) {
+
+    expr->flags = 0;
+    return zval_init(&expr->val);
+}
+
+
+
+
+result_t expr_dispose(expr_t *expr) {
+
+    expr->flags = 0;
+    zval_dispose(&expr->val);
+
+    return EOK;
+}
+
+
+
 
 static inline unsigned int get_operation(unsigned char type, unsigned int flags) {
 
@@ -41,17 +64,21 @@ static inline unsigned int get_operation(unsigned char type, unsigned int flags)
     return Op_ERR;
 }
 
+
+
+
 static inline unsigned int get_rule(unsigned int left, unsigned int right) {
     return ( left > Op_DOL || right > Op_DOL ) ? ESYS : __table[left][right];
 }
 
-klist_t(expr_stack)* build_expression(klist_t(token_list) *tokens) {
+
+
+
+result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens) {
     klist_t(expr_stack) *op_stack;
-    klist_t(expr_stack) *stack;
     kliter_t(token_list) *p;
 
     op_stack = kl_init(expr_stack);
-    stack = kl_init(expr_stack);
 
     for (p = kl_begin(tokens); p != kl_end(tokens); p = kl_next(p)) {
         token_t *t = kl_val(p);
@@ -65,7 +92,7 @@ klist_t(expr_stack)* build_expression(klist_t(token_list) *tokens) {
                 EXPR_SET_INT(exp, ZVAL_GET_INT(&t->data));
             }
 
-            *kl_pushp(expr_stack, stack) = exp;
+            *kl_pushp(expr_stack, expr) = exp;
         } else {
             unsigned int op = get_operation(t->type, t->flags);
             EXPR_SET_OPERAND(exp, op);
@@ -74,7 +101,7 @@ klist_t(expr_stack)* build_expression(klist_t(token_list) *tokens) {
                 expr_t *top = kl_val(kl_begin(op_stack));
 
                 if (get_rule(EXPR_GET_OPERAND(top), op) == M) {
-                    kl_shift(expr_stack, op_stack, kl_pushp(expr_stack, stack));
+                    kl_shift(expr_stack, op_stack, kl_pushp(expr_stack, expr));
                 } else {
                     break;
                 }
@@ -85,10 +112,10 @@ klist_t(expr_stack)* build_expression(klist_t(token_list) *tokens) {
     }
 
     for (kliter_t(expr_stack) *it = kl_begin(op_stack); it != kl_end(op_stack); it = kl_next(it)) {
-        kl_shift(expr_stack, op_stack, kl_pushp(expr_stack, stack));
+        kl_shift(expr_stack, op_stack, kl_pushp(expr_stack, expr));
     }
 
     kl_destroy(expr_stack, op_stack);
 
-    return stack;
+    return EOK;
 }

@@ -12,7 +12,7 @@
  */
 
 #include <cgreen/cgreen.h>
-#include "expression.h"
+#include "expr.h"
 #include "globals.h"
 
 Describe(Expression)
@@ -95,7 +95,7 @@ Ensure(Expression, should_be_able_to_generate_expr_stack) {
     *kl_pushp(token_list, l) = &t6;
     *kl_pushp(token_list, l) = &t7;
 
-    klist_t(expr_stack) *s = build_expression(l);
+    klist_t(expr_stack) *s = expression_from_tokens(NULL, l);
     kliter_t(expr_stack) *it = kl_begin(s);
     expr_t *expr;
 
