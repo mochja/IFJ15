@@ -67,26 +67,15 @@ interpreter_t *init_interpreter(klist_t(instruction_list) *instructions) {
 void destroy_interpreter(interpreter_t *intr) {
 
     for (size_t i = 0; i < kv_size(intr->instructions); i++) {
-        zval_dispose(kv_A(intr->instructions, i).first);
-        zval_dispose(kv_A(intr->instructions, i).second);
-        zval_dispose(kv_A(intr->instructions, i).third);
+        instruction_dispose(&kv_A(intr->instructions, i));
     }
 
     for (size_t i = 0; i < kv_size(intr->stack.data); ++i) {
-        zval_t *val = &kv_A(intr->stack.data, i);
-
-        if (val == NULL) {
-            continue;
-        }
-
-        if (ZVAL_IS_STRING(val)) {
-            free(ZVAL_GET_STRING(val));
-        }
+        zval_dispose(&kv_A(intr->stack.data, i));
     }
 
     kv_destroy(intr->instructions);
     kv_destroy(intr->stack.data);
-    free(intr);
 }
 
 typedef struct __stack_t stack_t;
