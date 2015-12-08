@@ -51,10 +51,11 @@ int main(int argc, char *argv[])
     if (argc < 2) {
         // print help, usage...
         printf("usage %s source_file\n", argv[0]);
-        return ESYS;
+        return ESYS; // ?
     }
 
-    char *source = read_source_file(argv[1]);
+    char *source;
+    if (( source = read_source_file(argv[1])) == NULL){ return ESYS; } // if file does not exist it is error
 
     parser_t parser;
     res = init_parser(&parser, source);
