@@ -13,7 +13,6 @@
 
 #include <cgreen/cgreen.h>
 #include "vm.h"
-#include "mathi.h"
 
 Describe(VM)
 BeforeEach(VM) {}
@@ -55,34 +54,23 @@ Ensure(VM, should_replace_labels_with_addresses_on_initialize) {
 }
 
 Ensure(VM, should_add_two_integers) {
-    klist_t(instruction_list) *sl;
-    sl = kl_init(instruction_list);
 
-    *kl_pushp(instruction_list, sl) = create_ADDI_int_instr(5, 2);
-    *kl_pushp(instruction_list, sl) = create_ADDI_int_instr(5, 2);
-    *kl_pushp(instruction_list, sl) = create_ADD_pop_instr();
-    *kl_pushp(instruction_list, sl) = create_ADDI_int_pop_instr(5);
-    *kl_pushp(instruction_list, sl) = create_ADDI_pop_int_instr(5);
+    klist_t(instruction_list) *sl = kl_init(instruction_list);
+    zval_t a, b;
 
-    vm_t vm;
-    vm_init(&vm, sl);
-    kl_destroy(instruction_list, sl);
+    instruction_t *i = malloc(sizeof(instruction_t));
 
-    vm_exec(&vm);
+    zval_set(&a, 5); zval_set(&b, 2);
+    create_ADD_zval_instr(i, &a, &b);
+    *kl_pushp(instruction_list, sl) = i;
 
-    assert_equal(kv_size(vm.stack.data), 1);
-    assert_equal(ZVAL_GET_INT(&kv_A(vm.stack.data, 0)), 24);
+    i = malloc(sizeof(instruction_t));
+    create_ADD_zval_instr(i, &a, &b);
+    *kl_pushp(instruction_list, sl) = i;
 
-    vm_dispose(&vm);
-}
-
-Ensure(VM, should_add_two_doubles) {
-    klist_t(instruction_list) *sl;
-    sl = kl_init(instruction_list);
-
-    *kl_pushp(instruction_list, sl) = create_ADDD_double_instr(5.32, 5.28);
-    *kl_pushp(instruction_list, sl) = create_ADDD_double_instr(3.12, 8.48);
-    *kl_pushp(instruction_list, sl) = create_ADD_pop_instr();
+    i = malloc(sizeof(instruction_t));
+    create_ADD_pop_instr(i);
+    *kl_pushp(instruction_list, sl) = i;
 
     vm_t vm;
     vm_init(&vm, sl);
@@ -90,52 +78,8 @@ Ensure(VM, should_add_two_doubles) {
 
     vm_exec(&vm);
 
-    assert_equal(kv_size(vm.stack.data), 1);
-    assert_double_equal(ZVAL_GET_DOUBLE(&kv_A(vm.stack.data, 0)), 22.2);
-
-    vm_dispose(&vm);
-}
-
-Ensure(VM, should_do_some_adv_math) {
-    klist_t(instruction_list) *sl;
-    sl = kl_init(instruction_list);
-
-    *kl_pushp(instruction_list, sl) = create_MULI_int_instr(5, 5);   // 25
-    *kl_pushp(instruction_list, sl) = create_ADDI_pop_int_instr(5);  // 30
-    *kl_pushp(instruction_list, sl) = create_DIVI_int_instr(5, 10);  // 5 / 10 = 0.5
-    *kl_pushp(instruction_list, sl) = create_MULI_pop_int_instr(10); // 0
-    *kl_pushp(instruction_list, sl) = create_ADD_pop_instr();        // 30 + 0
-
-    vm_t vm;
-    vm_init(&vm, sl);
-    kl_destroy(instruction_list, sl);
-
-    vm_exec(&vm);
-
-    assert_equal(kv_size(vm.stack.data), 1);
-    assert_equal(ZVAL_GET_INT(&kv_A(vm.stack.data, 0)), 30);
-
-    vm_dispose(&vm);
-}
-
-Ensure(VM, should_do_some_adv_math_on_doubles) {
-    klist_t(instruction_list) *sl;
-    sl = kl_init(instruction_list);
-
-    *kl_pushp(instruction_list, sl) = create_MULD_double_instr(5, 5);   // 25
-    *kl_pushp(instruction_list, sl) = create_ADDD_pop_double_instr(5);  // 30
-    *kl_pushp(instruction_list, sl) = create_DIVD_double_instr(5, 10);  // 5 / 10 = 0.5
-    *kl_pushp(instruction_list, sl) = create_MULD_pop_double_instr(10); // 0.5 * 10 = 5
-    *kl_pushp(instruction_list, sl) = create_ADD_pop_instr();           // 30 + 5
-
-    vm_t vm;
-    vm_init(&vm, sl);
-    kl_destroy(instruction_list, sl);
-
-    vm_exec(&vm);
-
-    assert_equal(kv_size(vm.stack.data), 1);
-    assert_double_equal(ZVAL_GET_DOUBLE(&kv_A(vm.stack.data, 0)), 35);
+    assert_equal(kv_size(vm.stack), 1);
+    assert_equal(ZVAL_GET_INT(&kv_A(vm.stack, 0)), 14);
 
     vm_dispose(&vm);
 }
@@ -144,8 +88,5 @@ TestSuite *vm_suite() {
     TestSuite *suite = create_test_suite();
     add_test_with_context(suite, VM, should_replace_labels_with_addresses_on_initialize);
     add_test_with_context(suite, VM, should_add_two_integers);
-    add_test_with_context(suite, VM, should_add_two_doubles);
-    add_test_with_context(suite, VM, should_do_some_adv_math);
-    add_test_with_context(suite, VM, should_do_some_adv_math_on_doubles);
     return suite;
 }

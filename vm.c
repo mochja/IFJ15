@@ -89,12 +89,15 @@ INLINED void process_COUT_pop_instr(vm_t *vm) {
 
     if (ZVAL_IS_INT(val)) {
         printf("%d", zval_get_int(val));
+    } else if (ZVAL_IS_DOUBLE(val)) {
+        printf("%f", zval_get_double(val));
     }
 }
 
 result_t vm_exec(vm_t *vm) {
 
     result_t ret;
+    vm->ip = 0;
 
     while (vm->ip < kv_size(vm->instructions)) {
         instruction_t *i = &kv_A(vm->instructions, vm->ip);

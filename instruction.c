@@ -23,7 +23,7 @@ result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_st
     for (kliter_t(expr_stack) *it = kl_begin(expr); it != kl_end(expr); it = kl_next(it)) {
         expr_t *curr = kl_val(it);
 
-        if (EXPR_IS_INT(curr)) {
+        if (EXPR_IS_INT(curr) || EXPR_IS_DOUBLE(curr)) {
             *kl_push(expr_stack, buff) = curr;
             offset++;
         } else if (EXPR_IS_OPERAND(curr)) {
