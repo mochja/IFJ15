@@ -135,7 +135,7 @@ result_t parse_fn(parser_t *parser) {
         }
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {   // )
-            return ESYN;
+            return ESEM;
         }
         tItemPtr item;
         if ((item = calloc(1, sizeof(struct tItem))) == NULL){
@@ -1524,7 +1524,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
 
         /**************************************/
     }
-    else return ESEM2;
+    else return ESYN;
 
     parser->argsCounter1++;
 
