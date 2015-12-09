@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "globals.h"
 
 #define zval_set(v, T) _Generic((T),                        \
@@ -130,6 +131,10 @@ INLINED result_t zval_set_string(zval_t *val, const char *str) {
     return EOK;
 }
 
+INLINED bool zval_is_numeric(zval_t *val) {
+    return ZVAL_IS_INT(val) || ZVAL_IS_DOUBLE(val);
+}
+
 INLINED void zval_dispose(zval_t *val) {
 
     if (val == NULL) {
@@ -153,6 +158,27 @@ INLINED result_t zval_copy(zval_t *dest, zval_t *src) {
 
     if (ZVAL_IS_STRING(dest)) {
         return zval_set_string(dest, ZVAL_GET_STRING(src));
+    }
+
+    return EOK;
+}
+
+
+
+INLINED result_t zval_add(zval_t *dest, zval_t *a, zval_t *b) {
+
+    if (a == NULL || b == NULL) return ESYS; // TODO: Fix Error code
+
+    if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
+        zval_set(dest, (double) ZVAL_GET_DOUBLE(a) + ZVAL_GET_INT(b));
+    } else if (ZVAL_IS_DOUBLE(b) && ZVAL_IS_INT(a)) {
+        zval_set(dest, (double) ZVAL_GET_INT(a) + ZVAL_GET_DOUBLE(b));
+    } else if (ZVAL_IS_DOUBLE(b) && ZVAL_IS_DOUBLE(a)) {
+        zval_set(dest, ZVAL_GET_DOUBLE(a) + ZVAL_GET_DOUBLE(b));
+    } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
+        zval_set(dest, ZVAL_GET_INT(a) + ZVAL_GET_INT(b));
+    } else {
+        return ESEM3; // TODO: Fix error code
     }
 
     return EOK;

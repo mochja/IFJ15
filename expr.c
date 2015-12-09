@@ -90,6 +90,8 @@ result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens
 
             if (TOKEN_HAS_TFLAG(t, CONST_TYPE, INT_CONST)) {
                 EXPR_SET_INT(exp, ZVAL_GET_INT(&t->data));
+            } else if (TOKEN_HAS_TFLAG(t, CONST_TYPE, DOUBLE_CONST)) {
+                EXPR_SET_INT(exp, ZVAL_GET_DOUBLE(&t->data));
             }
 
             *kl_pushp(expr_stack, expr) = exp;

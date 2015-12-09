@@ -31,34 +31,9 @@ enum __instruction_type {
     I_JMP,
     I_COUT_pop,
 
-    I_ADDI_int,
-    I_ADD_pop,
-    I_ADDI_pop_int,
-    I_ADDI_int_pop,
-    I_SUBI_int,
-    I_SUB_pop,
-    I_SUBI_pop_int,
-    I_SUBI_int_pop,
-    I_MULI_int,
-    I_MUL_pop,
-    I_MULI_pop_int,
-    I_MULI_int_pop,
-    I_DIVI_int,
-    I_DIV_pop,
-    I_DIVI_pop_int,
-    I_DIVI_int_pop,
-    I_ADDD_double,
-    I_ADDD_pop_double,
-    I_ADDD_double_pop,
-    I_SUBD_double,
-    I_SUBD_pop_double,
-    I_SUBD_double_pop,
-    I_MULD_double,
-    I_MULD_pop_double,
-    I_MULD_double_pop,
-    I_DIVD_double,
-    I_DIVD_pop_double,
-    I_DIVD_double_pop
+    I_ADD_zval,
+    I_ADD_zval_pop,
+    I_ADD_pop_zval
 };
 
 struct __instruction_t {
@@ -121,7 +96,7 @@ KLIST_INIT(instruction_list, instruction_t*, __instruction_free)
 /**
  * Create instructions from given expression
  */
-klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stack) *expression);
+result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_stack) *expression);
 
 /**
  * Instruction factories
@@ -188,5 +163,104 @@ INSTR_T create_COUT_pop_instr() {
     return i;
 }
 
+
+
+/**
+ * ADD zval
+ * param can be int or double
+ */
+INLINED result_t create_ADD_zval_instr(instruction_t *i, zval_t *a, zval_t *b) {
+
+    i->type = I_ADD_zval;
+
+    if (!zval_is_numeric(a) || !zval_is_numeric(b)) {
+        return ESEM4; // TODO: proper error code
+    }
+
+    if ((i->first = malloc(sizeof(zval_t))) == NULL) {
+        return ESYS;
+    }
+
+    if ((i->second = malloc(sizeof(zval_t))) == NULL) {
+        return ESYS;
+    }
+
+    zval_copy(i->first, a);
+    zval_copy(i->second, b);
+
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+
+/**
+ * ADD
+ * use first as constant and pop the 2nd param
+ */
+INLINED result_t create_ADD_zval_pop_instr(instruction_t *i, zval_t *a) {
+
+    i->type = I_ADD_zval_pop;
+
+    if (!zval_is_numeric(a)) {
+        return ESEM4; // TODO: proper error code
+    }
+
+    if ((i->first = malloc(sizeof(zval_t))) == NULL) {
+        free(i);
+        return ESYS;
+    }
+
+    zval_copy(i->first, a);
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+/**
+ * ADD
+ * use first as constant and pop the 2nd param
+ */
+INLINED result_t create_ADD_pop_zval_instr(instruction_t *i, zval_t *b) {
+
+    i->type = I_ADD_pop_zval;
+
+    if (!zval_is_numeric(b)) {
+        return ESEM4; // TODO: proper error code
+    }
+
+    if ((i->first = malloc(sizeof(zval_t))) == NULL) {
+        free(i);
+        return ESYS;
+    }
+
+    zval_copy(i->first, b);
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+/**
+ * ADD
+ * use first as constant and pop the 2nd param
+ */
+INLINED result_t create_ADD_pop_instr(instruction_t *i) {
+
+    i->type = I_ADD_pop_zval;
+
+    i->first = NULL;
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
 
 #endif // INSTRUCTION_H
