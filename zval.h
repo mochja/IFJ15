@@ -211,7 +211,7 @@ INLINED result_t zval_sub(zval_t *dest, zval_t *a, zval_t *b) {
 
     return EOK;
 }
-//and like this?
+//and slike this?
 INLINED result_t zval_mul(zval_t *dest, zval_t *a, zval_t *b) {
 
     if (a == NULL || b == NULL) return ESYS; // TODO: Fix Error code
@@ -231,6 +231,25 @@ INLINED result_t zval_mul(zval_t *dest, zval_t *a, zval_t *b) {
     return EOK;
 }
 
+INLINED result_t zval_div(zval_t *dest, zval_t *a, zval_t *b) {
+
+    if (a == NULL || b == NULL) return ESYS; // TODO: Fix Error code
+    if ( (ZVAL_IS_INT(b)) && (ZVAL_GET_INT(b) == 0) || (ZVAL_IS_DOUBLE(b)) && (ZVAL_GET_DOUBLE(b) == 0.0)){
+        return ERUN2;
+    }else  if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
+        zval_set(dest, (double) ZVAL_GET_DOUBLE(a) / ZVAL_GET_INT(b));
+    } else if (ZVAL_IS_DOUBLE(b) && ZVAL_IS_INT(a)) {
+        zval_set(dest, (double) ZVAL_GET_INT(a) / ZVAL_GET_DOUBLE(b));
+    } else if (ZVAL_IS_DOUBLE(b) && ZVAL_IS_DOUBLE(a)) {
+        zval_set(dest, ZVAL_GET_DOUBLE(a) / ZVAL_GET_DOUBLE(b));
+    } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
+        zval_set(dest, ZVAL_GET_INT(a) / ZVAL_GET_INT(b));
+    } else {
+        return ESEM3; // TODO: Fix error code
+    }
+
+    return EOK;
+}
 
 INLINED void zval_print(zval_t *val) {
 
