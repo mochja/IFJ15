@@ -409,7 +409,7 @@ result_t parse_list(parser_t *parser) {
         }
 
         insertLast(varBlock, &parser->varList);
-        debug_print("%s",".....NEW BLOCK.....\n");
+        debug_print("%s\n",".....NEW BLOCK.....\n");
         result = parse_list(parser);
 
         if (result != EOK){
@@ -420,7 +420,7 @@ result_t parse_list(parser_t *parser) {
 
         /*************** } <parse_list> ***********************/
     else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_VINCULUM_SMBL)) {
-        debug_print("%s","....END BLOCK....\n");
+        debug_print("%s\n","....END BLOCK....\n");
         tItemPtr item = parser->varList.Last;
         for(int i = 0; i < kv_size(item->data) ; i++){
             //POP VARIABLE
@@ -461,7 +461,7 @@ result_t parse_list(parser_t *parser) {
 
         /*vyhodnotenie vyrazu*/
 
-        debug_print("%s","EXP\n");
+        debug_print("%s\n","EXP\n");
         debug_print("JMPF %d\n", elseLabel);
         /**vlozenie 3AK - podmieneny skok ak podmienka nebola splnena na elseLabel**/
 
@@ -472,7 +472,7 @@ result_t parse_list(parser_t *parser) {
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL))
             return ESYN;
-        debug_print("%s","....NEW BLOCK....\n");
+        debug_print("%s\n","....NEW BLOCK....\n");
         tItemPtr varBlock;
         if ((varBlock = calloc(1, sizeof(struct tItem))) == NULL)
             return ESYS;
@@ -513,7 +513,7 @@ result_t parse_list(parser_t *parser) {
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL))
             return ESYN;
-        debug_print("%s","....NEW BLOCK....\n");
+        debug_print("%s\n","....NEW BLOCK....\n");
         tItemPtr varBlock2;
         if ((varBlock2 = calloc(1, sizeof(struct tItem))) == NULL)
             return ESYS;
@@ -639,7 +639,7 @@ result_t parse_list(parser_t *parser) {
 
         /**vlozenie 3AK  - label expLabel**/
         debug_print("EXP LABEL %d\n", expLabel);
-        debug_print("%s","EXP\n");
+        debug_print("%s\n","EXP\n");
 
 
         /*****hack*********/
@@ -700,7 +700,7 @@ result_t parse_list(parser_t *parser) {
             }
         }
 
-        debug_print("%s","ASSING EXP\n");
+        debug_print("%s\n","ASSING EXP\n");
         /**vyhodnotenie vyrazu**/
         debug_print("MV TO OFFSET %d EXPRESULT\n", var_offset);
         /**vlozenie 3AK priradnie do premennej hNameID**/
@@ -846,7 +846,7 @@ result_t parse_list(parser_t *parser) {
         }
         /*********************/
         parser->is_return=true;
-        debug_print("%s","RETURN\n");
+        debug_print("%s\n","RETURN\n");
         /****vyhdontenie vyrazu***/
         /**vloznenie 3AK - skos s5**/
     }
@@ -1157,7 +1157,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                 return result;
             }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                debug_print("%s","PUSH CONST\n");
+                debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                  /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1184,7 +1184,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                 return result;
             }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
-               debug_print("%s","PUSH CONST\n");
+               debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                  /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1212,7 +1212,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                 return result;
             }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
-                debug_print("%s","PUSH CONST\n");
+                debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1268,7 +1268,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                debug_print("%s","PUSH CONST\n");
+                debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                  /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1296,7 +1296,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-               debug_print("%s","PUSH CONST\n");
+               debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
                     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
@@ -1348,7 +1348,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                debug_print("%s","PUSH CONST\n");
+                debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1376,7 +1376,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                 debug_print("%s","PUSH CONST\n");
+                 debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1428,7 +1428,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                debug_print("%s","PUSH CONST\n");
+                debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
