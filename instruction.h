@@ -96,7 +96,7 @@ KLIST_INIT(instruction_list, instruction_t*, __instruction_free)
 /**
  * Create instructions from given expression
  */
-klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stack) *expression);
+result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_stack) *expression);
 
 /**
  * Instruction factories
@@ -171,10 +171,6 @@ INSTR_T create_COUT_pop_instr() {
  */
 INLINED result_t create_ADD_zval_instr(instruction_t *i, zval_t *a, zval_t *b) {
 
-    if ((i = calloc(1, sizeof(instruction_t))) == NULL) {
-        return ESYS;
-    }
-
     i->type = I_ADD_zval;
 
     if (!zval_is_numeric(a) || !zval_is_numeric(b)) {
@@ -182,18 +178,17 @@ INLINED result_t create_ADD_zval_instr(instruction_t *i, zval_t *a, zval_t *b) {
     }
 
     if ((i->first = malloc(sizeof(zval_t))) == NULL) {
-        free(i);
+        return ESYS;
+    }
+
+    if ((i->second = malloc(sizeof(zval_t))) == NULL) {
         return ESYS;
     }
 
     zval_copy(i->first, a);
-
-    if ((i->second = malloc(sizeof(zval_t))) == NULL) {
-        free(i);
-        return ESYS;
-    }
-
     zval_copy(i->second, b);
+
+    i->third = NULL;
 
     return EOK;
 }
@@ -207,10 +202,6 @@ INLINED result_t create_ADD_zval_instr(instruction_t *i, zval_t *a, zval_t *b) {
  */
 INLINED result_t create_ADD_zval_pop_instr(instruction_t *i, zval_t *a) {
 
-    if ((i = calloc(1, sizeof(instruction_t))) == NULL) {
-        return ESYS;
-    }
-
     i->type = I_ADD_zval_pop;
 
     if (!zval_is_numeric(a)) {
@@ -223,6 +214,8 @@ INLINED result_t create_ADD_zval_pop_instr(instruction_t *i, zval_t *a) {
     }
 
     zval_copy(i->first, a);
+    i->second = NULL;
+    i->third = NULL;
 
     return EOK;
 }
@@ -235,10 +228,6 @@ INLINED result_t create_ADD_zval_pop_instr(instruction_t *i, zval_t *a) {
  */
 INLINED result_t create_ADD_pop_zval_instr(instruction_t *i, zval_t *b) {
 
-    if ((i = calloc(1, sizeof(instruction_t))) == NULL) {
-        return ESYS;
-    }
-
     i->type = I_ADD_pop_zval;
 
     if (!zval_is_numeric(b)) {
@@ -249,7 +238,27 @@ INLINED result_t create_ADD_pop_zval_instr(instruction_t *i, zval_t *b) {
         free(i);
         return ESYS;
     }
+
     zval_copy(i->first, b);
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+/**
+ * ADD
+ * use first as constant and pop the 2nd param
+ */
+INLINED result_t create_ADD_pop_instr(instruction_t *i) {
+
+    i->type = I_ADD_pop_zval;
+
+    i->first = NULL;
+    i->second = NULL;
+    i->third = NULL;
 
     return EOK;
 }

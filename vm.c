@@ -16,10 +16,10 @@
 
 result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions) {
     kv_init(vm->instructions);
-    kv_init(vm->stack.data);
+    kv_init(vm->stack);
 
     kv_resize(instruction_t, vm->instructions, 50);
-    kv_resize(zval_t, vm->stack.data, 100);
+    kv_resize(zval_t, vm->stack, 100);
 
     kvec_t(size_t) labels;
     kv_init(labels);
@@ -67,58 +67,92 @@ result_t vm_dispose(vm_t *vm) {
         instruction_dispose(&kv_A(vm->instructions, i));
     }
 
-    for (size_t i = 0; i < kv_size(vm->stack.data); ++i) {
-        zval_dispose(&kv_A(vm->stack.data, i));
+    for (size_t i = 0; i < kv_size(vm->stack); ++i) {
+        zval_dispose(&kv_A(vm->stack, i));
     }
 
     kv_destroy(vm->instructions);
-    kv_destroy(vm->stack.data);
+    kv_destroy(vm->stack);
 
     return EOK;
 }
 
-typedef struct __stack_t stack_t;
-
-static inline void process_PUSH_instr(stack_t *stack, const int offset) {
+static inline void process_PUSH_instr(vm_t *vm, const int offset) {
     zval_t val;
     zval_set(&val, offset);
-    kv_push(zval_t, stack->data, val);
+    kv_push(zval_t, vm->stack, val);
 }
 
-INLINED void process_COUT_pop_instr(stack_t *stack) {
+INLINED void process_COUT_pop_instr(vm_t *vm) {
 
-    zval_t *val = &kv_pop(stack->data);
+    zval_t *val = &kv_pop(vm->stack);
 
     if (ZVAL_IS_INT(val)) {
         printf("%d", zval_get_int(val));
     }
 }
 
-static size_t proccess_instruction(instruction_t *instr, struct __stack_t *stack, const size_t actual_addr) {
-
-    switch (instr->type) {
-
-        case I_PUSH:
-            process_PUSH_instr(stack, ZVAL_GET_INT(instr->first));
-            return actual_addr + 1;
-        case I_JMP:
-            return (size_t) ZVAL_GET_INT(instr->first);
-        case I_COUT_pop:
-            process_COUT_pop_instr(stack);
-            return actual_addr + 1;
-
-        default:
-            return 0;
-    }
-}
-
 result_t vm_exec(vm_t *vm) {
-    size_t actual_addr = 0;
 
-    while (actual_addr < kv_size(vm->instructions)) {
-        instruction_t *i = &kv_A(vm->instructions, actual_addr);
-        printf("[0x%.8lu]: [%d] \n", actual_addr, i->type);
-        actual_addr = proccess_instruction(i, &vm->stack, actual_addr);
+    result_t ret;
+
+    while (vm->ip < kv_size(vm->instructions)) {
+        instruction_t *i = &kv_A(vm->instructions, vm->ip);
+        printf("[0x%.8lu]: [%d] \n", vm->ip, i->type);
+
+        switch (i->type) {
+            case I_PUSH:
+                process_PUSH_instr(vm, ZVAL_GET_INT(i->first));
+                vm->ip++;
+                break;
+            case I_JMP:
+                vm->ip = (size_t) ZVAL_GET_INT(i->first);
+                break;
+            case I_COUT_pop:
+                process_COUT_pop_instr(vm);
+                vm->ip++;
+                break;
+
+
+            case I_ADD_zval: {
+                zval_t res;
+                if ((ret = zval_add(&res, i->first, i->second)) != EOK) {
+                    zval_dispose(&res);
+                    return ret;
+                }
+                kv_push(zval_t, vm->stack, res);
+                vm->ip++;
+                break;
+            }
+            case I_ADD_zval_pop: {
+                zval_t res;
+                zval_t b = kv_pop(vm->stack);
+                if ((ret = zval_add(&res, i->first, &b)) != EOK) {
+                    zval_dispose(&res);
+                    return ret;
+                }
+                zval_dispose(&b);
+                kv_push(zval_t, vm->stack, res);
+                vm->ip++;
+                break;
+            }
+            case I_ADD_pop_zval: {
+                zval_t res;
+                zval_t a = kv_pop(vm->stack);
+                zval_t b = kv_pop(vm->stack);
+                if ((ret = zval_add(&res, &a, &b)) != EOK) {
+                    zval_dispose(&res);
+                    return ret;
+                }
+                zval_dispose(&a);
+                zval_dispose(&b);
+                kv_push(zval_t, vm->stack, res);
+                vm->ip++;
+                break;
+            }
+            default:
+                return ESYS;
+        }
     };
 
     return EOK;

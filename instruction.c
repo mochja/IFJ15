@@ -13,10 +13,8 @@
 
 #include "instruction.h"
 
-klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stack) *expr) {
-    klist_t(instruction_list) *instr;
-    instr = kl_init(instruction_list);
-
+result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_stack) *expr) {
+    result_t ret;
     klist_t(expr_stack) *buff;
     buff = kl_init(expr_stack);
 
@@ -30,9 +28,11 @@ klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stac
             offset++;
         } else if (EXPR_IS_OPERAND(curr)) {
 
+            if ((EXPR_GET_INT(curr) == Op_LB) || (EXPR_GET_INT(curr) == Op_RB)) continue;
+
             if (offset < 0) {
                 fprintf(stderr, "Unknown expression.");
-                return instr;
+                return ESEM3; // TODO: Proper error code
             }
 
             expr_t *a, *b;
@@ -45,6 +45,40 @@ klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stac
                 a = NULL;
             }
 
+            if (a != NULL && b != NULL) {
+                instruction_t *i = malloc(sizeof(instruction_t));
+                if (i == NULL) return ESYS;
+                if ((ret = create_ADD_zval_instr(i, &a->val, &b->val)) != EOK) {
+                    free(i); return ret;
+                }
+                *kl_pushp(instruction_list, dest) = i;
+                offset++;
+            } else if (a == NULL && b != NULL && offset > 0) {
+                instruction_t *i = malloc(sizeof(instruction_t));
+                if (i == NULL) return ESYS;
+                if ((ret = create_ADD_pop_zval_instr(i, &b->val)) != EOK) {
+                    free(i); return ret;
+                }
+                *kl_pushp(instruction_list, dest) = i;
+                offset++;
+            } else if (a != NULL && b == NULL && offset > 0) {
+                instruction_t *i = malloc(sizeof(instruction_t));
+                if (i == NULL) return ESYS;
+                if ((ret = create_ADD_zval_pop_instr(i, &a->val)) != EOK) {
+                    free(i); return ret;
+                }
+                *kl_pushp(instruction_list, dest) = i;
+                offset++;
+            } else if (offset > 1) {
+                instruction_t *i = malloc(sizeof(instruction_t));
+                if (i == NULL) return ESYS;
+                if ((ret = create_ADD_pop_instr(i)) != EOK) {
+                    free(i); return ret;
+                }
+                *kl_pushp(instruction_list, dest) = i;
+                offset++;
+            }
+
             // LEAK HERE ?!?
             offset -= 2;
         }
@@ -52,5 +86,5 @@ klist_t(instruction_list) *create_instructions_from_expression(klist_t(expr_stac
 
     kl_destroy(expr_stack, buff);
 
-    return instr;
+    return EOK;
 }

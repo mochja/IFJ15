@@ -946,16 +946,11 @@ result_t parse_assign(parser_t *parser) {
             }
 
             klist_t(expr_stack) *expr = kl_init(expr_stack);
-
             if ((result = expr_from_tokens(expr, tokens)) != EOK) {
                 kl_destroy(expr_stack, expr);
                 return result;
             }
-
-            klist_t(instruction_list) *expr_code = create_instructions_from_expression(expr);
-            for (kliter_t(instruction_list) *it = kl_begin(expr_code); it != kl_end(expr_code); it = kl_next(it)) {
-                *kl_pushp(instruction_list, parser->code) = kl_val(it);
-            }
+            append_instr_from_expr(parser->code, expr);
 
         } else {
             /**volanie uzivatelskej funkcie**/
@@ -1023,11 +1018,11 @@ result_t parse_assign(parser_t *parser) {
         }
 
         klist_t(expr_stack) *expr = kl_init(expr_stack);
-        expr_from_tokens(expr, tokens);
-        klist_t(instruction_list) *expr_code = create_instructions_from_expression(expr);
-        for (kliter_t(instruction_list) *it = kl_begin(expr_code); it != kl_end(expr_code); it = kl_next(it)) {
-            *kl_pushp(instruction_list, parser->code) = kl_val(it);
+        if ((result = expr_from_tokens(expr, tokens)) != EOK) {
+            kl_destroy(expr_stack, expr);
+            return result;
         }
+        append_instr_from_expr(parser->code, expr);
 
         /*********************/
     } else return ESYN;

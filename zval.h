@@ -163,4 +163,25 @@ INLINED result_t zval_copy(zval_t *dest, zval_t *src) {
     return EOK;
 }
 
+
+
+INLINED result_t zval_add(zval_t *dest, zval_t *a, zval_t *b) {
+
+    if (a == NULL || b == NULL) return ESYS; // TODO: Fix Error code
+
+    if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
+        zval_set(dest, (double) ZVAL_GET_DOUBLE(a) + ZVAL_GET_INT(b));
+    } else if (ZVAL_IS_DOUBLE(b) && ZVAL_IS_INT(a)) {
+        zval_set(dest, (double) ZVAL_GET_INT(a) + ZVAL_GET_DOUBLE(b));
+    } else if (ZVAL_IS_DOUBLE(b) && ZVAL_IS_DOUBLE(a)) {
+        zval_set(dest, ZVAL_GET_DOUBLE(a) + ZVAL_GET_DOUBLE(b));
+    } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
+        zval_set(dest, ZVAL_GET_INT(a) + ZVAL_GET_INT(b));
+    } else {
+        return ESEM3; // TODO: Fix error code
+    }
+
+    return EOK;
+}
+
 #endif // ZVAL_H_
