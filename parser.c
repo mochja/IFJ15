@@ -386,6 +386,10 @@ result_t parse_list(parser_t *parser) {
         }
 
         debug_print("\tMV TO OFFSET:%d VYRAZ\n", var_offset);
+        instruction_t *mv = malloc(sizeof(instruction_t));
+        create_POP_to_instr(mv, var_offset);
+        *kl_pushp(instruction_list, parser->code) = mv;
+
         /*vlozenie 3AK na priradenie vysledku z funkcie parse_assign do hName*/
     }
 

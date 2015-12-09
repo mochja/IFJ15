@@ -28,6 +28,7 @@ enum __instruction_type {
     I_LABEL,
     I_POP,
     I_POP_N,
+    I_POP_to,
     I_PUSH,
     I_PUSH_zval,
     I_JMP,
@@ -156,6 +157,17 @@ INLINED result_t create_POP_N_instr(instruction_t *i, const int n) {
     return EOK;
 }
 
+
+
+INLINED result_t create_POP_to_instr(instruction_t *i, const int offset) {
+
+    i->type = I_POP_to;
+    ZVAL_INIT_INT(i->first, offset);
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
 
 
 

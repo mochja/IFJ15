@@ -85,7 +85,7 @@ static inline void process_PUSH_instr(vm_t *vm, const int offset) {
 
 INLINED void process_COUT_pop_instr(vm_t *vm) {
 
-    zval_t val = kv_pop(vm->stack);
+    zval_t val = kv_A(vm->stack, kv_size(vm->stack) - 1);
 
     if (ZVAL_IS_DEFINED(&val)) {
         if (ZVAL_IS_INT(&val)) {
@@ -135,6 +135,11 @@ result_t vm_exec(vm_t *vm) {
                 for (int j = 0; j < ZVAL_GET_INT(i->first); ++j) {
                     zval_dispose(&kv_pop(vm->stack));
                 }
+                vm->ip++;
+                break;
+            }
+            case I_POP_to: {
+                kv_A(vm->stack, ZVAL_GET_INT(i->first)) = kv_pop(vm->stack);
                 vm->ip++;
                 break;
             }
