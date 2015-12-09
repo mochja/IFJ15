@@ -234,7 +234,7 @@ INLINED result_t zval_mul(zval_t *dest, zval_t *a, zval_t *b) {
 INLINED result_t zval_div(zval_t *dest, zval_t *a, zval_t *b) {
 
     if (a == NULL || b == NULL) return ESYS; // TODO: Fix Error code
-    if ( (ZVAL_IS_INT(b)) && (ZVAL_GET_INT(b) == 0) || (ZVAL_IS_DOUBLE(b)) && (ZVAL_GET_DOUBLE(b) == 0.0)){
+    if ( (ZVAL_IS_INT(b)) && (ZVAL_GET_INT(b) == 0) || ((ZVAL_IS_DOUBLE(b)) && (ZVAL_GET_DOUBLE(b) == 0.0))){
         return ERUN2;
     }else  if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
         zval_set(dest, (double) ZVAL_GET_DOUBLE(a) / ZVAL_GET_INT(b));
