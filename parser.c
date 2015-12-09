@@ -26,6 +26,7 @@ result_t init_parser(parser_t *parser, char *source) {
     parser->label = 1;
     parser->assignVarName = NULL;
     parser->offset_counter=0;
+    parser->is_return = false;
 
     parser->token = calloc(1, sizeof(token_t));
     parser->code = kl_init(instruction_list);
@@ -275,8 +276,8 @@ result_t parse_fn(parser_t *parser) {
                 debug_print("%s", "<");
                             return result;
             }
-            if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_VINCULUM_SMBL))        //ak nie je funkcia prazdna
-                result = parse_fn_body(parser);
+                   //ak nie je funkcia prazdna
+            result = parse_fn_body(parser);
 
             if (result != EOK)
                 return result;
@@ -329,6 +330,18 @@ result_t parse_fn_body(parser_t *parser) {
     parser->argsCounter = 0;
 
     result = parse_list(parser);
+    if(result != EOK && result != EEOF)
+        return  result;
+
+    if(!parser->is_return){
+        debug_print("%s","<");
+        return ERUN1;
+    }
+
+    parser->is_return=false;
+
+    if(parser->varList.First != NULL)
+        return ESYN;
 
     return result;
 }
@@ -753,9 +766,10 @@ result_t parse_list(parser_t *parser) {
                 return result;
             }
             if (!TOKEN_IS(parser->token, ID_TYPE))
-                return ESEM4;
+                return ESYN;
             if ((var_offset = get_var_offset(&parser->varList, parser->token->data.sVal)) == 0) {
                 if ((var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal)) == 0)
+                    debug_print("%s", "<");
                     return ESEM;
             }
             /**vygenerovanie 3AK - nacitanie zo SV do premennej hName**/
@@ -832,7 +846,7 @@ result_t parse_list(parser_t *parser) {
             }
         }
         /*********************/
-
+        parser->is_return=true;
         printf("RETURN\n");
         /****vyhdontenie vyrazu***/
         /**vloznenie 3AK - skos s5**/

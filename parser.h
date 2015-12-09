@@ -36,6 +36,7 @@ typedef struct {
     token_t *token;
     scanner_t scanner;
     int offset_counter;
+    bool is_return;
     klist_t(instruction_list) *code;
 } parser_t;
 
