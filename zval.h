@@ -39,7 +39,7 @@
 #define ZVAL_IS_INT(x)          (((x)->type >> 1) & 1)
 #define ZVAL_IS_DOUBLE(x)       (((x)->type >> 2) & 1)
 #define ZVAL_IS_STRING(x)       (((x)->type >> 3) & 1)
-#define ZVAL_IS_DEFINED(x)      (((x)->type >> 0) & 0)
+#define ZVAL_IS_DEFINED(x)      (!(((x)->type >> 0) & 1))
 
 #define ZVAL_INIT_INT(x, v)                                 \
     (x) = malloc(sizeof(zval_t));                           \
@@ -160,9 +160,10 @@ INLINED result_t zval_copy(zval_t *dest, zval_t *src) {
         return ESYS;
     }
 
+    dest->type = src->type;
+
     dest->dVal = src->dVal;
     dest->iVal = src->iVal;
-    dest->type = src->type;
 
     if (ZVAL_IS_STRING(dest)) {
         return zval_set_string(dest, ZVAL_GET_STRING(src));

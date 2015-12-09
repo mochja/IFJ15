@@ -27,11 +27,14 @@ enum __instruction_type {
     I_NOOP,
     I_LABEL,
     I_POP,
+    I_POP_N,
     I_PUSH,
+    I_PUSH_zval,
     I_JMP,
     I_COUT_pop,
 
     I_ADD_zval,
+    I_ADD_pop,
     I_ADD_zval_pop,
     I_ADD_pop_zval
 };
@@ -143,6 +146,19 @@ INSTR_T create_JMP_instr(int label_key) {
 
 
 
+INLINED result_t create_POP_N_instr(instruction_t *i, const int n) {
+
+    i->type = I_POP_N;
+    ZVAL_INIT_INT(i->first, n);
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+
 INSTR_T create_PUSH_int_instr(const int store_offset) {
     instruction_t *i = calloc(1, sizeof(instruction_t));
 
@@ -150,6 +166,26 @@ INSTR_T create_PUSH_int_instr(const int store_offset) {
     ZVAL_INIT_INT(i->first, store_offset);
 
     return i;
+}
+
+
+
+INLINED result_t create_PUSH_zval_instr(instruction_t *i, zval_t *val) {
+
+    i->type = I_PUSH_zval;
+
+    i->first = malloc(sizeof(zval_t));
+
+    if (val != NULL) {
+        zval_copy(i->first, val);
+    } else {
+        zval_init(i->first);
+    }
+
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
 }
 
 
@@ -254,7 +290,7 @@ INLINED result_t create_ADD_pop_zval_instr(instruction_t *i, zval_t *b) {
  */
 INLINED result_t create_ADD_pop_instr(instruction_t *i) {
 
-    i->type = I_ADD_pop_zval;
+    i->type = I_ADD_pop;
 
     i->first = NULL;
     i->second = NULL;

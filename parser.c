@@ -12,6 +12,7 @@
  */
 
 #include "parser.h"
+#include <limits.h>
 
 result_t init_parser(parser_t *parser, char *source) {
     listInit(&parser->varList);
@@ -422,11 +423,13 @@ result_t parse_list(parser_t *parser) {
     else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_VINCULUM_SMBL)) {
         debug_print("%s\n","....END BLOCK....\n");
         tItemPtr item = parser->varList.Last;
-        for(int i = 0; i < kv_size(item->data) ; i++){
-            //POP VARIABLE
-            debug_print("VARIABLE POP:%s\n",kv_A(item->data, i).id );
-            parser->offset_counter--;
-        }
+
+        instruction_t *pop = malloc(sizeof(instruction_t));
+        create_POP_N_instr(pop, (int) kv_size(item->data));
+        *kl_pushp(instruction_list, parser->code) = pop;
+
+        debug_print("BLOCK POPN: %lu\n", kv_size(item->data));
+        parser->offset_counter -= kv_size(item->data);
         deleteLast(&parser->varList);
         return EOK;
     }
@@ -599,6 +602,7 @@ result_t parse_list(parser_t *parser) {
         }
         item_append_data(varBlock, data);
         debug_print("Variable Push %s...offset:%d\n",parser->token->data.sVal,data.offset);
+
         insertLast(varBlock, &parser->varList);
 
         /*vlozenie riadiacje premennej do TS*/
@@ -867,15 +871,15 @@ result_t parse_list(parser_t *parser) {
 }
 
 result_t parse_adv_declaration(parser_t *parser) {
-    result_t result = EOK;
+    result_t result;
     int varType = parser->token->flags;
     char *hName;
     hTabItem *tItem;
 
     if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s\n", "<");
-            return result;
-        }
+        debug_print("%s\n", "<");
+        return result;
+    }
 
     if (!TOKEN_IS(parser->token, ID_TYPE))
         return ESYN;
@@ -899,7 +903,28 @@ result_t parse_adv_declaration(parser_t *parser) {
         debug_print("%s\n", "<");
         return result;
     }
-    debug_print("Variable Push %s...offset:%d\n",parser->token->data.sVal,data.offset);
+    debug_print("Variable Push %s...offset:%d\n", parser->token->data.sVal, data.offset);
+
+    // add variable to stack
+    instruction_t *push_var = malloc(sizeof(instruction_t));
+    zval_t val;
+
+    if (varType == INT_KW) {
+        zval_set(&val, 0);
+        zval_set_undefined(&val);
+    } else if (varType == DOUBLE_KW) {
+        zval_set(&val, 0.0);
+        zval_set_undefined(&val);
+    } else if (varType == STRING_KW) {
+        zval_set(&val, "undefined.");
+        zval_set_undefined(&val);
+    }
+
+    create_PUSH_zval_instr(push_var, &val);
+    zval_dispose(&val);
+    *kl_pushp(instruction_list, parser->code) = push_var;
+    // End add variable to stack
+
     item_append_data(parser->varList.Last, data);
 
     /***vytvorenie novej polozky do TS****/
