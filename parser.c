@@ -11,7 +11,6 @@
  * license.txt file in the root directory of this source tree.
  */
 
-int debug = 1;
 #include "parser.h"
 
 result_t init_parser(parser_t *parser, char *source) {
@@ -101,7 +100,7 @@ result_t parse_fn(parser_t *parser) {
     int fType = parser->token->flags;
 
     if ((result = parser_next_token(parser)) != EOK) {
-        debug_print("%s", "<");
+        debug_print("%s\n", "<");
         return result;
     }
 
@@ -110,7 +109,7 @@ result_t parse_fn(parser_t *parser) {
         parser->fName = "main";
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -131,7 +130,7 @@ result_t parse_fn(parser_t *parser) {
             return ESYN;
         }
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -148,7 +147,7 @@ result_t parse_fn(parser_t *parser) {
         insertLast(item, &parser->paramList);
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -158,7 +157,7 @@ result_t parse_fn(parser_t *parser) {
         *kl_pushp(instruction_list, parser->code) = create_LABEL_instr(0);
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -169,7 +168,7 @@ result_t parse_fn(parser_t *parser) {
             return result;
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW))    ///mala by nasledovat dalsia funkcia
@@ -223,7 +222,7 @@ result_t parse_fn(parser_t *parser) {
         }
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -231,7 +230,7 @@ result_t parse_fn(parser_t *parser) {
             return ESYN;
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -239,7 +238,7 @@ result_t parse_fn(parser_t *parser) {
             result = parse_fn_args(parser, item);    //parsovanie argumentov funkcie
 
         if (result != EOK){
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -264,7 +263,7 @@ result_t parse_fn(parser_t *parser) {
         parser->argsCounter = 0;
         //uz sa nekontroluje parser->token ")" pretoze funkcia parse_args sa vrati vzdy uspesne ukoncena tymto parser->tokenom
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -273,7 +272,7 @@ result_t parse_fn(parser_t *parser) {
             /********MISSING: vlozenie 3AK -- label zaciatku funkcie*******/
             printf("LABEL F %s\n", fLabel);
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                             return result;
             }
                    //ak nie je funkcia prazdna
@@ -293,7 +292,7 @@ result_t parse_fn(parser_t *parser) {
             return ESYN;
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW))    ///mala by nasledovat dalsia funkcia
@@ -322,7 +321,7 @@ result_t parse_fn_body(parser_t *parser) {
     //result = parse_fn_declaration(parser, varBlock);
 
     //if (result != EOK){
-    //    debug_print("%s", "<");
+    //    debug_print("%s\n", "<");
     //    return result;
     //}
 
@@ -334,7 +333,7 @@ result_t parse_fn_body(parser_t *parser) {
         return  result;
 
     if(!parser->is_return){
-        debug_print("%s","<");
+        debug_print("%s\n","<");
         return ERUN1;
     }
 
@@ -366,7 +365,7 @@ result_t parse_list(parser_t *parser) {
         }
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -374,14 +373,14 @@ result_t parse_list(parser_t *parser) {
             return ESYN;
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         parser->assignVarName = hName;
         result = parse_assign(parser);
 
         if (result != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -398,14 +397,14 @@ result_t parse_list(parser_t *parser) {
         kv_init(varBlock->data);
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         //result = parse_fn_declaration(parser, varBlock);
         parser->argsCounter = 0;
 
         if (result != EOK){
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -414,7 +413,7 @@ result_t parse_list(parser_t *parser) {
         result = parse_list(parser);
 
         if (result != EOK){
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
     }
@@ -439,7 +438,7 @@ result_t parse_list(parser_t *parser) {
         parser->label++;
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
@@ -448,12 +447,12 @@ result_t parse_list(parser_t *parser) {
 
         /*********hack vyrazu ******/
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
         }
@@ -467,7 +466,7 @@ result_t parse_list(parser_t *parser) {
         /**vlozenie 3AK - podmieneny skok ak podmienka nebola splnena na elseLabel**/
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -480,7 +479,7 @@ result_t parse_list(parser_t *parser) {
         kv_init(varBlock->data);
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -498,7 +497,7 @@ result_t parse_list(parser_t *parser) {
         /*vlozenie 3AK - skok na endLabel*/
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -508,7 +507,7 @@ result_t parse_list(parser_t *parser) {
         printf("LABEL ELSE %d\n", elseLabel);
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -521,14 +520,14 @@ result_t parse_list(parser_t *parser) {
         kv_init(varBlock2->data);
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
         //result = parse_fn_declaration(parser, varBlock2);
         parser->argsCounter = 0;
         if (result != EOK){
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         insertLast(varBlock2, &parser->varList);
@@ -552,7 +551,7 @@ result_t parse_list(parser_t *parser) {
         int var_offset=0;
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
@@ -560,7 +559,7 @@ result_t parse_list(parser_t *parser) {
 
         /**deklaracia riadiacej premennej**/
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -571,7 +570,7 @@ result_t parse_list(parser_t *parser) {
         int varType = parser->token->flags;
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -595,7 +594,7 @@ result_t parse_list(parser_t *parser) {
 
         tData data;
         if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName,parser->offset_counter)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         item_append_data(varBlock, data);
@@ -610,22 +609,22 @@ result_t parse_list(parser_t *parser) {
         insertHashTable(parser->table, tItem);
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ASSIGN_SMBL)) {
             if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
             /*********hack vyrazu ******/
             if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
             while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
                 if ((result = parser_next_token(parser)) != EOK) {
-                    debug_print("%s", "<");
+                    debug_print("%s\n", "<");
                     return result;
                 }
         }
@@ -645,12 +644,12 @@ result_t parse_list(parser_t *parser) {
 
         /*****hack*********/
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {                ///mala by sa volat precedencna analyza
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
         }
@@ -665,7 +664,7 @@ result_t parse_list(parser_t *parser) {
         printf("LABEL ASSIGNLABEL %d\n", assignLabel);
         /**vlozenie 3AK - label assignLabel**/
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         if (!TOKEN_IS(parser->token, ID_TYPE))
@@ -681,7 +680,7 @@ result_t parse_list(parser_t *parser) {
         }
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -689,14 +688,14 @@ result_t parse_list(parser_t *parser) {
             return ESYN;
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
         /*****hack*********/
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {                ///mala by sa volat precedencna analyza
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
         }
@@ -709,7 +708,7 @@ result_t parse_list(parser_t *parser) {
         /**vlozenie 3AK - skok na label expLabel**/
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL))
@@ -721,13 +720,13 @@ result_t parse_list(parser_t *parser) {
         kv_init(varBlock2->data);
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         //result = parse_fn_declaration(parser, varBlock2);
         parser->argsCounter = 0;
         if (result != EOK){
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         insertLast(varBlock2, &parser->varList);
@@ -737,7 +736,7 @@ result_t parse_list(parser_t *parser) {
         result = parse_list(parser);
 
         if (result != EOK){
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         parser->offset_counter--;
@@ -754,7 +753,7 @@ result_t parse_list(parser_t *parser) {
         int var_offset=0;
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, DBL_ARR_RIGHT_SMBL))
@@ -762,21 +761,21 @@ result_t parse_list(parser_t *parser) {
 
         while (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, DBL_ARR_RIGHT_SMBL)) {
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_IS(parser->token, ID_TYPE))
                 return ESYN;
             if ((var_offset = get_var_offset(&parser->varList, parser->token->data.sVal)) == 0) {
                 if ((var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal)) == 0)
-                    debug_print("%s", "<");
+                    debug_print("%s\n", "<");
                     return ESEM;
             }
             /**vygenerovanie 3AK - nacitanie zo SV do premennej hName**/
             printf("\tCIN STDIN %d\n", var_offset);
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
         }
@@ -790,7 +789,7 @@ result_t parse_list(parser_t *parser) {
         int var_offset=0;
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, DBL_ARR_LEFT_SMBL))
@@ -798,7 +797,7 @@ result_t parse_list(parser_t *parser) {
 
         while (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, DBL_ARR_LEFT_SMBL)) {
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (TOKEN_IS(parser->token, ID_TYPE)) {
@@ -823,7 +822,7 @@ result_t parse_list(parser_t *parser) {
 
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
         }
@@ -836,12 +835,12 @@ result_t parse_list(parser_t *parser) {
 
         /*********hack**********/
         if ((result = parser_next_token(parser)) != EOK){
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
         }
@@ -860,7 +859,7 @@ result_t parse_list(parser_t *parser) {
     else return ESYN;
 
     if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
     result = parse_list(parser);
@@ -874,7 +873,7 @@ result_t parse_adv_declaration(parser_t *parser) {
     hTabItem *tItem;
 
     if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -882,7 +881,7 @@ result_t parse_adv_declaration(parser_t *parser) {
         return ESYN;
 
     if ((result = list_foo_bar(parser->varList.Last, ZVAL_GET_STRING(&parser->token->data))) != EOK) {
-        debug_print("%s", "<");
+        debug_print("%s\n", "<");
         return result;
     }
 
@@ -897,7 +896,7 @@ result_t parse_adv_declaration(parser_t *parser) {
 
     tData data;
     if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName,parser->offset_counter)) != EOK) {
-        debug_print("%s", "<");
+        debug_print("%s\n", "<");
         return result;
     }
     printf("Variable Push %s...offset:%d\n",parser->token->data.sVal,data.offset);
@@ -912,27 +911,27 @@ result_t parse_adv_declaration(parser_t *parser) {
 
     if (varType == AUTO_KW) {
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ASSIGN_SMBL))
             return ESEM3;
 
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         parser->assignVarName = hName;
         result = parse_assign(parser);
 
         if (result != EOK){
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }/*******3AK , MV , #1 ,NULL, hName******/
 
     } else {
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -940,14 +939,14 @@ result_t parse_adv_declaration(parser_t *parser) {
             return EOK;
         } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ASSIGN_SMBL)) {
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             parser->assignVarName = hName;
             result = parse_assign(parser);
 
             if (result != EOK){
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             return EOK;
@@ -964,7 +963,7 @@ result_t parse_assign(parser_t *parser) {
     if (TOKEN_HAS_TFLAG(parser->token, FN_TYPE, LENGTH_FN|SUBSTR_FN|CONCAT_FN|FIND_FN|SORT_FN)) {
         result = parse_build_in_fn(parser);
         if(result != EOK){
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
     }
@@ -985,7 +984,7 @@ result_t parse_assign(parser_t *parser) {
                 token_copy(cpy, parser->token);
                 *kl_pushp(token_list, tokens) = cpy;
                 if ((result = parser_next_token(parser)) != EOK) {
-                    debug_print("%s", "<");
+                    debug_print("%s\n", "<");
                     return result;
                 }
             }
@@ -1018,21 +1017,21 @@ result_t parse_assign(parser_t *parser) {
                 return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
 
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 result = parse_params(parser, item);
             if (result != EOK){
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (kv_size(item->data) != parser->argsCounter1)
@@ -1041,7 +1040,7 @@ result_t parse_assign(parser_t *parser) {
             parser->argsCounter1 = 0;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
@@ -1057,7 +1056,7 @@ result_t parse_assign(parser_t *parser) {
             token_copy(cpy, parser->token);
             *kl_pushp(token_list, tokens) = cpy;
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
         }
@@ -1090,14 +1089,14 @@ result_t parse_build_in_fn(parser_t *parser) {
                 return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK){
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
@@ -1120,14 +1119,14 @@ result_t parse_build_in_fn(parser_t *parser) {
             else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
@@ -1148,13 +1147,13 @@ result_t parse_build_in_fn(parser_t *parser) {
                 return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
                 return ESYN;
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
@@ -1174,14 +1173,14 @@ result_t parse_build_in_fn(parser_t *parser) {
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, COMMA_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
@@ -1202,14 +1201,14 @@ result_t parse_build_in_fn(parser_t *parser) {
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, COMMA_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
@@ -1230,14 +1229,14 @@ result_t parse_build_in_fn(parser_t *parser) {
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
@@ -1257,14 +1256,14 @@ result_t parse_build_in_fn(parser_t *parser) {
                 return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
 
@@ -1285,14 +1284,14 @@ result_t parse_build_in_fn(parser_t *parser) {
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, COMMA_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
 
@@ -1313,14 +1312,14 @@ result_t parse_build_in_fn(parser_t *parser) {
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
@@ -1337,14 +1336,14 @@ result_t parse_build_in_fn(parser_t *parser) {
                 return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
 
@@ -1365,14 +1364,14 @@ result_t parse_build_in_fn(parser_t *parser) {
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, COMMA_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
 
@@ -1394,14 +1393,14 @@ result_t parse_build_in_fn(parser_t *parser) {
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
@@ -1417,14 +1416,14 @@ result_t parse_build_in_fn(parser_t *parser) {
                 return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
 
@@ -1447,14 +1446,14 @@ result_t parse_build_in_fn(parser_t *parser) {
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
-                debug_print("%s", "<");
+                debug_print("%s\n", "<");
                 return result;
             }
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
@@ -1551,7 +1550,7 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
         return ESEM4;
 
     if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
 
@@ -1598,7 +1597,7 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
         parser->offset_counter++;
         tData data;
         if ((result = init_data_var(&data, ZVAL_GET_STRING(&parser->token->data), hName,0)) != EOK)  {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         item_append_data(item, data);
@@ -1618,7 +1617,7 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
     /*ak je to zatvorka tak sa vracia EOK*/
     /*iny parser->token znamena chybu*/
     if ((result = parser_next_token(parser)) != EOK) {
-        debug_print("%s", "<");
+        debug_print("%s\n", "<");
         return result;
     }
 
@@ -1627,7 +1626,7 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
     }
     else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, COMMA_SMBL)) {
         if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s", "<");
+            debug_print("%s\n", "<");
             return result;
         }
         result = parse_fn_args(parser, item);

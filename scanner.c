@@ -508,6 +508,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
             return EOK;
         }
     }
-    debug_print("%s", "EOF<");
+
+    debug_print("%s\n", "EOF<");
     return EEOF;
 }
