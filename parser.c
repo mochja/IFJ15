@@ -818,7 +818,7 @@ result_t parse_list(parser_t *parser) {
             else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
                 debug_print("\tCOUNT STDOUT CONST:%s\n", parser->token->data.sVal);
             }/**vlozenie 3AK - vypis na STDOUT retazec parser->token->data.s**/
-            else return ESEM4;
+            else return ESYN;
 
 
             if ((result = parser_next_token(parser)) != EOK) {
