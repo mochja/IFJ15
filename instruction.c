@@ -23,17 +23,11 @@ result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_st
     for (kliter_t(expr_stack) *it = kl_begin(expr); it != kl_end(expr); it = kl_next(it)) {
         expr_t *curr = kl_val(it);
 
-        if (EXPR_IS_INT(curr) || EXPR_IS_DOUBLE(curr)) {
+        if (EXPR_IS_INT(curr) || EXPR_IS_DOUBLE(curr) || EXPR_IS_OFFSET(curr)) {
             *kl_push(expr_stack, buff) = curr;
-            offset++;
         } else if (EXPR_IS_OPERAND(curr)) {
 
             if ((EXPR_GET_INT(curr) == Op_LB) || (EXPR_GET_INT(curr) == Op_RB)) continue;
-
-            if (offset < 0) {
-                fprintf(stderr, "Unknown expression.");
-                return ESEM3; // TODO: Proper error code
-            }
 
             expr_t *a, *b;
 
@@ -48,9 +42,19 @@ result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_st
             if (a != NULL && b != NULL) {
                 instruction_t *i = malloc(sizeof(instruction_t));
                 if (i == NULL) return ESYS;
+
                 if ((ret = create_ADD_zval_instr(i, &a->val, &b->val)) != EOK) {
                     free(i); return ret;
                 }
+
+                if (EXPR_IS_OFFSET(a) && EXPR_IS_OFFSET(b)) {
+                    if ((ret = create_ADD_offset_instr(i, &a->val, &b->val)) != EOK) {
+                        free(i); return ret;
+                    }
+                } else if ((ret = create_ADD_zval_instr(i, &a->val, &b->val)) != EOK) {
+                    free(i); return ret;
+                }
+
                 *kl_pushp(instruction_list, dest) = i;
                 offset++;
             } else if (a == NULL && b != NULL && offset > 0) {
@@ -76,12 +80,19 @@ result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_st
                     free(i); return ret;
                 }
                 *kl_pushp(instruction_list, dest) = i;
-                offset++;
+                offset--; // remove 2, adds one
             }
-
-            // LEAK HERE ?!?
-            offset -= 2;
         }
+    }
+
+    for (kliter_t(expr_stack) *it = kl_begin(buff); it != kl_end(buff); it = kl_next(it)) {
+        instruction_t *i = malloc(sizeof(instruction_t));
+
+        if ((ret = create_PUSH_zval_instr(i, &kl_val(it)->val)) != EOK) {
+            free(i); return ret;
+        }
+
+        *kl_pushp(instruction_list, dest) = i;
     }
 
     kl_destroy(expr_stack, buff);

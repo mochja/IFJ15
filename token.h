@@ -32,10 +32,13 @@
 #define STRING_KW       0x400U
 #define MAIN_KW         0x800U
 
-/*********/
+/* CONTANT TYPES */
 #define INT_CONST       0x02U
 #define DOUBLE_CONST    0x04U
 #define TEXT_CONST      0x08U
+
+/* VAR TOKEN TYPE */
+#define OFFSET_ID       0x02U
 
 /*************SYMBOLS*************/
 #define SEMICOLON_SMBL       0x02U
@@ -108,16 +111,19 @@ INLINED void token_set_type(token_t *dest, const unsigned char type) {
 INLINED void token_set_symbol(token_t *dest, const unsigned int flags) {
     dest->type = SMBL_TYPE;
     dest->flags = flags;
+    zval_init(&dest->data);
 }
 
 INLINED void token_set_kw(token_t *dest, const unsigned int flags) {
     dest->type = KW_TYPE;
     dest->flags = flags;
+    zval_init(&dest->data);
 }
 
 INLINED void token_set_fn(token_t *dest, const unsigned int flags) {
     dest->type = FN_TYPE;
     dest->flags = flags;
+    zval_init(&dest->data);
 }
 
 INLINED void token_set_var(token_t *dest, const char *name) {

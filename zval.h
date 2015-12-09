@@ -39,7 +39,7 @@
 #define ZVAL_IS_INT(x)          (((x)->type >> 1) & 1)
 #define ZVAL_IS_DOUBLE(x)       (((x)->type >> 2) & 1)
 #define ZVAL_IS_STRING(x)       (((x)->type >> 3) & 1)
-#define ZVAL_IS_DEFINED(x)      (((x)->type >> 0) & 0)
+#define ZVAL_IS_DEFINED(x)      (!(((x)->type >> 0) & 1))
 
 #define ZVAL_INIT_INT(x, v)                                 \
     (x) = malloc(sizeof(zval_t));                           \
@@ -77,7 +77,7 @@ INLINED result_t zval_init(zval_t *val) {
 
 INLINED int zval_get_int(zval_t *val) {
     if (val->type != T_INT) {
-        fprintf(stderr, "Trying to get int value of type %d", val->type);
+        fprintf(stderr, "Trying to get int value of type %d\n", val->type);
     }
 
     return val->iVal;
@@ -85,7 +85,7 @@ INLINED int zval_get_int(zval_t *val) {
 
 INLINED double zval_get_double(zval_t *val) {
     if (val->type != T_DOUBLE) {
-        fprintf(stderr, "Trying to get double value of type %d", val->type);
+        fprintf(stderr, "Trying to get double value of type %d\n", val->type);
     }
 
     return val->dVal;
@@ -93,7 +93,7 @@ INLINED double zval_get_double(zval_t *val) {
 
 INLINED char *zval_get_string(zval_t *val) {
     if (val->type != T_STRING) {
-        fprintf(stderr, "Trying to get string value of type %d", val->type);
+        fprintf(stderr, "Trying to get string value of type %d\n", val->type);
     }
 
     return val->sVal;
@@ -160,9 +160,10 @@ INLINED result_t zval_copy(zval_t *dest, zval_t *src) {
         return ESYS;
     }
 
+    dest->type = src->type;
+
     dest->dVal = src->dVal;
     dest->iVal = src->iVal;
-    dest->type = src->type;
 
     if (ZVAL_IS_STRING(dest)) {
         return zval_set_string(dest, ZVAL_GET_STRING(src));
@@ -190,6 +191,22 @@ INLINED result_t zval_add(zval_t *dest, zval_t *a, zval_t *b) {
     }
 
     return EOK;
+}
+
+
+INLINED void zval_print(zval_t *val) {
+
+    if (ZVAL_IS_DEFINED(val)) {
+        if (ZVAL_IS_INT(val)) {
+            printf("%d\n", zval_get_int(val));
+        } else if (ZVAL_IS_DOUBLE(val)) {
+            printf("%f\n", zval_get_double(val));
+        } else if (ZVAL_IS_STRING(val)) {
+            printf("%s\n", zval_get_string(val));
+        }
+    } else {
+        printf("[null]\n");
+    }
 }
 
 #endif // ZVAL_H_
