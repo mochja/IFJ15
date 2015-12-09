@@ -83,25 +83,6 @@ static inline void process_PUSH_instr(vm_t *vm, const int offset) {
     kv_push(zval_t, vm->stack, val);
 }
 
-INLINED void process_COUT_pop_instr(vm_t *vm) {
-
-    zval_t val = kv_A(vm->stack, kv_size(vm->stack) - 1);
-
-    if (ZVAL_IS_DEFINED(&val)) {
-        if (ZVAL_IS_INT(&val)) {
-            printf("%d\n", zval_get_int(&val));
-        } else if (ZVAL_IS_DOUBLE(&val)) {
-            printf("%f\n", zval_get_double(&val));
-        } else if (ZVAL_IS_STRING(&val)) {
-            printf("%s\n", zval_get_string(&val));
-        }
-    } else {
-        printf("[null]\n");
-    }
-
-    zval_dispose(&val);
-}
-
 result_t vm_exec(vm_t *vm) {
 
     result_t ret;
@@ -119,10 +100,18 @@ result_t vm_exec(vm_t *vm) {
             case I_JMP:
                 vm->ip = (size_t) ZVAL_GET_INT(i->first);
                 break;
-            case I_COUT_pop:
-                process_COUT_pop_instr(vm);
+            case I_COUT_pop: {
+                zval_t val = kv_A(vm->stack, kv_size(vm->stack) - 1);
+                zval_print(&val);
+                zval_dispose(&val);
                 vm->ip++;
                 break;
+            }
+            case I_COUT_offset: {
+                zval_print(&kv_A(vm->stack, zval_get_int(i->first)));
+                vm->ip++;
+                break;
+            }
             case I_PUSH_zval: {
                 zval_t val;
                 zval_init(&val);
@@ -132,7 +121,7 @@ result_t vm_exec(vm_t *vm) {
                 break;
             }
             case I_POP_N: {
-                for (int j = 0; j < ZVAL_GET_INT(i->first); ++j) {
+                for (int j = 0; j < ZVAL_GET_INT(i->first); j++) {
                     zval_dispose(&kv_pop(vm->stack));
                 }
                 vm->ip++;
@@ -193,6 +182,17 @@ result_t vm_exec(vm_t *vm) {
                 vm->ip++;
                 break;
             }
+            case I_ADD_offset: {
+                zval_t res;
+                if ((ret = zval_add(&res, &kv_A(vm->stack, zval_get_int(i->first)),
+                                    &kv_A(vm->stack, zval_get_int(i->second)))) != EOK) {
+                    zval_dispose(&res);
+                    return ret;
+                }
+                kv_push(zval_t, vm->stack, res);
+                vm->ip++;
+                break;
+            }
             default:
                 debug_print("%s [%d]\n", "Not implemented yet.", i->type);
                 return ESYS;
@@ -200,10 +200,12 @@ result_t vm_exec(vm_t *vm) {
 
     };
 
-
-
     if (kv_size(vm->stack) > 0) {
         debug_print("\n\nStack is not cleaned properly %lu item(s) left there\n", kv_size(vm->stack));
+
+        for (int i = 0; i < kv_size(vm->stack); ++i) {
+            zval_print(&kv_A(vm->stack, i));
+        }
     }
 
     return EOK;

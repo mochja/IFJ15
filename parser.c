@@ -156,6 +156,7 @@ result_t parse_fn(parser_t *parser) {
             return ESYN;
 
         *kl_pushp(instruction_list, parser->code) = create_LABEL_instr(0);
+        *kl_pushp(instruction_list, parser->code) = create_PUSH_int_instr(0); // fake base pointer for main
 
         if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
@@ -429,10 +430,11 @@ result_t parse_list(parser_t *parser) {
         tItemPtr item = parser->varList.Last;
 
         instruction_t *pop = malloc(sizeof(instruction_t));
-        create_POP_N_instr(pop, (int) kv_size(item->data));
+        create_POP_N_instr(pop, (int) kv_size(item->data) + 1); // +1 because of base pointer on top
         *kl_pushp(instruction_list, parser->code) = pop;
 
-        debug_print("BLOCK POPN: %lu\n", kv_size(item->data));
+        debug_print("BLOCK POPN: %lu\n", kv_size(item->data) + 1);
+        // TODO: PARAM CLEANUP
         parser->offset_counter -= kv_size(item->data);
         deleteLast(&parser->varList);
         return EOK;
@@ -448,9 +450,9 @@ result_t parse_list(parser_t *parser) {
             debug_print("%s\n", "<");
             return result;
         }
+
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))
             return ESYN;
-
 
         /*********hack vyrazu ******/
         if ((result = parser_next_token(parser)) != EOK) {
@@ -813,7 +815,10 @@ result_t parse_list(parser_t *parser) {
                     if ((var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal)) == 0)
                         return ESEM;
                 }
-                *kl_pushp(instruction_list, parser->code) = create_COUT_pop_instr();
+
+                instruction_t *cout = malloc(sizeof(instruction_t));
+                create_COUT_offset_instr(cout, var_offset);
+                *kl_pushp(instruction_list, parser->code) = cout;
                 /**vlozenie 3AK - vypis na STDOUT z premennej hName**/
                 debug_print("\tCOUNT STDOUT OFFSET:%d\n", var_offset);
             }
@@ -873,6 +878,25 @@ result_t parse_list(parser_t *parser) {
     result = parse_list(parser);
     return result;
 }
+
+
+
+INLINED result_t offset_of_current_token(parser_t *parser, int *offset) {
+
+    if (varSearch(&parser->varList, parser->token->data.sVal) == NULL) {
+        if (paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal) == NULL) {
+            return ESEM;
+        } else {
+            *offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal);
+        }
+    } else {
+        *offset = get_var_offset(&parser->varList, parser->token->data.sVal);
+    }
+
+    return EOK;
+}
+
+
 
 result_t parse_adv_declaration(parser_t *parser) {
     result_t result;
@@ -978,6 +1002,11 @@ result_t parse_adv_declaration(parser_t *parser) {
                 debug_print("%s\n", "<");
                 return result;
             }
+
+            instruction_t *mv = malloc(sizeof(instruction_t));
+            create_POP_to_instr(mv, parser->offset_counter);
+            *kl_pushp(instruction_list, parser->code) = mv;
+
             return EOK;
 
             /*******3AK , MV , #1 ,NULL, hName******/
@@ -986,8 +1015,13 @@ result_t parse_adv_declaration(parser_t *parser) {
     return result;
 }
 
+
+
+
+
+
 result_t parse_assign(parser_t *parser) {
-    result_t result = EOK;
+    result_t result;
 
     if (TOKEN_HAS_TFLAG(parser->token, FN_TYPE, LENGTH_FN|SUBSTR_FN|CONCAT_FN|FIND_FN|SORT_FN)) {
         result = parse_build_in_fn(parser);
@@ -997,24 +1031,42 @@ result_t parse_assign(parser_t *parser) {
         }
     }
     else if (TOKEN_IS(parser->token, ID_TYPE)) {
-        char * hName;
 
         hTabItem *tableItem;
         if ((tableItem = searchItem(parser->table, parser->token->data.sVal)) == NULL) {
 
-            if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
-                if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
-                    return ESEM;
-            }
-
             klist_t(token_list) *tokens = kl_init(token_list);
             while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
                 token_t *cpy = calloc(1, sizeof(token_t));
-                token_copy(cpy, parser->token);
+
+                if (TOKEN_IS(parser->token, ID_TYPE)) {
+                    int offset;
+
+                    if ((result = offset_of_current_token(parser, &offset)) != EOK) {
+                        debug_print("%s\n", "<");
+                        return result;
+                    }
+
+                    cpy->type = ID_TYPE;
+                    cpy->flags = OFFSET_ID;
+                    zval_set(&cpy->data, offset);
+                } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
+                    token_copy(cpy, parser->token);
+                } else {
+                    free(cpy);
+                    debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
+                    return ELEX;
+                }
+
                 *kl_pushp(token_list, tokens) = cpy;
                 if ((result = parser_next_token(parser)) != EOK) {
                     debug_print("%s\n", "<");
                     return result;
+                }
+
+                if (TOKEN_IS(parser->token, ID_TYPE) && ((tableItem = searchItem(parser->table, parser->token->data.sVal)) != NULL)) {
+                    debug_print("%s\n", "Undefined variable");
+                    return ELEX;
                 }
             }
 
@@ -1082,11 +1134,35 @@ result_t parse_assign(parser_t *parser) {
         klist_t(token_list) *tokens = kl_init(token_list);
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
             token_t *cpy = calloc(1, sizeof(token_t));
-            token_copy(cpy, parser->token);
+
+            if (TOKEN_IS(parser->token, ID_TYPE)) {
+                int offset;
+
+                if ((result = offset_of_current_token(parser, &offset)) != EOK) {
+                    debug_print("%s\n", "<");
+                    return result;
+                }
+
+                cpy->type = ID_TYPE;
+                cpy->flags = OFFSET_ID;
+                zval_set(&cpy->data, offset);
+            } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
+                token_copy(cpy, parser->token);
+            } else {
+                free(cpy);
+                debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
+                return ELEX;
+            }
+
             *kl_pushp(token_list, tokens) = cpy;
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                 return result;
+            }
+
+            if (TOKEN_IS(parser->token, ID_TYPE) && (searchItem(parser->table, parser->token->data.sVal) != NULL)) {
+                debug_print("%s\n", "Undefined variable");
+                return ELEX;
             }
         }
 

@@ -33,11 +33,14 @@ enum __instruction_type {
     I_PUSH_zval,
     I_JMP,
     I_COUT_pop,
+    I_COUT_offset,
 
     I_ADD_zval,
     I_ADD_pop,
     I_ADD_zval_pop,
-    I_ADD_pop_zval
+    I_ADD_pop_zval,
+
+    I_ADD_offset,
 };
 
 struct __instruction_t {
@@ -213,6 +216,18 @@ INSTR_T create_COUT_pop_instr() {
 
 
 
+INLINED result_t create_COUT_offset_instr(instruction_t *i, const int offset) {
+
+    i->type = I_COUT_offset;
+    ZVAL_INIT_INT(i->first, offset);
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
 /**
  * ADD zval
  * param can be int or double
@@ -311,4 +326,16 @@ INLINED result_t create_ADD_pop_instr(instruction_t *i) {
     return EOK;
 }
 
+
+
+INLINED result_t create_ADD_offset_instr(instruction_t *i, zval_t *a, zval_t *b) {
+
+    i->type = I_ADD_offset;
+
+    zval_copy(i->first, a);
+    zval_copy(i->second, b);
+    i->third = NULL;
+
+    return EOK;
+}
 #endif // INSTRUCTION_H
