@@ -18,17 +18,17 @@
 
 typedef enum {
     EOK = 0,
-    ELEX,       //1
-    ESYN,       //2
-    ESEM,       //3
-    ESEM2,      //4
-    ESEM3,      //5
-    ESEM4,      //6
-    ERUN,       //7
-    ERUN1,      //8
-    ERUN2,      //9
-    ERUN3,      //10
-    EEOF,       //11
+    ELEX = 1,
+    ESYN = 2,
+    ESEM = 3,
+    ESEM2 = 4,
+    ESEM3 = 5,
+    ESEM4 = 6,
+    ERUN = 7,
+    ERUN1 = 8,
+    ERUN2 = 9,
+    ERUN3 = 10,
+    EEOF = 11,
     ESYS = 99,
 } result_t;
 
