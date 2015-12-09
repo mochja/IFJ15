@@ -1474,7 +1474,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         hTabItem *tItem1;
 
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
-            return ESYS;
+            return ESEM2;
         if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
             if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                 return ESEM;
@@ -1491,7 +1491,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
     }
     else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
-            return ESYS;
+            return ESEM2;
 
         if (tableItem->dataType != INT_KW && tableItem->dataType != AUTO_KW)
             return ESEM2;
@@ -1503,7 +1503,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
     }
     else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST)) {
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
-            return ESYS;
+            return ESEM2;
 
         if (tableItem->dataType != DOUBLE_KW && tableItem->dataType != AUTO_KW)
             return ESEM2;
@@ -1515,7 +1515,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
     }
     else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
-            return ESYS;
+            return ESEM2;
 
         if (tableItem->dataType != STRING_KW && tableItem->dataType != AUTO_KW)
             return ESEM2;
