@@ -135,7 +135,7 @@ result_t parse_fn(parser_t *parser) {
         }
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {   // )
-            return ESYN;
+            return ESEM;
         }
         tItemPtr item;
         if ((item = calloc(1, sizeof(struct tItem))) == NULL){
@@ -253,7 +253,7 @@ result_t parse_fn(parser_t *parser) {
             int j=0;
             for(int i = parser->offset_counter; i > 0; i--){
                 kv_A(item->data,j).offset=-(i);
-                printf("PARAMETER:%s...offset:%d\n",kv_A(item->data, j).id,  kv_A(item->data,j).offset );
+                debug_print("PARAMETER:%s...offset:%d\n",kv_A(item->data, j).id,  kv_A(item->data,j).offset );
                 j++;
             }
             parser->offset_counter=0;
@@ -270,7 +270,7 @@ result_t parse_fn(parser_t *parser) {
         if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL) && tableItem->isDefined == false) {
             tableItem->isDefined = true;
             /********MISSING: vlozenie 3AK -- label zaciatku funkcie*******/
-            printf("LABEL F %s\n", fLabel);
+            debug_print("LABEL F %s\n", fLabel);
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                             return result;
@@ -282,7 +282,7 @@ result_t parse_fn(parser_t *parser) {
                 return result;
 
             /********MISSING: vlozenie 3AK -- navrat z funkcie*******/
-            printf("LABEL ENDF %s\n", fLabel);
+            debug_print("LABEL ENDF %s\n", fLabel);
         }
         else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL) && tableItem->isDefined == true)
             return ESEM;
@@ -384,7 +384,7 @@ result_t parse_list(parser_t *parser) {
             return result;
         }
 
-        printf("\tMV TO OFFSET:%d VYRAZ\n", var_offset);
+        debug_print("\tMV TO OFFSET:%d VYRAZ\n", var_offset);
         /*vlozenie 3AK na priradenie vysledku z funkcie parse_assign do hName*/
     }
 
@@ -409,7 +409,7 @@ result_t parse_list(parser_t *parser) {
         }
 
         insertLast(varBlock, &parser->varList);
-        printf(".....NEW BLOCK.....\n");
+        debug_print("%s\n",".....NEW BLOCK.....\n");
         result = parse_list(parser);
 
         if (result != EOK){
@@ -420,11 +420,11 @@ result_t parse_list(parser_t *parser) {
 
         /*************** } <parse_list> ***********************/
     else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_VINCULUM_SMBL)) {
-        printf("....END BLOCK....\n");
+        debug_print("%s\n","....END BLOCK....\n");
         tItemPtr item = parser->varList.Last;
         for(int i = 0; i < kv_size(item->data) ; i++){
             //POP VARIABLE
-            printf("VARIABLE POP:%s\n",kv_A(item->data, i).id );
+            debug_print("VARIABLE POP:%s\n",kv_A(item->data, i).id );
             parser->offset_counter--;
         }
         deleteLast(&parser->varList);
@@ -461,8 +461,8 @@ result_t parse_list(parser_t *parser) {
 
         /*vyhodnotenie vyrazu*/
 
-        printf("EXP\n");
-        printf("JMPF %d\n", elseLabel);
+        debug_print("%s\n","EXP\n");
+        debug_print("JMPF %d\n", elseLabel);
         /**vlozenie 3AK - podmieneny skok ak podmienka nebola splnena na elseLabel**/
 
         if ((result = parser_next_token(parser)) != EOK) {
@@ -472,7 +472,7 @@ result_t parse_list(parser_t *parser) {
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL))
             return ESYN;
-        printf("....NEW BLOCK....\n");
+        debug_print("%s\n","....NEW BLOCK....\n");
         tItemPtr varBlock;
         if ((varBlock = calloc(1, sizeof(struct tItem))) == NULL)
             return ESYS;
@@ -493,7 +493,7 @@ result_t parse_list(parser_t *parser) {
 
         if (result != EOK)
             return result;
-        printf("JMP %d\n", endLabel);
+        debug_print("JMP %d\n", endLabel);
         /*vlozenie 3AK - skok na endLabel*/
 
         if ((result = parser_next_token(parser)) != EOK) {
@@ -504,7 +504,7 @@ result_t parse_list(parser_t *parser) {
         if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, ELSE_KW))
             return ESYN;
         /******vlozenie 3AK - elseLabel*******/
-        printf("LABEL ELSE %d\n", elseLabel);
+        debug_print("LABEL ELSE %d\n", elseLabel);
 
         if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
@@ -513,7 +513,7 @@ result_t parse_list(parser_t *parser) {
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL))
             return ESYN;
-        printf("....NEW BLOCK....\n");
+        debug_print("%s\n","....NEW BLOCK....\n");
         tItemPtr varBlock2;
         if ((varBlock2 = calloc(1, sizeof(struct tItem))) == NULL)
             return ESYS;
@@ -536,7 +536,7 @@ result_t parse_list(parser_t *parser) {
         if (result != EOK)
             return result;
         /**vlozenie 3AK - endLabel***/
-        printf("LABEL END %d\n", endLabel);
+        debug_print("LABEL END %d\n", endLabel);
     }
 
         /** for ( <deklaracia> ; <vyraz> ; priradenie) <parse_list>**/
@@ -598,7 +598,7 @@ result_t parse_list(parser_t *parser) {
             return result;
         }
         item_append_data(varBlock, data);
-        printf("Variable Push %s...offset:%d\n",parser->token->data.sVal,data.offset);
+        debug_print("Variable Push %s...offset:%d\n",parser->token->data.sVal,data.offset);
         insertLast(varBlock, &parser->varList);
 
         /*vlozenie riadiacje premennej do TS*/
@@ -638,8 +638,8 @@ result_t parse_list(parser_t *parser) {
 
 
         /**vlozenie 3AK  - label expLabel**/
-        printf("EXP LABEL %d\n", expLabel);
-        printf("EXP\n");
+        debug_print("EXP LABEL %d\n", expLabel);
+        debug_print("%s\n","EXP\n");
 
 
         /*****hack*********/
@@ -656,12 +656,12 @@ result_t parse_list(parser_t *parser) {
 
 
         /**vyhodnotenie vyrazu**/
-        printf("JMPT BEGIN %d\n", beginLabel);
-        printf("JMPF END %d\n", endLabel);
+        debug_print("JMPT BEGIN %d\n", beginLabel);
+        debug_print("JMPF END %d\n", endLabel);
         /**vlozenie 3AK - skok na beginLabel ak je vyraz true**/
         /**vlozenie 3AK - skok na endLabel ak je vyraz false**/
 
-        printf("LABEL ASSIGNLABEL %d\n", assignLabel);
+        debug_print("LABEL ASSIGNLABEL %d\n", assignLabel);
         /**vlozenie 3AK - label assignLabel**/
         if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
@@ -700,11 +700,11 @@ result_t parse_list(parser_t *parser) {
             }
         }
 
-        printf("ASSING EXP\n");
+        debug_print("%s\n","ASSING EXP\n");
         /**vyhodnotenie vyrazu**/
-        printf("MV TO OFFSET %d EXPRESULT\n", var_offset);
+        debug_print("MV TO OFFSET %d EXPRESULT\n", var_offset);
         /**vlozenie 3AK priradnie do premennej hNameID**/
-        printf("JMP EXPLABEL %d\n", expLabel);
+        debug_print("JMP EXPLABEL %d\n", expLabel);
         /**vlozenie 3AK - skok na label expLabel**/
 
         if ((result = parser_next_token(parser)) != EOK) {
@@ -732,7 +732,7 @@ result_t parse_list(parser_t *parser) {
         insertLast(varBlock2, &parser->varList);
 
         /**vlozenie 3AK - label beginLabel**/
-        printf("LABEL BEGIN %d \n", beginLabel);
+        debug_print("LABEL BEGIN %d \n", beginLabel);
         result = parse_list(parser);
 
         if (result != EOK){
@@ -741,9 +741,9 @@ result_t parse_list(parser_t *parser) {
         }
         parser->offset_counter--;
         deleteLast(&parser->varList);
-        printf("JMP ASSIGNLABEL %d\n", assignLabel);
+        debug_print("JMP ASSIGNLABEL %d\n", assignLabel);
         /**vlozenie 3AK - skok na assignLabel**/
-        printf("LABEL END %d\n", endLabel);
+        debug_print("LABEL END %d\n", endLabel);
         /**vlozenie 3AK - label endLabel**/
 
     }
@@ -772,7 +772,7 @@ result_t parse_list(parser_t *parser) {
                     return ESEM;
             }
             /**vygenerovanie 3AK - nacitanie zo SV do premennej hName**/
-            printf("\tCIN STDIN %d\n", var_offset);
+            debug_print("\tCIN STDIN %d\n", var_offset);
 
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
@@ -807,18 +807,18 @@ result_t parse_list(parser_t *parser) {
                 }
                 *kl_pushp(instruction_list, parser->code) = create_COUT_pop_instr();
                 /**vlozenie 3AK - vypis na STDOUT z premennej hName**/
-                printf("\tCOUNT STDOUT OFFSET:%d\n", var_offset);
+                debug_print("\tCOUNT STDOUT OFFSET:%d\n", var_offset);
             }
             else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
-                printf("\tCOUNT STDOUT CONST:%d\n", parser->token->data.iVal);
+                debug_print("\tCOUNT STDOUT CONST:%d\n", parser->token->data.iVal);
             }/**vlozenie 3AK - vypis na STDOUT cislo parser->token->data.i**/
             else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST)) {
-                printf("\tCOUNT STDOUT CONST:%f\n", parser->token->data.dVal);
+                debug_print("\tCOUNT STDOUT CONST:%f\n", parser->token->data.dVal);
             }/**vlozenie 3AK - vypis na STDOUT cislo parser->token->data.d**/
             else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                printf("\tCOUNT STDOUT CONST:%s\n", parser->token->data.sVal);
+                debug_print("\tCOUNT STDOUT CONST:%s\n", parser->token->data.sVal);
             }/**vlozenie 3AK - vypis na STDOUT retazec parser->token->data.s**/
-            else return ESEM4;
+            else return ESYN;
 
 
             if ((result = parser_next_token(parser)) != EOK) {
@@ -846,7 +846,7 @@ result_t parse_list(parser_t *parser) {
         }
         /*********************/
         parser->is_return=true;
-        printf("RETURN\n");
+        debug_print("%s\n","RETURN\n");
         /****vyhdontenie vyrazu***/
         /**vloznenie 3AK - skos s5**/
     }
@@ -899,7 +899,7 @@ result_t parse_adv_declaration(parser_t *parser) {
         debug_print("%s\n", "<");
         return result;
     }
-    printf("Variable Push %s...offset:%d\n",parser->token->data.sVal,data.offset);
+    debug_print("Variable Push %s...offset:%d\n",parser->token->data.sVal,data.offset);
     item_append_data(parser->varList.Last, data);
 
     /***vytvorenie novej polozky do TS****/
@@ -1101,7 +1101,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
                 hName = generate_var_name(parser->hInt);
-                 printf("PUSH CONST TEXT %s\n", parser->token->data.sVal);
+                 debug_print("PUSH CONST TEXT %s\n", parser->token->data.sVal);
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                /**********vyhladame polozku hName v TS*********/
                 /****zkontroluje datovy typ --- musi byt string***/
@@ -1114,7 +1114,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                     return ESYS;
                 if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
-                printf("PUSH OFFSET: %d\n", var_offset);
+                debug_print("PUSH OFFSET: %d\n", var_offset);
             }
             else return ESEM2;
 
@@ -1132,7 +1132,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
                 return ESYN;
 
-            //printf("volanie funkcie length --- parameter: %s\n",  tItem1->value.c );
+            //debug_print("volanie funkcie length --- parameter: %s\n",  tItem1->value.c );
             /*************3AK -- LENGTH , pointer na polozku v ts, NULL ,NULL,***************/
             /********3AK --- MV , searchTS(#1), NULL, searchTS(assignVarName)******/
 
@@ -1157,7 +1157,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                 return result;
             }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                printf("PUSH CONST\n");
+                debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                  /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1169,7 +1169,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                     return ESYS;
                 if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
-                printf("PUSH OFFSET: %d\n", var_offset);
+                debug_print("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
@@ -1184,7 +1184,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                 return result;
             }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
-               printf("PUSH CONST\n");
+               debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                  /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1197,7 +1197,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                     return ESYS;
                 if (tItem1->dataType != INT_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
-                printf("PUSH OFFSET: %d\n", var_offset);
+                debug_print("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
@@ -1212,7 +1212,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                 return result;
             }
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
-                printf("PUSH CONST\n");
+                debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1225,7 +1225,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                     return ESYS;
                 if (tItem1->dataType != INT_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
-                 printf("PUSH OFFSET: %d\n", var_offset);
+                 debug_print("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
@@ -1243,7 +1243,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                 return ESYN;
 
 
-            //printf("volanie funkcie substr--- parameter 1: %s ,parameter 2: %d, parameter 3: %d\n",  tItem1->value.c, tItem2->value.i, tItem3->value.i );
+            //debug_print("volanie funkcie substr--- parameter 1: %s ,parameter 2: %d, parameter 3: %d\n",  tItem1->value.c, tItem2->value.i, tItem3->value.i );
             /***********************3AK -- SUBSTR , p1 , p2 , p3******************************/
             /***********************3AK -- MV , searchTS(#1),NULL,searchTS(assignVarName)******/
             break;
@@ -1268,7 +1268,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                printf("PUSH CONST\n");
+                debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                  /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1280,7 +1280,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                     return ESYS;
                 if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
-                printf("PUSH OFFSET: %d\n", var_offset);
+                debug_print("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
@@ -1296,7 +1296,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-               printf("PUSH CONST\n");
+               debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
                     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
@@ -1308,7 +1308,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                     return ESYS;
                 if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
-                 printf("PUSH OFFSET: %d\n", var_offset);
+                 debug_print("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
@@ -1325,7 +1325,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
                 return ESYN;
 
-            //printf("volanie funkcie concat--- parameter 1: %s ,parameter 2: %s\n",  tItem1->value.c, tItem2->value.c);
+            //debug_print("volanie funkcie concat--- parameter 1: %s ,parameter 2: %s\n",  tItem1->value.c, tItem2->value.c);
 
             break;
         case FIND_FN:
@@ -1348,7 +1348,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                printf("PUSH CONST\n");
+                debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1360,7 +1360,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                     return ESYS;
                 if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
-                printf("PUSH OFFSET: %d\n", var_offset);
+                debug_print("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
@@ -1376,7 +1376,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                 printf("PUSH CONST\n");
+                 debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1389,7 +1389,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                     return ESYS;
                 if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
-                printf("PUSH OFFSET: %d\n", var_offset);
+                debug_print("PUSH OFFSET: %d\n", var_offset);
             } else return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
@@ -1406,7 +1406,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
                 return ESYN;
 
-            //	printf("volanie funkcie find--- parameter 1: %s ,parameter 2: %s\n",  tItem1->value.c, tItem2->value.c);
+            //	debug_print("volanie funkcie find--- parameter 1: %s ,parameter 2: %s\n",  tItem1->value.c, tItem2->value.c);
             break;
         case SORT_FN:
             /******************Skontrolovat typ assignVarName v TS - musi byt STRING**********************/
@@ -1428,7 +1428,7 @@ result_t parse_build_in_fn(parser_t *parser) {
             }
 
             if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                printf("PUSH CONST\n");
+                debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1440,7 +1440,7 @@ result_t parse_build_in_fn(parser_t *parser) {
                     return ESYS;
                 if (tItem1->dataType != STRING_KW && tItem1->dataType != AUTO_KW){
                     return ESEM2;
-                    printf("PUSH OFFSET: %d\n", var_offset);
+                    debug_print("PUSH OFFSET: %d\n", var_offset);
 
                 }
             } else return ESEM2;
@@ -1474,7 +1474,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         hTabItem *tItem1;
 
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
-            return ESYS;
+            return ESEM2;
         if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
             if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                 return ESEM;
@@ -1485,46 +1485,46 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
 
         if ((tableItem->dataType != AUTO_KW) && (tableItem->dataType != tItem1->dataType) && (tItem1->dataType != AUTO_KW))
             return ESEM2;
-        printf("PUSH PARAM ID: %s OFFSET: %d\n", parser->token->data.sVal,var_offset);
+        debug_print("PUSH PARAM ID: %s OFFSET: %d\n", parser->token->data.sVal,var_offset);
 
         /****************parameter tItem1*****************/
     }
     else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
-            return ESYS;
+            return ESEM2;
 
         if (tableItem->dataType != INT_KW && tableItem->dataType != AUTO_KW)
             return ESEM2;
 
-       printf("PUSH PARAM %d\n",parser->token->data.iVal);
+       debug_print("PUSH PARAM %d\n",parser->token->data.iVal);
 
         /**************************************/
 
     }
     else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST)) {
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
-            return ESYS;
+            return ESEM2;
 
         if (tableItem->dataType != DOUBLE_KW && tableItem->dataType != AUTO_KW)
             return ESEM2;
 
-        printf("PUSH PARAM %lf\n",parser->token->data.dVal);
+        debug_print("PUSH PARAM %lf\n",parser->token->data.dVal);
 
         /****************************************/
 
     }
     else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
-            return ESYS;
+            return ESEM2;
 
         if (tableItem->dataType != STRING_KW && tableItem->dataType != AUTO_KW)
             return ESEM2;
 
-       printf("PUSH PARAM %s\n",parser->token->data.sVal );
+       debug_print("PUSH PARAM %s\n",parser->token->data.sVal );
 
         /**************************************/
     }
-    else return ESEM2;
+    else return ESYN;
 
     parser->argsCounter1++;
 
