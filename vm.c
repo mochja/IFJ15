@@ -101,7 +101,7 @@ result_t vm_exec(vm_t *vm) {
 
     while (vm->ip < kv_size(vm->instructions)) {
         instruction_t *i = &kv_A(vm->instructions, vm->ip);
-        printf("[0x%.8lu]: [%d] \n", vm->ip, i->type);
+        debug_print("[0x%.8lu]: [%d]\n", vm->ip, i->type);
 
         switch (i->type) {
             case I_PUSH:
