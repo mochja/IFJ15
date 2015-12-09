@@ -26,6 +26,7 @@ result_t init_parser(parser_t *parser, char *source) {
     parser->label = 1;
     parser->assignVarName = NULL;
     parser->offset_counter=0;
+    parser->is_return = false;
 
     parser->token = calloc(1, sizeof(token_t));
     parser->code = kl_init(instruction_list);
@@ -76,17 +77,21 @@ result_t parser_run(parser_t *parser) {
     if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW))
         return ESYN;
 
-    if ((result = parse_fn(parser)) != EOK) {
+    if ((result = parse_fn(parser)) != EEOF) {
         fprintf(stderr, "Something bad happened.");
         return result;
     }
 
     // Overime ci sme naozaj na konci
-    if (parser_next_token(parser) != EEOF) {
-        return ESYN;
+   // if (parser_next_token(parser) != EEOF) {
+     //   return ESYN;
+    //}
+     hTabItem *tableItem;
+    if ((tableItem = searchItem(parser->table, "main")) == NULL) {
+        return ESEM;
     }
 
-    return result;
+    return EOK;
 }
 
 
@@ -107,6 +112,19 @@ result_t parse_fn(parser_t *parser) {
         if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s", "<");
             return result;
+        }
+
+        hTabItem *tableItem;
+        if ((tableItem = searchItem(parser->table, parser->fName)) != NULL) {
+            return ESEM;
+        }
+        else {
+            tableItem = createNewItem();
+            tableItem->name = malloc(sizeof(char) * (strlen(parser->fName) + 1));
+            strcpy(tableItem->name, parser->fName);
+            tableItem->dataType = INT_KW;
+            tableItem->isDefined = false;
+            insertHashTable(parser->table, tableItem);
         }
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL))  {
@@ -144,8 +162,22 @@ result_t parse_fn(parser_t *parser) {
             return result;
         }
 
-        if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_VINCULUM_SMBL))        //ak nie je funkcia prazdna
-            result = parse_fn_body(parser);
+                                                       //ak nie je funkcia prazdna
+        result = parse_fn_body(parser);
+
+        if(result != EOK)
+            return result;
+
+        if ((result = parser_next_token(parser)) != EOK) {
+            debug_print("%s", "<");
+            return result;
+        }
+        if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW))    ///mala by nasledovat dalsia funkcia
+            result = parse_fn(parser);        //rekurzivne volanie pre spracovanie dalsej funkcie
+        else if (TOKEN_IS(parser->token, EOF_TYPE))
+            return EEOF;
+        else
+            return ESYN;
 
         return result;                /// po main uz ziadne dalsie rekurzivne volanie ---- main je posledna funkcia v programe
     }
@@ -244,8 +276,8 @@ result_t parse_fn(parser_t *parser) {
                 debug_print("%s", "<");
                             return result;
             }
-            if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_VINCULUM_SMBL))        //ak nie je funkcia prazdna
-                result = parse_fn_body(parser);
+                   //ak nie je funkcia prazdna
+            result = parse_fn_body(parser);
 
             if (result != EOK)
                 return result;
@@ -267,7 +299,7 @@ result_t parse_fn(parser_t *parser) {
         if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW))    ///mala by nasledovat dalsia funkcia
             result = parse_fn(parser);        //rekurzivne volanie pre spracovanie dalsej funkcie
         else if (TOKEN_IS(parser->token, EOF_TYPE))
-            return ESEM;
+            return EEOF;
         else
             return ESYN;    //ak nie je ziadna dalsia funkcia je to chyba
     } else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, MAIN_KW) && fType != INT_KW)
@@ -298,6 +330,18 @@ result_t parse_fn_body(parser_t *parser) {
     parser->argsCounter = 0;
 
     result = parse_list(parser);
+    if(result != EOK && result != EEOF)
+        return  result;
+
+    if(!parser->is_return){
+        debug_print("%s","<");
+        return ERUN1;
+    }
+
+    parser->is_return=false;
+
+    if(parser->varList.First != NULL)
+        return ESYN;
 
     return result;
 }
@@ -722,9 +766,10 @@ result_t parse_list(parser_t *parser) {
                 return result;
             }
             if (!TOKEN_IS(parser->token, ID_TYPE))
-                return ESEM4;
+                return ESYN;
             if ((var_offset = get_var_offset(&parser->varList, parser->token->data.sVal)) == 0) {
                 if ((var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal)) == 0)
+                    debug_print("%s", "<");
                     return ESEM;
             }
             /**vygenerovanie 3AK - nacitanie zo SV do premennej hName**/
@@ -801,7 +846,7 @@ result_t parse_list(parser_t *parser) {
             }
         }
         /*********************/
-
+        parser->is_return=true;
         printf("RETURN\n");
         /****vyhdontenie vyrazu***/
         /**vloznenie 3AK - skos s5**/
@@ -1148,17 +1193,14 @@ result_t parse_build_in_fn(parser_t *parser) {
                printf("PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                  /**********vyhladame polozku hName v TS*********/
-                printf("step 1\n");
                 if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
                     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) == NULL)
                         return ESEM;
                     else { var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal); }
                 } else { var_offset= get_var_offset(&parser->varList, parser->token->data.sVal);}
 
-                printf("step 2\n" );
                 if ((tItem1 = searchItem(parser->table, hName)) == NULL)
                     return ESYS;
-                printf("step 3\n");
                 if (tItem1->dataType != INT_KW && tItem1->dataType != AUTO_KW)
                     return ESEM2;
                 printf("PUSH OFFSET: %d\n", var_offset);

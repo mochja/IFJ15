@@ -46,7 +46,7 @@ char* read_source_file(const char *filename) {
 
 int main(int argc, char *argv[])
 {
-    debug_print("%s\n", "sdf");
+    debug_print("%s\n", " ");
 
     result_t res;
 

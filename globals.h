@@ -18,13 +18,17 @@
 
 typedef enum {
     EOK = 0,
-    ELEX,
-    ESYN,
-    ESEM,
-    ESEM2,
-    ESEM3,
-    ESEM4,
-    EEOF,
+    ELEX = 1,
+    ESYN = 2,
+    ESEM = 3,
+    ESEM2 = 4,
+    ESEM3 = 5,
+    ESEM4 = 6,
+    ERUN = 7,
+    ERUN1 = 8,
+    ERUN2 = 9,
+    ERUN3 = 10,
+    EEOF = 11,
     ESYS = 99,
 } result_t;
 
@@ -32,10 +36,12 @@ typedef enum {
 #define HAS_FLAG(x, t)                  ((x) & (t))
 
 
-#define DEBUG 1
+#ifndef DEBUG
+#define DEBUG 0
+#endif
 
 #define debug_print(fmt, ...) \
-        do { if (DEBUG) fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
+        do { if (DEBUG) printf("%s:%d:%s(): " fmt, __FILE__, \
                                 __LINE__, __func__, __VA_ARGS__); } while (0)
 
 #endif // GLOBALS_H_
