@@ -28,18 +28,18 @@
         char *: zval_set_string,                            \
         const char *: zval_set_string)(v, T)
 
-#define ZVAL_GET_INT(x)     (zval_get_int((x)))
-#define ZVAL_GET_DOUBLE(x)  (zval_get_double((x)))
-#define ZVAL_GET_STRING(x)  (zval_get_string((x)))
+#define ZVAL_GET_INT(x)         (zval_get_int((x)))
+#define ZVAL_GET_DOUBLE(x)      (zval_get_double((x)))
+#define ZVAL_GET_STRING(x)      (zval_get_string((x)))
 
-#define ZVAL_SET_INT(x, v) zval_set(x, v)
-#define ZVAL_SET_DOUBLE(x, v) zval_set(x, v)
-#define ZVAL_SET_STRING(x, v) zval_set(x, v)
+#define ZVAL_SET_INT(x, v)      zval_set(x, v)
+#define ZVAL_SET_DOUBLE(x, v)   zval_set(x, v)
+#define ZVAL_SET_STRING(x, v)   zval_set(x, v)
 
-#define ZVAL_IS_INT(x)     ((x)->type == T_INT)
-#define ZVAL_IS_DOUBLE(x)  ((x)->type == T_DOUBLE)
-#define ZVAL_IS_STRING(x)  ((x)->type == T_STRING)
-#define ZVAL_IS_DEFINED(x) ((x)->type != T_UNDEFINED)
+#define ZVAL_IS_INT(x)          (((x)->type >> 1) & 1)
+#define ZVAL_IS_DOUBLE(x)       (((x)->type >> 2) & 1)
+#define ZVAL_IS_STRING(x)       (((x)->type >> 3) & 1)
+#define ZVAL_IS_DEFINED(x)      (((x)->type >> 0) & 0)
 
 #define ZVAL_INIT_INT(x, v)                                 \
     (x) = malloc(sizeof(zval_t));                           \
@@ -49,20 +49,15 @@
     (x) = malloc(sizeof(zval_t));                           \
     ZVAL_SET_DOUBLE(x, v)                                   \
 
-#define zval_init(x) zval_set_undefined((x))
-
 typedef struct __zval_t zval_t;
 
-enum __data_type {
-    T_NOOP = 0,
-    T_UNDEFINED,
-    T_INT = 9,
-    T_DOUBLE,
-    T_STRING
-};
+#define T_UNDEFINED     0x01U
+#define T_INT           0x02U
+#define T_DOUBLE        0x04U
+#define T_STRING        0x08U
 
 struct __zval_t {
-    enum __data_type type; // TODO: move to binary flags
+    unsigned char type; // TODO: move to binary flags
 
     union {
         int iVal;
@@ -70,6 +65,15 @@ struct __zval_t {
         char *sVal;
     };
 };
+
+
+INLINED result_t zval_init(zval_t *val) {
+
+    val->type = T_UNDEFINED;
+    val->sVal = NULL;
+
+    return EOK;
+}
 
 INLINED int zval_get_int(zval_t *val) {
     if (val->type != T_INT) {
@@ -81,7 +85,7 @@ INLINED int zval_get_int(zval_t *val) {
 
 INLINED double zval_get_double(zval_t *val) {
     if (val->type != T_DOUBLE) {
-        fprintf(stderr, "Trying to get int value of type %d", val->type);
+        fprintf(stderr, "Trying to get double value of type %d", val->type);
     }
 
     return val->dVal;
@@ -89,7 +93,7 @@ INLINED double zval_get_double(zval_t *val) {
 
 INLINED char *zval_get_string(zval_t *val) {
     if (val->type != T_STRING) {
-        fprintf(stderr, "Trying to get int value of type %d", val->type);
+        fprintf(stderr, "Trying to get string value of type %d", val->type);
     }
 
     return val->sVal;
@@ -97,8 +101,12 @@ INLINED char *zval_get_string(zval_t *val) {
 
 INLINED result_t zval_set_undefined(zval_t *val) {
 
-    val->type = T_UNDEFINED;
-    val->sVal = NULL;
+    val->type |= T_UNDEFINED;
+
+    if (ZVAL_IS_STRING(val)) {
+        free(val->sVal);
+    }
+
     return EOK;
 }
 
