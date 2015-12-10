@@ -1145,7 +1145,8 @@ result_t parse_assign(parser_t *parser) {
             if ((tItem = searchItem(parser->table, parser->assignVarName)) == NULL)
                 return ESYS;
             if (tItem->dataType != tableItem->dataType && tItem->dataType != AUTO_KW)
-                return ESEM2;
+                if(tItem->dataType == STRING_KW || tableItem->dataType == STRING_KW)
+                    return ESEM2;
 
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
@@ -1345,7 +1346,9 @@ result_t parse_build_in_fn(parser_t *parser) {
                 debug_print("%s\n", "<");
                 return result;
             }
-            if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
+            if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST) || TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST)) {
+                if(TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST))
+                    parser->token->data.iVal = (int)parser->token->data.dVal;
                debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                  /**********vyhladame polozku hName v TS*********/
@@ -1373,7 +1376,9 @@ result_t parse_build_in_fn(parser_t *parser) {
                 debug_print("%s\n", "<");
                 return result;
             }
-            if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
+            if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST) || TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST)) {
+                if(TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST))
+                    parser->token->data.iVal = (int)parser->token->data.dVal;
                 debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
@@ -1634,7 +1639,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
 
     if (TOKEN_IS(parser->token, ID_TYPE)) {
         hTabItem *tItem1;
-
+        debug_print("token ID %d\n",parser->token->data.iVal);
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
             return ESEM2;
         if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1652,6 +1657,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         /****************parameter tItem1*****************/
     }
     else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
+        debug_print("token INT %d\n",parser->token->data.iVal);
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
             return ESEM2;
 
@@ -1665,6 +1671,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         /**************************************/
     }
     else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST)) {
+        debug_print("token DBL %d\n",parser->token->data.iVal);
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
             return ESEM2;
 
