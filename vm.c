@@ -76,6 +76,7 @@ result_t vm_dispose(vm_t *vm) {
 
     kv_destroy(vm->instructions);
     kv_destroy(vm->stack);
+    kv_destroy(vm->call_stack);
 
     return EOK;
 }
