@@ -99,7 +99,7 @@ INLINED result_t vm_ctx_init(ctx_t *ctx, size_t ip, unsigned int nargs) {
 result_t vm_exec(vm_t *vm) {
 
     result_t ret = EOK;
-    vm->ip = 1;
+    vm->ip = 0;
 
     bool running = true;
 

@@ -25,20 +25,20 @@ result_t init_parser(parser_t *parser, char *source) {
     parser->hInt = 0;
     parser->label = 1;
     parser->assignVarName = NULL;
-    parser->offset_counter=0;
+    parser->offset_counter = 0;
     parser->has_return = false;
 
     parser->token = calloc(1, sizeof(token_t));
     parser->code = kl_init(instruction_list);
 
-    // jump to main() on start
-    instruction_t *exit = malloc(sizeof(instruction_t));
-    create_EXIT_instr(exit);
-    *kl_pushp(instruction_list, parser->code) = exit;
-
+    // Call main function
     instruction_t *call = malloc(sizeof(instruction_t));
     create_CALL_instr(call, 0, 0);
     *kl_pushp(instruction_list, parser->code) = call;
+
+    instruction_t *exit = malloc(sizeof(instruction_t));
+    create_EXIT_instr(exit);
+    *kl_pushp(instruction_list, parser->code) = exit;
 
     if ((parser->table = initHashTable(MAX_HTSIZE)) == NULL) {
         fprintf(stderr, "Could not initialize hash table.");
@@ -924,20 +924,12 @@ result_t parse_list(parser_t *parser) {
         /*********************/
 
         parser->has_return = true;
+
         debug_print("%s\n","RETURN\n");
 
-        /****vyhdontenie vyrazu***/
-        /**vloznenie 3AK - skos s5**/
-
-        if (!strcmp(parser->fName, "main")) { // if its main exit
-            instruction_t *exit = malloc(sizeof(instruction_t));
-            create_EXIT_instr(exit);
-            *kl_pushp(instruction_list, parser->code) = exit;
-        } else {
-            instruction_t *ret = malloc(sizeof(instruction_t));
-            create_RETURN_instr(ret);
-            *kl_pushp(instruction_list, parser->code) = ret;
-        }
+        instruction_t *ret = malloc(sizeof(instruction_t));
+        create_RETURN_instr(ret);
+        *kl_pushp(instruction_list, parser->code) = ret;
     }
     else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW|AUTO_KW)) {
         /***deklaracia mimo zaciatku bloku**/
