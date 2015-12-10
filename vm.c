@@ -47,7 +47,7 @@ result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions) {
 
         instruction_t *instr = kl_val(it);
 
-        if (instr->type == I_JMP || instr->type == I_CALL) {
+        if (instr->type == I_JMP || instr->type == I_CALL || instr->type == I_JMPE) {
             instruction_copy(&kv_a(instruction_t, vm->instructions, i), instr);
             zval_set(kv_A(vm->instructions, i).first, kv_A(labels, ZVAL_GET_INT(instr->first)));
         } else if (instr->type != I_LABEL) {
@@ -119,8 +119,20 @@ result_t vm_exec(vm_t *vm) {
                 vm->ip++;
                 break;
             case I_JMP:
-                vm->ip = (size_t) ZVAL_GET_INT(i->first);
+                vm->ip = (size_t) zval_get_int(i->first);
                 break;
+            case I_JMPE: {
+                zval_t top = kv_pop(vm->stack);
+                zval_t res;
+                zval_eq(&res, &top, i->second);
+                if (ZVAL_IS_DEFINED(&res) && ZVAL_IS_INT(&res) && (zval_get_int(&res) == 1)) {
+                    vm->ip = (size_t) zval_get_int(i->first);
+                } else {
+                    vm->ip++;
+                }
+                zval_dispose(&top);
+                break;
+            }
             case I_COUT_pop: {
                 zval_t val = kv_A(vm->stack, kv_size(vm->stack) - 1);
                 zval_print(&val);
@@ -203,6 +215,16 @@ result_t vm_exec(vm_t *vm) {
             }
 
 
+            case I_GT: {
+                zval_t res;
+                if ((ret = zval_gt(&res, i->first, i->second)) != EOK) {
+                    zval_dispose(&res);
+                    return ret;
+                }
+                kv_push(zval_t, vm->stack, res);
+                vm->ip++;
+                break;
+            }
 
             case I_ADD_zval: {
                 zval_t res;
