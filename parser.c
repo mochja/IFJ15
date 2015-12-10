@@ -1727,7 +1727,18 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
             return ESYS;
 
         if ((tableItem->dataType != AUTO_KW) && (tableItem->dataType != tItem1->dataType) && (tItem1->dataType != AUTO_KW))
-            return ESEM2;
+        {
+            //pretypovanie
+            if(tableItem->dataType == INT_KW && tItem1->dataType == DOUBLE_KW){
+                parser->token->data.iVal = (int)parser->token->data.dVal;
+                parser->token->flags = INT_KW;
+            }
+            else if(tableItem->dataType == DOUBLE_KW && tItem1->dataType == INT_KW){
+                parser->token->data.dVal = (double)parser->token->data.iVal;
+                parser->token->flags = DOUBLE_KW;
+            }
+            else return ESEM2;
+        }
         debug_print("PUSH PARAM ID: %s OFFSET: %d\n", parser->token->data.sVal,var_offset);
 
         /****************parameter tItem1*****************/
@@ -1737,8 +1748,15 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
             return ESEM2;
 
-        if (tableItem->dataType != INT_KW && tableItem->dataType != AUTO_KW)
-            return ESEM2;
+        if (tableItem->dataType != INT_KW && tableItem->dataType != AUTO_KW){
+            if(tableItem->dataType == DOUBLE_KW){
+                parser->token->data.dVal = (double)parser->token->data.iVal;
+                parser->token->flags = DOUBLE_KW;
+            }
+            else{
+                return ESEM2;
+            }
+        }
 
         instruction_t *i = malloc(sizeof(instruction_t));
         create_PUSH_zval_instr(i, &parser->token->data);
@@ -1751,19 +1769,26 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
             return ESEM2;
 
-        if (tableItem->dataType != DOUBLE_KW && tableItem->dataType != AUTO_KW)
-            return ESEM2;
+        if (tableItem->dataType != DOUBLE_KW && tableItem->dataType != AUTO_KW){
+            if(tableItem->dataType == INT_KW){
+                parser->token->data.iVal = (int)parser->token->data.dVal;
+                parser->token->flags = INT_KW;
+            }
+            else{
+                return ESEM2;
+            }
+        }
 
         debug_print("PUSH PARAM %lf\n",parser->token->data.dVal);
         /****************************************/
     }
     else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-        if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
+        if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL){
             return ESEM2;
-
-        if (tableItem->dataType != STRING_KW && tableItem->dataType != AUTO_KW)
+        }
+        if (tableItem->dataType != STRING_KW && tableItem->dataType != AUTO_KW){
             return ESEM2;
-
+        }
         debug_print("PUSH PARAM %s\n",parser->token->data.sVal );
         /**************************************/
     }
