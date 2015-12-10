@@ -490,20 +490,76 @@ result_t parse_list(parser_t *parser) {
             debug_print("%s\n", "<");
             return result;
         }
-        while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {
+
+        int lbracket = 1, rbracket = 0;
+        klist_t(token_list) *tokens = kl_init(token_list);
+        while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL)) {
+
+            if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_CULUM_SMBL)) {
+                lbracket++;
+            } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {
+                rbracket++;
+            }
+
+            if (lbracket == rbracket) { // end of expression
+                break;
+            }
+
+            token_t *cpy = calloc(1, sizeof(token_t));
+
+            if (TOKEN_IS(parser->token, ID_TYPE)) {
+                int offset;
+
+                if ((result = offset_of_current_token(parser, &offset)) != EOK) {
+                    debug_print("%s\n", "<");
+                    return result;
+                }
+
+                cpy->type = ID_TYPE;
+                cpy->flags = OFFSET_ID;
+                zval_set(&cpy->data, offset);
+            } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
+                token_copy(cpy, parser->token);
+            } else {
+                free(cpy);
+                debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
+                return ELEX;
+            }
+
+            *kl_pushp(token_list, tokens) = cpy;
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                 return result;
             }
+
+            if (TOKEN_IS(parser->token, ID_TYPE) && (searchItem(parser->table, parser->token->data.sVal) != NULL)) {
+                debug_print("%s\n", "Undefined variable.");
+                return ELEX;
+            }
         }
+
+        if (lbracket != rbracket) {
+            debug_print("%s\n", "Unknown bracket count in if statement");
+            return ESYN;
+        }
+
+        klist_t(expr_stack) *expr = kl_init(expr_stack);
+        if ((result = expr_from_tokens(expr, tokens)) != EOK) {
+            kl_destroy(expr_stack, expr);
+            return result;
+        }
+        append_instr_from_expr(parser->code, expr);
         /********hack vyrazu********/
-
-
-        /*vyhodnotenie vyrazu*/
 
         debug_print("%s\n","EXP\n");
         debug_print("JMPF %d\n", elseLabel);
-        /**vlozenie 3AK - podmieneny skok ak podmienka nebola splnena na elseLabel**/
+
+        // jmp nq
+        instruction_t *jmp = malloc(sizeof(instruction_t));
+        zval_t zero;
+        zval_set_int(&zero, 0);
+        create_JMPE_instr(jmp, elseLabel, &zero);
+        *kl_pushp(instruction_list, parser->code) = jmp;
 
         if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
@@ -861,7 +917,6 @@ result_t parse_list(parser_t *parser) {
             }/**vlozenie 3AK - vypis na STDOUT retazec parser->token->data.s**/
             else return ESYN;
 
-
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                 return result;
@@ -940,11 +995,11 @@ result_t parse_list(parser_t *parser) {
     else return ESYN;
 
     if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s\n", "<");
-            return result;
-        }
-    result = parse_list(parser);
-    return result;
+        debug_print("%s\n", "<");
+        return result;
+    }
+
+    return parse_list(parser);;
 }
 
 

@@ -36,6 +36,7 @@ enum __instruction_type {
     I_JMP,
     I_COUT_pop,
     I_COUT_offset,
+    I_JMPE,
 
     I_CALL,
     I_RETURN,
@@ -287,6 +288,20 @@ INLINED result_t create_COUT_offset_instr(instruction_t *i, const int offset) {
     i->type = I_COUT_offset;
     ZVAL_INIT_INT(i->first, offset);
     i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+INLINED result_t create_JMPE_instr(instruction_t *i, const int label_id, zval_t *equals_to) {
+
+    i->type = I_JMPE;
+
+    ZVAL_INIT_INT(i->first, label_id);
+    i->second = malloc(sizeof(zval_t));
+    zval_copy(i->second, equals_to);
     i->third = NULL;
 
     return EOK;
