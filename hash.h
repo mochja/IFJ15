@@ -39,7 +39,7 @@ struct hItem {
     bool isDefined;
     int params;
     int paramPosition;
-} tHItem;
+};
 
 typedef struct hItem hTabItem;
 

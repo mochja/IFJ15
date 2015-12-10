@@ -20,6 +20,6 @@ target_link_libraries(run_test cgreen hash_test ial_test vm_test expression_test
 
 add_test(hash run_test Hash)
 add_test(ial run_test Ial)
-add_test(interpreter run_test VM)
+add_test(VM run_test VM)
 add_test(expression run_test Expression)
 add_test(instruction run_test Instruction)

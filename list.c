@@ -89,7 +89,7 @@ char *paramSearch(tvarList *L, char *fid, char *name) {
     return result;
 }
 
-int get_var_offset(tvarList *L, char * name){
+int get_var_offset(tvarList *L, char * name) {
     tItemPtr tmp;
     tmp = L->Last;
 

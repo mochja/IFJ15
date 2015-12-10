@@ -31,9 +31,15 @@ enum __instruction_type {
     I_POP_to,
     I_PUSH,
     I_PUSH_zval,
+    I_STORE_zval, // store on top of call stack
+    I_STORE,      // store to callstack offset
     I_JMP,
     I_COUT_pop,
     I_COUT_offset,
+
+    I_CALL,
+    I_RETURN,
+    I_EXIT,
 
     I_ADD_zval,
     I_ADD_pop,
@@ -137,6 +143,18 @@ INSTR_T create_LABEL_instr(int key) {
 
 
 
+INLINED result_t create_RETURN_instr(instruction_t *i) {
+
+    i->type = I_RETURN;
+    i->first = NULL;
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
 
 INSTR_T create_JMP_instr(int label_key) {
     instruction_t *i = calloc(1, sizeof(instruction_t));
@@ -154,18 +172,6 @@ INLINED result_t create_POP_N_instr(instruction_t *i, const int n) {
 
     i->type = I_POP_N;
     ZVAL_INIT_INT(i->first, n);
-    i->second = NULL;
-    i->third = NULL;
-
-    return EOK;
-}
-
-
-
-INLINED result_t create_POP_to_instr(instruction_t *i, const int offset) {
-
-    i->type = I_POP_to;
-    ZVAL_INIT_INT(i->first, offset);
     i->second = NULL;
     i->third = NULL;
 
@@ -197,6 +203,66 @@ INLINED result_t create_PUSH_zval_instr(instruction_t *i, zval_t *val) {
         zval_init(i->first);
     }
 
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+INLINED result_t create_STORE_zval_instr(instruction_t *i, zval_t *val) {
+
+    i->type = I_STORE_zval;
+
+    i->first = malloc(sizeof(zval_t));
+
+    if (val != NULL) {
+        zval_copy(i->first, val);
+    } else {
+        zval_init(i->first);
+    }
+
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+INLINED result_t create_STORE_instr(instruction_t *i, const int offset) {
+
+    i->type = I_STORE;
+
+    i->first = malloc(sizeof(zval_t));
+    zval_set(i->first, offset);
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+INLINED result_t create_CALL_instr(instruction_t *i, const int label, const int param_count) {
+
+    i->type = I_CALL;
+
+    ZVAL_INIT_INT(i->first, label);
+    ZVAL_INIT_INT(i->second, param_count);
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+INLINED result_t create_EXIT_instr(instruction_t *i) {
+
+    i->type = I_EXIT;
+
+    i->first = NULL;
     i->second = NULL;
     i->third = NULL;
 

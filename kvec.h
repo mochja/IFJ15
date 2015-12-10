@@ -57,6 +57,7 @@ int main() {
 #define kv_destroy(v) free((v).a)
 #define kv_A(v, i) ((v).a[(i)])
 #define kv_pop(v) ((v).a[--(v).n])
+#define kv_top(v) ((v).a[(v).n - 1])
 #define kv_size(v) ((v).n)
 #define kv_max(v) ((v).m)
 
