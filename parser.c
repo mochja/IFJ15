@@ -1089,7 +1089,6 @@ result_t parse_assign(parser_t *parser) {
             if (item == NULL)
                 return ESYS;
 
-
             hTabItem *tItem;
 
             if ((tItem = searchItem(parser->table, parser->assignVarName)) == NULL)
@@ -1111,12 +1110,16 @@ result_t parse_assign(parser_t *parser) {
 
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
                 result = parse_params(parser, item);
+
             if (result != EOK){
                 debug_print("%s\n", "<");
                 return result;
             }
+
             if (kv_size(item->data) != parser->argsCounter1)
                 return ESEM2;
+
+            //
 
             parser->argsCounter1 = 0;
 
@@ -1124,6 +1127,7 @@ result_t parse_assign(parser_t *parser) {
                 debug_print("%s\n", "<");
                 return result;
             }
+
             if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL))
                 return ESYN;
 
@@ -1601,10 +1605,11 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         if (tableItem->dataType != INT_KW && tableItem->dataType != AUTO_KW)
             return ESEM2;
 
-       debug_print("PUSH PARAM %d\n",parser->token->data.iVal);
-
+        instruction_t *i = malloc(sizeof(instruction_t));
+        create_PUSH_zval_instr(i, &parser->token->data);
+        *kl_pushp(instruction_list, parser->code) = i;
+        debug_print("PUSH PARAM %d\n",parser->token->data.iVal);
         /**************************************/
-
     }
     else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST)) {
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
@@ -1614,9 +1619,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
             return ESEM2;
 
         debug_print("PUSH PARAM %lf\n",parser->token->data.dVal);
-
         /****************************************/
-
     }
     else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
@@ -1625,8 +1628,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         if (tableItem->dataType != STRING_KW && tableItem->dataType != AUTO_KW)
             return ESEM2;
 
-       debug_print("PUSH PARAM %s\n",parser->token->data.sVal );
-
+        debug_print("PUSH PARAM %s\n",parser->token->data.sVal );
         /**************************************/
     }
     else return ESYN;

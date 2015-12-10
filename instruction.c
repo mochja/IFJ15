@@ -57,6 +57,7 @@ result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_st
 
                 *kl_pushp(instruction_list, dest) = i;
                 offset++;
+                // TODO: Fix for those down
             } else if (a == NULL && b != NULL && offset > 0) {
                 instruction_t *i = malloc(sizeof(instruction_t));
                 if (i == NULL) return ESYS;
