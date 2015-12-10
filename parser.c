@@ -335,6 +335,8 @@ result_t parse_fn(parser_t *parser) {
             return ESYN;    //ak nie je ziadna dalsia funkcia je to chyba
     } else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, MAIN_KW) && fType != INT_KW)
         return ESEM;
+    else if(TOKEN_IS(parser->token,FN_TYPE))
+        return ESEM;
     else result = ESYN;
 
     return result;
@@ -1714,7 +1716,7 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
     int varType = parser->token->flags;
     hTabItem *tItem;
     if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW))
-        return ESEM4;
+        return ESYN;
 
     if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
