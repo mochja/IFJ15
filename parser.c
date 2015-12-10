@@ -37,7 +37,7 @@ result_t init_parser(parser_t *parser, char *source) {
     *kl_pushp(instruction_list, parser->code) = exit;
 
     instruction_t *call = malloc(sizeof(instruction_t));
-    create_CALL_instr(call, 0);
+    create_CALL_instr(call, 0, 0);
     *kl_pushp(instruction_list, parser->code) = call;
 
     if ((parser->table = initHashTable(MAX_HTSIZE)) == NULL) {
@@ -71,6 +71,26 @@ char *generate_var_name(int number) {
     sprintf(__nbuffer, "$%d", number);
     return __nbuffer;
 }
+
+
+
+INLINED result_t offset_of_current_token(parser_t *parser, int *offset) {
+
+    if (varSearch(&parser->varList, parser->token->data.sVal) == NULL) {
+        if (paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal) == NULL) {
+            return ESEM;
+        } else {
+            *offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal);
+        }
+    } else {
+        *offset = get_var_offset(&parser->varList, parser->token->data.sVal);
+    }
+
+    return EOK;
+}
+
+
+
 
 result_t parser_run(parser_t *parser) {
 /**overim prvy parser->token**/
@@ -162,7 +182,6 @@ result_t parse_fn(parser_t *parser) {
             return ESYN;
 
         *kl_pushp(instruction_list, parser->code) = create_LABEL_instr(0);
-        *kl_pushp(instruction_list, parser->code) = create_PUSH_int_instr(0); // fake base pointer for main
 
         if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
@@ -178,7 +197,8 @@ result_t parse_fn(parser_t *parser) {
             debug_print("%s\n", "<");
             return result;
         }
-        if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW))    ///mala by nasledovat dalsia funkcia
+
+        if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW))    ///mala by nasledovat dalsia funkcia
             result = parse_fn(parser);        //rekurzivne volanie pre spracovanie dalsej funkcie
         else if (TOKEN_IS(parser->token, EOF_TYPE))
             return EEOF;
@@ -440,10 +460,10 @@ result_t parse_list(parser_t *parser) {
         tItemPtr item = parser->varList.Last;
 
         instruction_t *pop = malloc(sizeof(instruction_t));
-        create_POP_N_instr(pop, (int) kv_size(item->data) + 1); // +1 because of base pointer on top
+        create_POP_N_instr(pop, (int) kv_size(item->data));
         *kl_pushp(instruction_list, parser->code) = pop;
 
-        debug_print("BLOCK POPN: %lu\n", kv_size(item->data) + 1);
+        debug_print("BLOCK POPN: %lu\n", kv_size(item->data));
 
         parser->offset_counter -= kv_size(item->data);
         deleteLast(&parser->varList);
@@ -582,7 +602,6 @@ result_t parse_list(parser_t *parser) {
             return result;
         }
 
-
         if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW | AUTO_KW))
             return ESYN;
 
@@ -593,14 +612,13 @@ result_t parse_list(parser_t *parser) {
             return result;
         }
 
-
         if (!TOKEN_IS(parser->token, ID_TYPE))
             return ESYN;
 
         if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) != NULL)
             return ESEM;
 
-        if((tItem = searchItem(parser->table, parser->token->data.sVal)) != NULL)
+        if ((tItem = searchItem(parser->table, parser->token->data.sVal)) != NULL)
             return ESEM;
 
         tItemPtr varBlock;
@@ -655,7 +673,6 @@ result_t parse_list(parser_t *parser) {
         } else if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
             return ESYN;
         }
-
 
         /**vlozenie 3AK  - label expLabel**/
         debug_print("EXP LABEL %d\n", expLabel);
@@ -857,26 +874,69 @@ result_t parse_list(parser_t *parser) {
     else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, RETURN_KW)) {
 
         /*********hack**********/
-        if ((result = parser_next_token(parser)) != EOK){
+        if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
             return result;
         }
+
+        klist_t(token_list) *tokens = kl_init(token_list);
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
+            token_t *cpy = calloc(1, sizeof(token_t));
+
+            if (TOKEN_IS(parser->token, ID_TYPE)) {
+                int offset;
+
+                if ((result = offset_of_current_token(parser, &offset)) != EOK) {
+                    debug_print("%s\n", "<");
+                    return result;
+                }
+
+                cpy->type = ID_TYPE;
+                cpy->flags = OFFSET_ID;
+                zval_set(&cpy->data, offset);
+            } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
+                token_copy(cpy, parser->token);
+            } else {
+                free(cpy);
+                debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
+                return ELEX;
+            }
+
+            *kl_pushp(token_list, tokens) = cpy;
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                 return result;
             }
+
+            if (TOKEN_IS(parser->token, ID_TYPE) && (searchItem(parser->table, parser->token->data.sVal) != NULL)) {
+                debug_print("%s\n", "Undefined variable");
+                return ELEX;
+            }
         }
+
+        klist_t(expr_stack) *expr = kl_init(expr_stack);
+        if ((result = expr_from_tokens(expr, tokens)) != EOK) {
+            kl_destroy(expr_stack, expr);
+            return result;
+        }
+        append_instr_from_expr(parser->code, expr);
         /*********************/
 
         parser->has_return = true;
         debug_print("%s\n","RETURN\n");
 
-        instruction_t *ret = malloc(sizeof(instruction_t));
-        create_RETURN_instr(ret);
-        *kl_pushp(instruction_list, parser->code) = ret;
         /****vyhdontenie vyrazu***/
         /**vloznenie 3AK - skos s5**/
+
+        if (!strcmp(parser->fName, "main")) { // if its main exit
+            instruction_t *exit = malloc(sizeof(instruction_t));
+            create_EXIT_instr(exit);
+            *kl_pushp(instruction_list, parser->code) = exit;
+        } else {
+            instruction_t *ret = malloc(sizeof(instruction_t));
+            create_RETURN_instr(ret);
+            *kl_pushp(instruction_list, parser->code) = ret;
+        }
     }
     else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW | AUTO_KW)) {
         /***deklaracia mimo zaciatku bloku**/
@@ -892,23 +952,6 @@ result_t parse_list(parser_t *parser) {
         }
     result = parse_list(parser);
     return result;
-}
-
-
-
-INLINED result_t offset_of_current_token(parser_t *parser, int *offset) {
-
-    if (varSearch(&parser->varList, parser->token->data.sVal) == NULL) {
-        if (paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal) == NULL) {
-            return ESEM;
-        } else {
-            *offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal);
-        }
-    } else {
-        *offset = get_var_offset(&parser->varList, parser->token->data.sVal);
-    }
-
-    return EOK;
 }
 
 
@@ -1135,8 +1178,12 @@ result_t parse_assign(parser_t *parser) {
                 return ESEM2;
 
             instruction_t *call = malloc(sizeof(instruction_t));
-            create_CALL_instr(call, 1);
+            create_CALL_instr(call, 1, kv_size(item->data));
             *kl_pushp(instruction_list, parser->code) = call;
+
+            instruction_t *popargs = malloc(sizeof(instruction_t));
+            create_POP_N_instr(popargs, (int) kv_size(item->data));
+            *kl_pushp(instruction_list, parser->code) = popargs;
 
             parser->argsCounter1 = 0;
 

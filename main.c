@@ -86,7 +86,16 @@ int main(int argc, char *argv[])
             return res;
         }
 
-        res = vm_dispose(&vm);
+        int ret = ESYS;
+
+        if (kv_size(vm.stack) == 1) {
+            zval_t val = kv_pop(vm.stack);
+            ret = zval_get_int(&val);
+        }
+
+        if ((res = vm_dispose(&vm)) == EOK) {
+            return ret;
+        }
     }
 
     return res;

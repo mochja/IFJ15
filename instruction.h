@@ -221,12 +221,12 @@ INLINED result_t create_PUSH_zval_instr(instruction_t *i, zval_t *val) {
 
 
 
-INLINED result_t create_CALL_instr(instruction_t *i, const int label) {
+INLINED result_t create_CALL_instr(instruction_t *i, const int label, const int param_count) {
 
     i->type = I_CALL;
 
     ZVAL_INIT_INT(i->first, label);
-    i->second = NULL;
+    ZVAL_INIT_INT(i->second, param_count);
     i->third = NULL;
 
     return EOK;

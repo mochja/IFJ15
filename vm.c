@@ -25,6 +25,9 @@ result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions) {
     kv_init(labels);
     kv_resize(size_t, labels, 50);
 
+    kv_init(vm->call_stack);
+    kv_resize(ctx_t, vm->call_stack, 10);
+
     size_t i = 0;
     for (kliter_t(instruction_list) *it = kl_begin(instructions);
             it != kl_end(instructions); it = kl_next(it)) {
@@ -83,12 +86,28 @@ static inline void process_PUSH_instr(vm_t *vm, const int offset) {
     kv_push(zval_t, vm->stack, val);
 }
 
+INLINED result_t vm_ctx_init(ctx_t *ctx, size_t ip) {
+
+    kv_init(ctx->locals);
+    kv_resize(zval_t, ctx->locals, 5);
+
+    ctx->returnip = ip;
+    return EOK;
+}
+
 result_t vm_exec(vm_t *vm) {
 
-    result_t ret;
+    result_t ret = EOK;
     vm->ip = 1;
 
-    while (vm->ip < kv_size(vm->instructions)) {
+    bool running = true;
+
+    while (running) {
+
+        if (vm->ip >= kv_size(vm->instructions)) {
+            return ERUN3;
+        }
+
         instruction_t *i = &kv_A(vm->instructions, vm->ip);
         debug_print("[0x%.8lu]: [%d]\n", vm->ip, i->type);
 
@@ -133,24 +152,35 @@ result_t vm_exec(vm_t *vm) {
                 break;
             }
             case I_CALL: {
-                zval_t val;
-                zval_set(&val, (int) (vm->ip + 1));
-                kv_push(zval_t, vm->stack, val);
+                ctx_t ctx;
+                vm_ctx_init(&ctx, vm->ip + 1);
+
+                for (int j = 0; j < ZVAL_GET_INT(i->second); j++) {
+                    kv_push(zval_t, ctx.locals, kv_A(vm->stack, kv_size(vm->stack) - j - 1));
+                }
+
+                kv_push(ctx_t, vm->call_stack, ctx);
                 vm->ip = (size_t) ZVAL_GET_INT(i->first);
-                debug_print("CALL TO [%lu]\n", vm->ip);
                 break;
             }
             case I_RETURN: {
-                zval_t return_ip = kv_pop(vm->stack);
-                vm->ip = (size_t) ZVAL_GET_INT(&return_ip);
-                debug_print("RETURN TO [%lu]\n", vm->ip);
-                zval_dispose(&return_ip);
+                if (kv_size(vm->call_stack) == 0) {
+                    ret = ERUN3;
+                    running = false;
+                    break;
+                }
+                ctx_t ctx = kv_pop(vm->call_stack);
+                vm->ip = ctx.returnip;
+                kv_destroy(ctx.locals);
                 break;
             }
             case I_EXIT: {
-                vm->ip = (size_t) -1;
+                running = false;
                 break;
             }
+
+
+
 
             case I_ADD_zval: {
                 zval_t res;
@@ -214,16 +244,15 @@ result_t vm_exec(vm_t *vm) {
                 debug_print("%s [%d]\n", "Not implemented yet.", i->type);
                 return ESYS;
         }
-
     };
 
-    if (kv_size(vm->stack) > 0) {
-        debug_print("\n\nStack is not cleaned properly %lu item(s) left there\n", kv_size(vm->stack));
+    if (kv_size(vm->stack) > 1) {
+        debug_print("\n\nStack is not cleaned properly %lu items left there\n", kv_size(vm->stack));
 
         for (int i = 0; i < kv_size(vm->stack); ++i) {
             zval_print(&kv_A(vm->stack, i));
         }
     }
 
-    return EOK;
+    return ret;
 }

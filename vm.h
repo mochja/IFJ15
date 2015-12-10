@@ -20,11 +20,18 @@
 #include "kvec.h"
 
 typedef struct __vm_t vm_t;
+typedef struct __ctx_t ctx_t;
 
 struct __vm_t {
     kvec_t(instruction_t) instructions;
     kvec_t(zval_t) stack;
+    kvec_t(ctx_t) call_stack;
     size_t ip; // instruction pointer
+};
+
+struct __ctx_t {
+    kvec_t(zval_t) locals;
+    size_t returnip;
 };
 
 result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions);
