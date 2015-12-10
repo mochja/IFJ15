@@ -568,6 +568,7 @@ result_t parse_list(parser_t *parser) {
 
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL))
             return ESYN;
+
         debug_print("%s\n","....NEW BLOCK....\n");
         tItemPtr varBlock;
         if ((varBlock = calloc(1, sizeof(struct tItem))) == NULL)
@@ -589,7 +590,9 @@ result_t parse_list(parser_t *parser) {
 
         if (result != EOK)
             return result;
+
         debug_print("JMP %d\n", endLabel);
+        *kl_pushp(instruction_list, parser->code) = create_JMP_instr(endLabel);
         /*vlozenie 3AK - skok na endLabel*/
 
         if ((result = parser_next_token(parser)) != EOK) {
@@ -599,8 +602,10 @@ result_t parse_list(parser_t *parser) {
 
         if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, ELSE_KW))
             return ESYN;
+
         /******vlozenie 3AK - elseLabel*******/
         debug_print("LABEL ELSE %d\n", elseLabel);
+        *kl_pushp(instruction_list, parser->code) = create_LABEL_instr(elseLabel);
 
         if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
@@ -631,8 +636,10 @@ result_t parse_list(parser_t *parser) {
 
         if (result != EOK)
             return result;
+
         /**vlozenie 3AK - endLabel***/
         debug_print("LABEL END %d\n", endLabel);
+        *kl_pushp(instruction_list, parser->code) = create_LABEL_instr(endLabel);
     }
 
         /** for ( <deklaracia> ; <vyraz> ; priradenie) <parse_list>**/
