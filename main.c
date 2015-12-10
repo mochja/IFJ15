@@ -71,31 +71,31 @@ int main(int argc, char *argv[])
             return res;
         }
 
-        vm_t vm;
-        if ((res = vm_init(&vm, parser.code)) != EOK) {
-            parser_dispose(&parser);
-            return res;
-        }
+        // vm_t vm;
+        // if ((res = vm_init(&vm, parser.code)) != EOK) {
+        //     parser_dispose(&parser);
+        //     return res;
+        // }
 
         if ((res = parser_dispose(&parser)) != EOK) {
             return res;
         }
 
-        if ((res = vm_exec(&vm)) != EOK) {
-            vm_dispose(&vm);
-            return res;
-        }
+        // if ((res = vm_exec(&vm)) != EOK) {
+        //     vm_dispose(&vm);
+        //     return res;
+        // }
 
-        int ret = ESYS;
+        // int ret = ESYS;
 
-        if (kv_size(vm.stack) == 1) {
-            zval_t val = kv_pop(vm.stack);
-            ret = zval_get_int(&val);
-        }
+        // if (kv_size(vm.stack) == 1) {
+        //     zval_t val = kv_pop(vm.stack);
+        //     ret = zval_get_int(&val);
+        // }
 
-        if ((res = vm_dispose(&vm)) == EOK) {
-            return ret;
-        }
+        // if ((res = vm_dispose(&vm)) == EOK) {
+        //     return ret;
+        // }
     }
 
     return res;

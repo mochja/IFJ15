@@ -1168,7 +1168,7 @@ result_t parse_assign(parser_t *parser) {
                 } else {
                     free(cpy);
                     debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
-                    return ELEX;
+                    return ESYN;
                 }
 
                 *kl_pushp(token_list, tokens) = cpy;
@@ -1179,7 +1179,7 @@ result_t parse_assign(parser_t *parser) {
 
                 if (TOKEN_IS(parser->token, ID_TYPE) && ((tableItem = searchItem(parser->table, parser->token->data.sVal)) != NULL)) {
                     debug_print("%s\n", "Undefined variable");
-                    return ELEX;
+                    return ESEM;
                 }
             }
 
@@ -1271,7 +1271,7 @@ result_t parse_assign(parser_t *parser) {
             } else {
                 free(cpy);
                 debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
-                return ELEX;
+                return ESYN;
             }
 
             *kl_pushp(token_list, tokens) = cpy;
@@ -1282,7 +1282,7 @@ result_t parse_assign(parser_t *parser) {
 
             if (TOKEN_IS(parser->token, ID_TYPE) && (searchItem(parser->table, parser->token->data.sVal) != NULL)) {
                 debug_print("%s\n", "Undefined variable");
-                return ELEX;
+                return ESEM;
             }
         }
 
@@ -1776,7 +1776,7 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
     int varType = parser->token->flags;
     hTabItem *tItem;
     if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW))
-        return ESEM4;
+        return ESYN;
 
     if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
