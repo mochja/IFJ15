@@ -43,16 +43,33 @@ result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_st
                 instruction_t *i = malloc(sizeof(instruction_t));
                 if (i == NULL) return ESYS;
 
-                if ((ret = create_ADD_zval_instr(i, &a->val, &b->val)) != EOK) {
-                    free(i); return ret;
-                }
-
-                if (EXPR_IS_OFFSET(a) && EXPR_IS_OFFSET(b)) {
-                    if ((ret = create_ADD_offset_instr(i, &a->val, &b->val)) != EOK) {
+                if (EXPR_GET_INT(curr) == Op_PLUS) {
+                    if ((ret = create_ADD_zval_instr(i, &a->val, &b->val)) != EOK) {
                         free(i); return ret;
                     }
-                } else if ((ret = create_ADD_zval_instr(i, &a->val, &b->val)) != EOK) {
-                    free(i); return ret;
+
+                    if (EXPR_IS_OFFSET(a) && EXPR_IS_OFFSET(b)) {
+                        if ((ret = create_ADD_offset_instr(i, &a->val, &b->val)) != EOK) {
+                            free(i); return ret;
+                        }
+                    } else if ((ret = create_ADD_zval_instr(i, &a->val, &b->val)) != EOK) {
+                        free(i); return ret;
+                    }
+                } else if (EXPR_GET_INT(curr) == Op_MORE) {
+                    if ((ret = create_GT_instr(i, &a->val, &b->val)) != EOK) {
+                        free(i); return ret;
+                    }
+
+//                    if (EXPR_IS_OFFSET(a) && EXPR_IS_OFFSET(b)) {
+//                        if ((ret = create_ADD_offset_instr(i, &a->val, &b->val)) != EOK) {
+//                            free(i); return ret;
+//                        }
+//                    } else if ((ret = create_ADD_zval_instr(i, &a->val, &b->val)) != EOK) {
+//                        free(i); return ret;
+//                    }
+                } else {
+                    debug_print("%s\n", "Unknown operand");
+                    return ERUN3;
                 }
 
                 *kl_pushp(instruction_list, dest) = i;

@@ -215,6 +215,16 @@ result_t vm_exec(vm_t *vm) {
             }
 
 
+            case I_GT: {
+                zval_t res;
+                if ((ret = zval_gt(&res, i->first, i->second)) != EOK) {
+                    zval_dispose(&res);
+                    return ret;
+                }
+                kv_push(zval_t, vm->stack, res);
+                vm->ip++;
+                break;
+            }
 
             case I_ADD_zval: {
                 zval_t res;
