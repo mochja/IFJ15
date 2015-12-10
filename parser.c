@@ -335,7 +335,9 @@ result_t parse_fn(parser_t *parser) {
             return ESYN;    //ak nie je ziadna dalsia funkcia je to chyba
     } else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, MAIN_KW) && fType != INT_KW)
         return ESEM;
-    else result = ESYN;
+    else if(TOKEN_IS(parser->token,FN_TYPE))
+        return ESEM;
+    else return ESYN;
 
     return result;
 }
@@ -1757,10 +1759,21 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
 
     parser->argsCounter1++;
 
-    if ((result = parser_next_token(parser)) != EOK) { return result; }
+    if ((result = parser_next_token(parser)) != EOK) {
+        debug_print(" %s\n",parser->token->data.sVal );
+        return result;
+    }
     if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, COMMA_SMBL)) {
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
-        result = parse_params(parser, item);
+        if ((result = parser_next_token(parser)) != EOK) {
+            debug_print("PUSH PARAM %s\n",parser->token->data.sVal );
+            return result;
+        }
+        if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL)){
+            debug_print("PUSH PARAM %s\n",parser->token->data.sVal );
+            return ESEM2;
+        }
+        else
+            result = parse_params(parser, item);
     }
     else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {
         return EOK;
@@ -1774,6 +1787,8 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
     result_t result;
 
     int varType = parser->token->flags;
+    if(varType == AUTO_KW)
+        return ESEM4;
     hTabItem *tItem;
     if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW))
         return ESYN;
