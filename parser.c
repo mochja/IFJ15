@@ -418,9 +418,9 @@ result_t parse_list(parser_t *parser) {
 
         debug_print("\tMV TO OFFSET:%d VYRAZ\n", var_offset);
 
-        instruction_t *mv = malloc(sizeof(instruction_t));
-        create_STORE_instr(mv, var_offset);
-        *kl_pushp(instruction_list, parser->code) = mv;
+        instruction_t *store = malloc(sizeof(instruction_t));
+        create_STORE_instr(store, var_offset);
+        *kl_pushp(instruction_list, parser->code) = store;
 
         /*vlozenie 3AK na priradenie vysledku z funkcie parse_assign do hName*/
     }
@@ -939,7 +939,7 @@ result_t parse_list(parser_t *parser) {
             *kl_pushp(instruction_list, parser->code) = ret;
         }
     }
-    else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW | AUTO_KW)) {
+    else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW|AUTO_KW)) {
         /***deklaracia mimo zaciatku bloku**/
         result = parse_adv_declaration(parser);
         if (result != EOK)
@@ -1063,7 +1063,7 @@ result_t parse_adv_declaration(parser_t *parser) {
             }
 
             instruction_t *mv = malloc(sizeof(instruction_t));
-            create_POP_to_instr(mv, parser->offset_counter);
+            create_STORE_instr(mv, parser->offset_counter);
             *kl_pushp(instruction_list, parser->code) = mv;
 
             return EOK;

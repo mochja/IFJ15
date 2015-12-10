@@ -252,8 +252,9 @@ result_t vm_exec(vm_t *vm) {
             }
             case I_ADD_offset: {
                 zval_t res;
-                if ((ret = zval_add(&res, &kv_A(vm->stack, zval_get_int(i->first)),
-                                    &kv_A(vm->stack, zval_get_int(i->second)))) != EOK) {
+                ctx_t *ctx = &kv_top(vm->call_stack);
+                if ((ret = zval_add(&res, &kv_A(ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first)),
+                                    &kv_A(ctx->locals, ctx->nargs + ZVAL_GET_INT(i->second)))) != EOK) {
                     zval_dispose(&res);
                     return ret;
                 }

@@ -143,7 +143,7 @@ INSTR_T create_LABEL_instr(int key) {
 
 
 
-INSTR_T create_RETURN_instr(instruction_t *i) {
+INLINED result_t create_RETURN_instr(instruction_t *i) {
 
     i->type = I_RETURN;
     i->first = NULL;
@@ -172,18 +172,6 @@ INLINED result_t create_POP_N_instr(instruction_t *i, const int n) {
 
     i->type = I_POP_N;
     ZVAL_INIT_INT(i->first, n);
-    i->second = NULL;
-    i->third = NULL;
-
-    return EOK;
-}
-
-
-
-INLINED result_t create_POP_to_instr(instruction_t *i, const int offset) {
-
-    i->type = I_POP_to;
-    ZVAL_INIT_INT(i->first, offset);
     i->second = NULL;
     i->third = NULL;
 
