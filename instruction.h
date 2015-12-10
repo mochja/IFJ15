@@ -31,6 +31,8 @@ enum __instruction_type {
     I_POP_to,
     I_PUSH,
     I_PUSH_zval,
+    I_STORE_zval, // store on top of call stack
+    I_STORE,      // store to callstack offset
     I_JMP,
     I_COUT_pop,
     I_COUT_offset,
@@ -213,6 +215,40 @@ INLINED result_t create_PUSH_zval_instr(instruction_t *i, zval_t *val) {
         zval_init(i->first);
     }
 
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+INLINED result_t create_STORE_zval_instr(instruction_t *i, zval_t *val) {
+
+    i->type = I_STORE_zval;
+
+    i->first = malloc(sizeof(zval_t));
+
+    if (val != NULL) {
+        zval_copy(i->first, val);
+    } else {
+        zval_init(i->first);
+    }
+
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+INLINED result_t create_STORE_instr(instruction_t *i, const int offset) {
+
+    i->type = I_STORE;
+
+    i->first = malloc(sizeof(zval_t));
+    zval_set(i->first, offset);
     i->second = NULL;
     i->third = NULL;
 

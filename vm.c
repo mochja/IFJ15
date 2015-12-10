@@ -86,11 +86,12 @@ static inline void process_PUSH_instr(vm_t *vm, const int offset) {
     kv_push(zval_t, vm->stack, val);
 }
 
-INLINED result_t vm_ctx_init(ctx_t *ctx, size_t ip) {
+INLINED result_t vm_ctx_init(ctx_t *ctx, size_t ip, unsigned int nargs) {
 
     kv_init(ctx->locals);
     kv_resize(zval_t, ctx->locals, 5);
 
+    ctx->nargs = nargs;
     ctx->returnip = ip;
     return EOK;
 }
@@ -127,7 +128,9 @@ result_t vm_exec(vm_t *vm) {
                 break;
             }
             case I_COUT_offset: {
-                zval_print(&kv_A(vm->stack, zval_get_int(i->first)));
+                ctx_t *ctx = &kv_top(vm->call_stack);
+                zval_t val = kv_A(ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first));
+                zval_print(&val);
                 vm->ip++;
                 break;
             }
@@ -136,6 +139,14 @@ result_t vm_exec(vm_t *vm) {
                 zval_init(&val);
                 zval_copy(&val, i->first);
                 kv_push(zval_t, vm->stack, val);
+                vm->ip++;
+                break;
+            }
+            case I_STORE_zval: {
+                zval_t val;
+                zval_init(&val);
+                zval_copy(&val, i->first);
+                kv_push(zval_t, kv_top(vm->call_stack).locals, val);
                 vm->ip++;
                 break;
             }
@@ -151,13 +162,24 @@ result_t vm_exec(vm_t *vm) {
                 vm->ip++;
                 break;
             }
+            case I_STORE: {
+                zval_t val = kv_pop(vm->stack);
+                ctx_t *ctx = &kv_top(vm->call_stack);
+                kv_a(zval_t, ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first)) = val;
+                vm->ip++;
+                break;
+            }
             case I_CALL: {
                 ctx_t ctx;
-                vm_ctx_init(&ctx, vm->ip + 1);
+                vm_ctx_init(&ctx, vm->ip + 1, (unsigned int) ZVAL_GET_INT(i->second));
 
                 for (int j = 0; j < ZVAL_GET_INT(i->second); j++) {
-                    kv_push(zval_t, ctx.locals, kv_A(vm->stack, kv_size(vm->stack) - j - 1));
+                    kv_push(zval_t, ctx.locals, kv_pop(vm->stack));
                 }
+
+                zval_t val;
+                zval_init(&val);
+                kv_push(zval_t, ctx.locals, val); // set as divider between args and locals
 
                 kv_push(ctx_t, vm->call_stack, ctx);
                 vm->ip = (size_t) ZVAL_GET_INT(i->first);
@@ -178,7 +200,6 @@ result_t vm_exec(vm_t *vm) {
                 running = false;
                 break;
             }
-
 
 
 

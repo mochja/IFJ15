@@ -32,6 +32,7 @@ struct __vm_t {
 struct __ctx_t {
     kvec_t(zval_t) locals;
     size_t returnip;
+    unsigned int nargs;
 };
 
 result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions);

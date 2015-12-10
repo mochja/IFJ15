@@ -417,8 +417,9 @@ result_t parse_list(parser_t *parser) {
         }
 
         debug_print("\tMV TO OFFSET:%d VYRAZ\n", var_offset);
+
         instruction_t *mv = malloc(sizeof(instruction_t));
-        create_POP_to_instr(mv, var_offset);
+        create_STORE_instr(mv, var_offset);
         *kl_pushp(instruction_list, parser->code) = mv;
 
         /*vlozenie 3AK na priradenie vysledku z funkcie parse_assign do hName*/
@@ -991,8 +992,8 @@ result_t parse_adv_declaration(parser_t *parser) {
     }
     debug_print("Variable Push %s...offset:%d\n", parser->token->data.sVal, data.offset);
 
-    // add variable to stack
-    instruction_t *push_var = malloc(sizeof(instruction_t));
+    // add loc variable to stack
+    instruction_t *store = malloc(sizeof(instruction_t));
     zval_t val;
 
     if (varType == INT_KW) {
@@ -1006,9 +1007,9 @@ result_t parse_adv_declaration(parser_t *parser) {
         zval_set_undefined(&val);
     }
 
-    create_PUSH_zval_instr(push_var, &val);
+    create_STORE_zval_instr(store, &val);
     zval_dispose(&val);
-    *kl_pushp(instruction_list, parser->code) = push_var;
+    *kl_pushp(instruction_list, parser->code) = store;
     // End add variable to stack
 
     item_append_data(parser->varList.Last, data);
@@ -1178,12 +1179,8 @@ result_t parse_assign(parser_t *parser) {
                 return ESEM2;
 
             instruction_t *call = malloc(sizeof(instruction_t));
-            create_CALL_instr(call, 1, kv_size(item->data));
+            create_CALL_instr(call, 1, (int) kv_size(item->data));
             *kl_pushp(instruction_list, parser->code) = call;
-
-            instruction_t *popargs = malloc(sizeof(instruction_t));
-            create_POP_N_instr(popargs, (int) kv_size(item->data));
-            *kl_pushp(instruction_list, parser->code) = popargs;
 
             parser->argsCounter1 = 0;
 
