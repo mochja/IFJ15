@@ -1312,9 +1312,15 @@ result_t parse_build_in_fn(parser_t *parser) {
             /******************Skontrolovat typ assignVarName v TS - musi byt INT**********************/
             if ((tItem = searchItem(parser->table, parser->assignVarName)) == NULL)
                 return ESYS;
-            if (tItem->dataType != INT_KW && tItem->dataType != AUTO_KW)
-                return ESEM2;
-
+            if (tItem->dataType != INT_KW && tItem->dataType != AUTO_KW){
+                if(tItem->dataType == DOUBLE_KW){
+                    tItem->dataType = INT_KW;
+                    tItem->iVal = (int)tItem->dVal;
+                }
+                else{
+                    return ESEM2;
+                }
+            }
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                 return result;
@@ -1563,9 +1569,15 @@ result_t parse_build_in_fn(parser_t *parser) {
             /******************Skontrolovat typ assignVarName v TS - musi byt INT**********************/
             if ((tItem = searchItem(parser->table, parser->assignVarName)) == NULL)
                 return ESYS;
-            if (tItem->dataType != INT_KW && tItem->dataType != AUTO_KW)
-                return ESEM2;
-
+            if (tItem->dataType != INT_KW && tItem->dataType != AUTO_KW){
+                if(tItem->dataType == DOUBLE_KW){
+                    tItem->dataType = INT_KW;
+                    tItem->iVal = (int)tItem->dVal;
+                }
+                else{
+                    return ESEM2;
+                }
+            }
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                 return result;
