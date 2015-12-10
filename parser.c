@@ -1346,7 +1346,9 @@ result_t parse_build_in_fn(parser_t *parser) {
                 debug_print("%s\n", "<");
                 return result;
             }
-            if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
+            if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST) || TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST)) {
+                if(TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST))
+                    parser->token->data.iVal = (int)parser->token->data.dVal;
                debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                  /**********vyhladame polozku hName v TS*********/
@@ -1374,7 +1376,9 @@ result_t parse_build_in_fn(parser_t *parser) {
                 debug_print("%s\n", "<");
                 return result;
             }
-            if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
+            if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST) || TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST)) {
+                if(TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST))
+                    parser->token->data.iVal = (int)parser->token->data.dVal;
                 debug_print("%s\n","PUSH CONST\n");
             } else if (TOKEN_IS(parser->token, ID_TYPE)) {
                 /**********vyhladame polozku hName v TS*********/
