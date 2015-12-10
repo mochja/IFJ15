@@ -26,13 +26,19 @@ result_t init_parser(parser_t *parser, char *source) {
     parser->label = 1;
     parser->assignVarName = NULL;
     parser->offset_counter=0;
-    parser->is_return = false;
+    parser->has_return = false;
 
     parser->token = calloc(1, sizeof(token_t));
     parser->code = kl_init(instruction_list);
 
     // jump to main() on start
-    *kl_pushp(instruction_list, parser->code) = create_JMP_instr(0);
+    instruction_t *exit = malloc(sizeof(instruction_t));
+    create_EXIT_instr(exit);
+    *kl_pushp(instruction_list, parser->code) = exit;
+
+    instruction_t *call = malloc(sizeof(instruction_t));
+    create_CALL_instr(call, 0);
+    *kl_pushp(instruction_list, parser->code) = call;
 
     if ((parser->table = initHashTable(MAX_HTSIZE)) == NULL) {
         fprintf(stderr, "Could not initialize hash table.");
@@ -163,7 +169,6 @@ result_t parse_fn(parser_t *parser) {
             return result;
         }
 
-                                                       //ak nie je funkcia prazdna
         result = parse_fn_body(parser);
 
         if(result != EOK)
@@ -214,7 +219,6 @@ result_t parse_fn(parser_t *parser) {
             }
             if (item == NULL)
                 return ESYS;
-
         }
         else {
             if ((item = calloc(1, sizeof(struct tItem))) == NULL)
@@ -252,13 +256,15 @@ result_t parse_fn(parser_t *parser) {
                 return ESEM;
         } else {
             tableItem->params = parser->argsCounter;
-            int j=0;
-            for(int i = parser->offset_counter; i > 0; i--){
-                kv_A(item->data,j).offset=-(i);
-                debug_print("PARAMETER:%s...offset:%d\n",kv_A(item->data, j).id,  kv_A(item->data,j).offset );
+            int j = 0;
+
+            for (int i = parser->offset_counter; i > 0; i--) {
+                kv_A(item->data, j).offset = -(i);
+                debug_print("PARAMETER:%s...offset:%d\n", kv_A(item->data, j).id, kv_A(item->data, j).offset);
                 j++;
             }
-            parser->offset_counter=0;
+
+            parser->offset_counter = 0;
             insertLast(item, &parser->paramList);
         }
 
@@ -271,8 +277,12 @@ result_t parse_fn(parser_t *parser) {
 
         if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL) && tableItem->isDefined == false) {
             tableItem->isDefined = true;
-            /********MISSING: vlozenie 3AK -- label zaciatku funkcie*******/
+
             debug_print("LABEL F %s\n", fLabel);
+            instruction_t *label = create_LABEL_instr(parser->label);
+            *kl_pushp(instruction_list, parser->code) = label;
+            parser->label++;
+
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                             return result;
@@ -334,12 +344,12 @@ result_t parse_fn_body(parser_t *parser) {
     if(result != EOK && result != EEOF)
         return  result;
 
-    if(!parser->is_return){
+    if(!parser->has_return){
         debug_print("%s\n","<");
         return ERUN1;
     }
 
-    parser->is_return=false;
+    parser->has_return =false;
 
     if(parser->varList.First != NULL)
         return ESYN;
@@ -434,7 +444,7 @@ result_t parse_list(parser_t *parser) {
         *kl_pushp(instruction_list, parser->code) = pop;
 
         debug_print("BLOCK POPN: %lu\n", kv_size(item->data) + 1);
-        // TODO: PARAM CLEANUP
+
         parser->offset_counter -= kv_size(item->data);
         deleteLast(&parser->varList);
         return EOK;
@@ -858,8 +868,13 @@ result_t parse_list(parser_t *parser) {
             }
         }
         /*********************/
-        parser->is_return=true;
+
+        parser->has_return = true;
         debug_print("%s\n","RETURN\n");
+
+        instruction_t *ret = malloc(sizeof(instruction_t));
+        create_RETURN_instr(ret);
+        *kl_pushp(instruction_list, parser->code) = ret;
         /****vyhdontenie vyrazu***/
         /**vloznenie 3AK - skos s5**/
     }
@@ -1119,7 +1134,9 @@ result_t parse_assign(parser_t *parser) {
             if (kv_size(item->data) != parser->argsCounter1)
                 return ESEM2;
 
-            //
+            instruction_t *call = malloc(sizeof(instruction_t));
+            create_CALL_instr(call, 1);
+            *kl_pushp(instruction_list, parser->code) = call;
 
             parser->argsCounter1 = 0;
 

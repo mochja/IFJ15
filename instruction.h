@@ -35,6 +35,10 @@ enum __instruction_type {
     I_COUT_pop,
     I_COUT_offset,
 
+    I_CALL,
+    I_RETURN,
+    I_EXIT,
+
     I_ADD_zval,
     I_ADD_pop,
     I_ADD_zval_pop,
@@ -137,6 +141,18 @@ INSTR_T create_LABEL_instr(int key) {
 
 
 
+INSTR_T create_RETURN_instr(instruction_t *i) {
+
+    i->type = I_RETURN;
+    i->first = NULL;
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
 
 INSTR_T create_JMP_instr(int label_key) {
     instruction_t *i = calloc(1, sizeof(instruction_t));
@@ -197,6 +213,32 @@ INLINED result_t create_PUSH_zval_instr(instruction_t *i, zval_t *val) {
         zval_init(i->first);
     }
 
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+INLINED result_t create_CALL_instr(instruction_t *i, const int label) {
+
+    i->type = I_CALL;
+
+    ZVAL_INIT_INT(i->first, label);
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+INLINED result_t create_EXIT_instr(instruction_t *i) {
+
+    i->type = I_EXIT;
+
+    i->first = NULL;
     i->second = NULL;
     i->third = NULL;
 

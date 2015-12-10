@@ -44,7 +44,7 @@ result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions) {
 
         instruction_t *instr = kl_val(it);
 
-        if (instr->type == I_JMP) {
+        if (instr->type == I_JMP || instr->type == I_CALL) {
             instruction_copy(&kv_a(instruction_t, vm->instructions, i), instr);
             zval_set(kv_A(vm->instructions, i).first, kv_A(labels, ZVAL_GET_INT(instr->first)));
         } else if (instr->type != I_LABEL) {
@@ -86,7 +86,7 @@ static inline void process_PUSH_instr(vm_t *vm, const int offset) {
 result_t vm_exec(vm_t *vm) {
 
     result_t ret;
-    vm->ip = 0;
+    vm->ip = 1;
 
     while (vm->ip < kv_size(vm->instructions)) {
         instruction_t *i = &kv_A(vm->instructions, vm->ip);
@@ -132,8 +132,25 @@ result_t vm_exec(vm_t *vm) {
                 vm->ip++;
                 break;
             }
-
-
+            case I_CALL: {
+                zval_t val;
+                zval_set(&val, (int) (vm->ip + 1));
+                kv_push(zval_t, vm->stack, val);
+                vm->ip = (size_t) ZVAL_GET_INT(i->first);
+                debug_print("CALL TO [%lu]\n", vm->ip);
+                break;
+            }
+            case I_RETURN: {
+                zval_t return_ip = kv_pop(vm->stack);
+                vm->ip = (size_t) ZVAL_GET_INT(&return_ip);
+                debug_print("RETURN TO [%lu]\n", vm->ip);
+                zval_dispose(&return_ip);
+                break;
+            }
+            case I_EXIT: {
+                vm->ip = (size_t) -1;
+                break;
+            }
 
             case I_ADD_zval: {
                 zval_t res;
