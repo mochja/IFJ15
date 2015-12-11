@@ -43,14 +43,13 @@ result_t init_scanner(scanner_t *s, char *source) {
 
     strcpy(s->source, source);
     s->line = 1;
+    s->pos = 0;
 
     return EOK;
 }
 
-void destroy_scanner(scanner_t *s) {
-    if (s->source) {
-        free(s->source);
-    }
+void scanner_dispose(scanner_t *s) {
+    free(s->source);
 }
 
 result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
@@ -67,7 +66,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
     dest->type = EOF_TYPE;
     dest->flags = 0;
 
-    while ((c[0] = *(scanner->source++)) != '\0') {
+    while ((c[0] = *(scanner->source + scanner->pos++)) != '\0') {
 
         unsigned char *cx = (unsigned char *) c;
 
@@ -181,7 +180,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                         scanner->line--;
                     }
 
-                    *cx = (unsigned char) *(--scanner->source);
+                    *cx = (unsigned char) *(scanner->source + --scanner->pos);
 
                     /*kontrola ci retazec nie je klucove slovo */
                     if(!strcmp(buff, "auto"))    { token_set_kw(dest, AUTO_KW);   } else
@@ -222,7 +221,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     if (*cx == '\n') {
                         scanner->line--;
                     }
-                    *cx = (unsigned char) *(--scanner->source);
+                    *cx = (unsigned char) *(scanner->source + --scanner->pos);
                     token_set_symbol(dest, DEVIDE_SMBL);
                 }
             break;
@@ -251,7 +250,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     if (*cx == '\n') {
                         scanner->line--;
                     }
-                    *cx = (unsigned char) *(--scanner->source);
+                    *cx = (unsigned char) *(scanner->source + --scanner->pos);
                     state = STATE_BLOCK_COM;
                 }
             break;
@@ -265,7 +264,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     if (*cx == '\n') {
                         scanner->line--;
                     }
-                    *cx = (unsigned char) *(--scanner->source);
+                    *cx = (unsigned char) *(scanner->source + --scanner->pos);
                     token_set_symbol(dest, ASSIGN_SMBL);
                 }
             break;
@@ -280,7 +279,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     if (*cx == '\n') {
                         scanner->line--;
                     }
-                    *cx = (unsigned char) *(--scanner->source);
+                    *cx = (unsigned char) *(scanner->source + --scanner->pos);
                     token_set_symbol(dest, LEFT_ARROW_SMBL);
                 }
             break;
@@ -295,7 +294,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     if (*cx == '\n') {
                         scanner->line--;
                     }
-                    *cx = (unsigned char) *(--scanner->source);
+                    *cx = (unsigned char) *(scanner->source + --scanner->pos);
                     token_set_symbol(dest, RIGHT_ARROW_SMBL);
                 }
             break;
@@ -334,7 +333,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     if (*cx == '\n') {
                         scanner->line--;
                     }
-                    *cx = (unsigned char) *(--scanner->source);
+                    *cx = (unsigned char) *(scanner->source + --scanner->pos);
 
                     token_set_int_const(dest, (int) strtol(buff, NULL, 10));
                 }
@@ -376,7 +375,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     if (*cx == '\n') {
                         scanner->line--;
                     }
-                    *cx = (unsigned char) *(--scanner->source);
+                    *cx = (unsigned char) *(scanner->source + --scanner->pos);
 
                     token_set_double_const(dest, strtod(buff, NULL));
                 }
@@ -412,7 +411,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     if (*cx == '\n') {
                         scanner->line--;
                     }
-                    *cx = (unsigned char) *(--scanner->source);
+                    *cx = (unsigned char) *(scanner->source + --scanner->pos);
 
                     token_set_double_const(dest, strtod(buff, NULL));
                 }
@@ -483,14 +482,14 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     }
                     else {//ak bol znak spravny prida sa do pola ascii[];
                         ascii[counter] = *cx;
-                        *cx = (unsigned char) *(scanner->source++);
+                        *cx = (unsigned char) *(scanner->source + ++scanner->pos);
                     }
                 }
 
                 if (*cx == '\n') {
                     scanner->line--;
                 }
-                --scanner->source;
+                --scanner->pos;
 
                 if (ascii[0] == '0' && ascii[1] == '0') {
                     return ELEX;

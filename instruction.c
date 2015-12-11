@@ -15,16 +15,16 @@
 
 result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_stack) *expr) {
     result_t ret;
-    klist_t(expr_stack) *buff;
-    buff = kl_init(expr_stack);
-
+    klist_t(expr_stack) *buff = kl_init(expr_stack);
     int offset = 0;
 
     for (kliter_t(expr_stack) *it = kl_begin(expr); it != kl_end(expr); it = kl_next(it)) {
         expr_t *curr = kl_val(it);
 
         if (EXPR_IS_INT(curr) || EXPR_IS_DOUBLE(curr) || EXPR_IS_OFFSET(curr)) {
-            *kl_push(expr_stack, buff) = curr;
+            expr_t *copy = malloc(sizeof(expr_t));
+            expr_copy(copy, curr);
+            *kl_push(expr_stack, buff) = copy;
         } else if (EXPR_IS_OPERAND(curr)) {
 
             if ((EXPR_GET_INT(curr) == Op_LB) || (EXPR_GET_INT(curr) == Op_RB)) continue;
@@ -69,7 +69,7 @@ result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_st
 //                    }
                 } else {
                     debug_print("%s\n", "Unknown operand");
-                    return ERUN3;
+                    return ESYN;
                 }
 
                 *kl_pushp(instruction_list, dest) = i;

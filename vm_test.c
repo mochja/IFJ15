@@ -34,19 +34,19 @@ Ensure(VM, should_replace_labels_with_addresses_on_initialize) {
     vm_init(&vm, sl);
     kl_destroy(instruction_list, sl);
 
-    zval_t *first = kv_A(vm.instructions, 0).first;
+    zval_t *first = kv_A(vm.code, 0).first;
     assert_true(ZVAL_IS_INT(first));
     assert_equal(ZVAL_GET_INT(first), 2);
 
-    first = kv_A(vm.instructions, 1).first;
+    first = kv_A(vm.code, 1).first;
     assert_true(ZVAL_IS_INT(first));
     assert_equal(ZVAL_GET_INT(first), 3);
 
-    first = kv_A(vm.instructions, 2).first;
+    first = kv_A(vm.code, 2).first;
     assert_true(ZVAL_IS_INT(first));
     assert_equal(ZVAL_GET_INT(first), 1);
 
-    first = kv_A(vm.instructions, 3).first;
+    first = kv_A(vm.code, 3).first;
     assert_true(ZVAL_IS_INT(first));
     assert_equal(ZVAL_GET_INT(first), 100);
 

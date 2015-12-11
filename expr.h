@@ -24,11 +24,11 @@
 #define EXPR_IS_DOUBLE(x)   (((x)->flags >> 3) & 1)
 #define EXPR_IS_STRING(x)   (((x)->flags >> 4) & 1)
 
-#define EXPR_SET_OPERAND(x, v)  (x)->flags = 0x00 | 1 << 0; zval_set(&(x)->val, v);
-#define EXPR_SET_OFFSET(x, v)   (x)->flags = 0x00 | 1 << 1; zval_set(&(x)->val, v);
-#define EXPR_SET_INT(x, v)      (x)->flags = 0x00 | 1 << 2; zval_set(&(x)->val, v);
-#define EXPR_SET_DOUBLE(x, v)   (x)->flags = 0x00 | 1 << 3; zval_set(&(x)->val, v);
-#define EXPR_SET_STRING(x, v)   (x)->flags = 0x00 | 1 << 4; zval_set(&(x)->val, v);
+#define EXPR_SET_OPERAND(x, v)  do { (x)->flags = 0x01; zval_set(&(x)->val, v); } while (0);
+#define EXPR_SET_OFFSET(x, v)   do { (x)->flags = 0x02; zval_set(&(x)->val, v); } while (0);
+#define EXPR_SET_INT(x, v)      do { (x)->flags = 0x04; zval_set(&(x)->val, v); } while (0);
+#define EXPR_SET_DOUBLE(x, v)   do { (x)->flags = 0x08; zval_set(&(x)->val, v); } while (0);
+#define EXPR_SET_STRING(x, v)   do { (x)->flags = 0x10; zval_set(&(x)->val, v); } while (0);
 
 #define EXPR_GET_OPERAND(x)  (zval_get_int(&(x)->val))
 #define EXPR_GET_OFFSET(x)   (zval_get_int(&(x)->val))
@@ -84,12 +84,14 @@ struct __expr_t {
     zval_t val;
 };
 
-#define __expr_t_free(x)
-KLIST_INIT(expr_stack, expr_t*, __expr_t_free)
-
-result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens);
 
 result_t expr_init(expr_t *expr);
 result_t expr_dispose(expr_t *expr);
+result_t expr_copy(expr_t *dest, expr_t *src);
+
+#define __expr_t_free(x) do {expr_dispose(kl_val(x)); free(kl_val(x));} while(0);
+KLIST_INIT(expr_stack, expr_t*, __expr_t_free)
+
+result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens);
 
 #endif // EXPRESSION_H_

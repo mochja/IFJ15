@@ -14,12 +14,13 @@
 #include <stdio.h>
 #include "vm.h"
 
-result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions) {
-    kv_init(vm->instructions);
+result_t vm_init(vm_t *vm, klist_t(instruction_list) *code) {
+
+    kv_init(vm->code);
     kv_init(vm->stack);
 
-    kv_resize(instruction_t, vm->instructions, 50);
-    kv_resize(zval_t, vm->stack, 100);
+    kv_resize(instruction_t, vm->code, 5);
+    kv_resize(zval_t, vm->stack, 20);
 
     kvec_t(size_t) labels;
     kv_init(labels);
@@ -29,8 +30,8 @@ result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions) {
     kv_resize(ctx_t, vm->call_stack, 10);
 
     size_t i = 0;
-    for (kliter_t(instruction_list) *it = kl_begin(instructions);
-            it != kl_end(instructions); it = kl_next(it)) {
+    for (kliter_t(instruction_list) *it = kl_begin(code);
+            it != kl_end(code); it = kl_next(it)) {
 
         instruction_t *instr = kl_val(it);
 
@@ -42,16 +43,20 @@ result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions) {
     }
 
     i = 0;
-    for (kliter_t(instruction_list) *it = kl_begin(instructions);
-         it != kl_end(instructions); it = kl_next(it)) {
+    for (kliter_t(instruction_list) *it = kl_begin(code);
+         it != kl_end(code); it = kl_next(it)) {
 
         instruction_t *instr = kl_val(it);
 
         if (instr->type == I_JMP || instr->type == I_CALL || instr->type == I_JMPE) {
-            instruction_copy(&kv_a(instruction_t, vm->instructions, i), instr);
-            zval_set(kv_A(vm->instructions, i).first, kv_A(labels, ZVAL_GET_INT(instr->first)));
+            instruction_t tmp;
+            instruction_copy(&tmp, instr);
+            kv_a(instruction_t, vm->code, i) = tmp;
+            zval_set(kv_A(vm->code, i).first, kv_A(labels, ZVAL_GET_INT(instr->first)));
         } else if (instr->type != I_LABEL) {
-            instruction_copy(&kv_a(instruction_t, vm->instructions, i), instr);
+            instruction_t tmp;
+            instruction_copy(&tmp, instr);
+            kv_a(instruction_t, vm->code, i) = tmp;
         }
 
         if (instr->type != I_LABEL && instr->type != I_NOOP) {
@@ -66,15 +71,15 @@ result_t vm_init(vm_t *vm, klist_t(instruction_list) *instructions) {
 
 result_t vm_dispose(vm_t *vm) {
 
-    for (size_t i = 0; i < kv_size(vm->instructions); i++) {
-        instruction_dispose(&kv_A(vm->instructions, i));
+    for (size_t i = 0; i < kv_size(vm->code); i++) {
+        instruction_dispose(&kv_A(vm->code, i));
     }
 
     for (size_t i = 0; i < kv_size(vm->stack); ++i) {
         zval_dispose(&kv_A(vm->stack, i));
     }
 
-    kv_destroy(vm->instructions);
+    kv_destroy(vm->code);
     kv_destroy(vm->stack);
     kv_destroy(vm->call_stack);
 
@@ -106,11 +111,11 @@ result_t vm_exec(vm_t *vm) {
 
     while (running) {
 
-        if (vm->ip >= kv_size(vm->instructions)) {
+        if (vm->ip >= kv_size(vm->code)) {
             return ERUN3;
         }
 
-        instruction_t *i = &kv_A(vm->instructions, vm->ip);
+        instruction_t *i = &kv_A(vm->code, vm->ip);
         debug_print("[0x%.8lu]: [%d]\n", vm->ip, i->type);
 
         switch (i->type) {
