@@ -57,12 +57,15 @@ result_t init_parser(parser_t *parser, char *source) {
 
 result_t parser_dispose(parser_t *parser) {
 
-    token_dispose(parser->token);
+    scanner_dispose(&parser->scanner);
+    token_dispose(parser->token); free(parser->token);
+    kl_destroy(instruction_list, parser->code);
 
     return EOK;
 }
 
 result_t parser_next_token(parser_t *parser) {
+//    token_dispose(parser->token);
     return scanner_get_next_token(&parser->scanner, parser->token);
 }
 
@@ -263,7 +266,7 @@ result_t parse_fn(parser_t *parser) {
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL))
             result = parse_fn_args(parser, item);    //parsovanie argumentov funkcie
 
-        if (result != EOK){
+        if (result != EOK) {
             debug_print("%s\n", "<");
             return result;
         }
@@ -547,10 +550,17 @@ result_t parse_list(parser_t *parser) {
 
         klist_t(expr_stack) *expr = kl_init(expr_stack);
         if ((result = expr_from_tokens(expr, tokens)) != EOK) {
+            kl_destroy(token_list, tokens);
             kl_destroy(expr_stack, expr);
             return result;
         }
-        append_instr_from_expr(parser->code, expr);
+        kl_destroy(token_list, tokens);
+
+        if ((result = append_instr_from_expr(parser->code, expr)) != EOK) {
+            kl_destroy(expr_stack, expr);
+            return result;
+        }
+        kl_destroy(expr_stack, expr);
         /********hack vyrazu********/
 
         debug_print("%s\n","EXP\n");
@@ -981,10 +991,17 @@ result_t parse_list(parser_t *parser) {
 
         klist_t(expr_stack) *expr = kl_init(expr_stack);
         if ((result = expr_from_tokens(expr, tokens)) != EOK) {
+            kl_destroy(token_list, tokens);
             kl_destroy(expr_stack, expr);
             return result;
         }
-        append_instr_from_expr(parser->code, expr);
+        kl_destroy(token_list, tokens);
+
+        if ((result = append_instr_from_expr(parser->code, expr)) != EOK) {
+            kl_destroy(expr_stack, expr);
+            return result;
+        }
+        kl_destroy(expr_stack, expr);
         /*********************/
 
         parser->has_return = true;
@@ -1061,6 +1078,8 @@ result_t parse_adv_declaration(parser_t *parser) {
     } else if (varType == STRING_KW) {
         zval_set(&val, "undefined.");
         zval_set_undefined(&val);
+    } else {
+        zval_init(&val); // auto
     }
 
     create_STORE_zval_instr(store, &val);
@@ -1188,9 +1207,16 @@ result_t parse_assign(parser_t *parser) {
             klist_t(expr_stack) *expr = kl_init(expr_stack);
             if ((result = expr_from_tokens(expr, tokens)) != EOK) {
                 kl_destroy(expr_stack, expr);
+                kl_destroy(token_list, tokens);
                 return result;
             }
-            append_instr_from_expr(parser->code, expr);
+            kl_destroy(token_list, tokens);
+
+            if ((result = append_instr_from_expr(parser->code, expr)) != EOK) {
+                kl_destroy(expr_stack, expr);
+                return result;
+            }
+            kl_destroy(expr_stack, expr);
 
         } else {
             /**volanie uzivatelskej funkcie**/
@@ -1299,10 +1325,17 @@ result_t parse_assign(parser_t *parser) {
 
         klist_t(expr_stack) *expr = kl_init(expr_stack);
         if ((result = expr_from_tokens(expr, tokens)) != EOK) {
+            kl_destroy(token_list, tokens);
             kl_destroy(expr_stack, expr);
             return result;
         }
-        append_instr_from_expr(parser->code, expr);
+        kl_destroy(token_list, tokens);
+
+        if ((result = append_instr_from_expr(parser->code, expr)) != EOK) {
+            kl_destroy(expr_stack, expr);
+            return result;
+        }
+        kl_destroy(expr_stack, expr);
 
         /*********************/
     } else return ESYN;
@@ -1833,16 +1866,18 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
     result_t result;
 
     int varType = parser->token->flags;
-    if(varType == AUTO_KW)
+
+    if (varType == AUTO_KW)
         return ESEM4;
+
     hTabItem *tItem;
     if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW))
         return ESYN;
 
     if ((result = parser_next_token(parser)) != EOK) {
-            debug_print("%s\n", "<");
-            return result;
-        }
+        debug_print("%s\n", "<");
+        return result;
+    }
 
     if (!TOKEN_IS(parser->token, ID_TYPE))
         return ESYN;

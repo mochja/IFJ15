@@ -91,6 +91,7 @@ INLINED void instruction_dispose(instruction_t *i) {
     } else (dest)->name = 0;
 
 INLINED void instruction_copy(instruction_t *dest, instruction_t *src) {
+
     if (dest == NULL || src == NULL) {
         if (dest != NULL) {
             dest->type = I_NOOP;
@@ -105,7 +106,7 @@ INLINED void instruction_copy(instruction_t *dest, instruction_t *src) {
     __copy_if_src_exists(third, dest, src);
 }
 
-#define __instruction_free(x) instruction_dispose(kl_val(x)); free(kl_val(x));
+#define __instruction_free(x) do { instruction_dispose(kl_val(x)); free(kl_val(x)); } while (0);
 KLIST_INIT(instruction_list, instruction_t*, __instruction_free)
 
 
@@ -128,6 +129,8 @@ INSTR_T create_POP_instr(int addr_offset) {
 
     i->type = I_POP;
     ZVAL_INIT_INT(i->first, addr_offset);
+    i->second = NULL;
+    i->third = NULL;
 
     return i;
 }
@@ -140,6 +143,8 @@ INSTR_T create_LABEL_instr(int key) {
 
     i->type = I_LABEL;
     ZVAL_INIT_INT(i->first, key);
+    i->second = NULL;
+    i->third = NULL;
 
     return i;
 }
@@ -164,6 +169,8 @@ INSTR_T create_JMP_instr(int label_key) {
 
     i->type = I_JMP;
     ZVAL_INIT_INT(i->first, label_key);
+    i->second = NULL;
+    i->third = NULL;
 
     return i;
 }
@@ -188,6 +195,8 @@ INSTR_T create_PUSH_int_instr(const int store_offset) {
 
     i->type = I_PUSH;
     ZVAL_INIT_INT(i->first, store_offset);
+    i->second = NULL;
+    i->third = NULL;
 
     return i;
 }
@@ -279,6 +288,9 @@ INSTR_T create_COUT_pop_instr() {
     instruction_t *i = calloc(1, sizeof(instruction_t));
 
     i->type = I_COUT_pop;
+    i->first = NULL;
+    i->second = NULL;
+    i->third = NULL;
 
     return i;
 }
@@ -314,10 +326,12 @@ INLINED result_t create_JMPE_instr(instruction_t *i, const int label_id, zval_t 
 INLINED result_t create_GT_instr(instruction_t *i, zval_t *a, zval_t *b) {
 
     i->type = I_GT;
+
     i->first = malloc(sizeof(zval_t));
     i->second = malloc(sizeof(zval_t));
     zval_copy(i->first, a);
     zval_copy(i->second, b);
+
     i->third = NULL;
 
     return EOK;

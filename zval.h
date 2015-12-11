@@ -111,7 +111,7 @@ INLINED result_t zval_set_undefined(zval_t *val) {
 
     val->type |= T_UNDEFINED;
 
-    if (ZVAL_IS_STRING(val)) {
+    if (ZVAL_IS_DEFINED(val) && ZVAL_IS_STRING(val)) {
         free(val->sVal);
     }
 
@@ -182,11 +182,12 @@ INLINED result_t zval_copy(zval_t *dest, zval_t *src) {
 
     dest->type = src->type;
 
-    dest->dVal = src->dVal;
-    dest->iVal = src->iVal;
-
     if (ZVAL_IS_STRING(dest)) {
         return zval_set_string(dest, ZVAL_GET_STRING(src));
+    } else if (ZVAL_IS_DOUBLE(src)) {
+        dest->iVal = src->iVal;
+    } else {
+        dest->dVal = src->dVal;
     }
 
     return EOK;

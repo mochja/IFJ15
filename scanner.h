@@ -23,10 +23,11 @@
 typedef struct {
     char *source;
     size_t line;
+    size_t pos;
 } scanner_t;
 
 result_t init_scanner(scanner_t *s, char *source);
 result_t scanner_get_next_token(scanner_t *s, token_t *dest);
-void destroy_scanner(scanner_t *s);
+void scanner_dispose(scanner_t *s);
 
 #endif // SCANNER_H_
