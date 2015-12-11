@@ -76,6 +76,5 @@ TestSuite *expression_suite() {
     add_test_with_context(suite, Expression, can_contain_a_number);
     add_test_with_context(suite, Expression, can_contain_a_operand);
     add_test_with_context(suite, Expression, can_contain_a_string);
-    add_test_with_context(suite, Expression, should_be_able_to_generate_expr_stack);
     return suite;
 }
