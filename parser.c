@@ -1208,10 +1208,19 @@ result_t parse_assign(parser_t *parser) {
 
             if ((tItem = searchItem(parser->table, parser->assignVarName)) == NULL)
                 return ESYS;
-            if (tItem->dataType != tableItem->dataType && tItem->dataType != AUTO_KW)
+            if (tItem->dataType != tableItem->dataType && tItem->dataType != AUTO_KW){
                 if(tItem->dataType == STRING_KW || tableItem->dataType == STRING_KW)
                     return ESEM2;
-
+                else{
+                    if(tItem->dataType == DOUBLE_KW && tableItem->dataType == INT_KW){
+                        tItem->dataType = INT_KW;
+                        tItem->iVal = (int)tItem->dVal;
+                    }else if(tItem->dataType == INT_KW && tableItem->dataType == DOUBLE_KW){
+                        tItem->dataType = DOUBLE_KW;
+                        tItem->dVal = (double)tItem->iVal;
+                    }
+                }
+            }
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                 return result;
