@@ -335,7 +335,9 @@ result_t parse_fn(parser_t *parser) {
             return ESYN;    //ak nie je ziadna dalsia funkcia je to chyba
     } else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, MAIN_KW) && fType != INT_KW)
         return ESEM;
-    else result = ESYN;
+    else if(TOKEN_IS(parser->token,FN_TYPE))
+        return ESEM;
+    else return ESYN;
 
     return result;
 }
@@ -1168,7 +1170,7 @@ result_t parse_assign(parser_t *parser) {
                 } else {
                     free(cpy);
                     debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
-                    return ELEX;
+                    return ESYN;
                 }
 
                 *kl_pushp(token_list, tokens) = cpy;
@@ -1179,7 +1181,7 @@ result_t parse_assign(parser_t *parser) {
 
                 if (TOKEN_IS(parser->token, ID_TYPE) && ((tableItem = searchItem(parser->table, parser->token->data.sVal)) != NULL)) {
                     debug_print("%s\n", "Undefined variable");
-                    return ELEX;
+                    return ESEM;
                 }
             }
 
@@ -1206,10 +1208,19 @@ result_t parse_assign(parser_t *parser) {
 
             if ((tItem = searchItem(parser->table, parser->assignVarName)) == NULL)
                 return ESYS;
-            if (tItem->dataType != tableItem->dataType && tItem->dataType != AUTO_KW)
+            if (tItem->dataType != tableItem->dataType && tItem->dataType != AUTO_KW){
                 if(tItem->dataType == STRING_KW || tableItem->dataType == STRING_KW)
                     return ESEM2;
-
+                else{
+                    if(tItem->dataType == DOUBLE_KW && tableItem->dataType == INT_KW){
+                        tItem->dataType = INT_KW;
+                        tItem->iVal = (int)tItem->dVal;
+                    }else if(tItem->dataType == INT_KW && tableItem->dataType == DOUBLE_KW){
+                        tItem->dataType = DOUBLE_KW;
+                        tItem->dVal = (double)tItem->iVal;
+                    }
+                }
+            }
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                 return result;
@@ -1271,7 +1282,7 @@ result_t parse_assign(parser_t *parser) {
             } else {
                 free(cpy);
                 debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
-                return ELEX;
+                return ESYN;
             }
 
             *kl_pushp(token_list, tokens) = cpy;
@@ -1282,7 +1293,7 @@ result_t parse_assign(parser_t *parser) {
 
             if (TOKEN_IS(parser->token, ID_TYPE) && (searchItem(parser->table, parser->token->data.sVal) != NULL)) {
                 debug_print("%s\n", "Undefined variable");
-                return ELEX;
+                return ESEM;
             }
         }
 
@@ -1310,9 +1321,15 @@ result_t parse_build_in_fn(parser_t *parser) {
             /******************Skontrolovat typ assignVarName v TS - musi byt INT**********************/
             if ((tItem = searchItem(parser->table, parser->assignVarName)) == NULL)
                 return ESYS;
-            if (tItem->dataType != INT_KW && tItem->dataType != AUTO_KW)
-                return ESEM2;
-
+            if (tItem->dataType != INT_KW && tItem->dataType != AUTO_KW){
+                if(tItem->dataType == DOUBLE_KW){
+                    tItem->dataType = INT_KW;
+                    tItem->iVal = (int)tItem->dVal;
+                }
+                else{
+                    return ESEM2;
+                }
+            }
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                 return result;
@@ -1561,9 +1578,15 @@ result_t parse_build_in_fn(parser_t *parser) {
             /******************Skontrolovat typ assignVarName v TS - musi byt INT**********************/
             if ((tItem = searchItem(parser->table, parser->assignVarName)) == NULL)
                 return ESYS;
-            if (tItem->dataType != INT_KW && tItem->dataType != AUTO_KW)
-                return ESEM2;
-
+            if (tItem->dataType != INT_KW && tItem->dataType != AUTO_KW){
+                if(tItem->dataType == DOUBLE_KW){
+                    tItem->dataType = INT_KW;
+                    tItem->iVal = (int)tItem->dVal;
+                }
+                else{
+                    return ESEM2;
+                }
+            }
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                 return result;
@@ -1713,7 +1736,18 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
             return ESYS;
 
         if ((tableItem->dataType != AUTO_KW) && (tableItem->dataType != tItem1->dataType) && (tItem1->dataType != AUTO_KW))
-            return ESEM2;
+        {
+            //pretypovanie
+            if(tableItem->dataType == INT_KW && tItem1->dataType == DOUBLE_KW){
+                parser->token->data.iVal = (int)parser->token->data.dVal;
+                parser->token->flags = INT_KW;
+            }
+            else if(tableItem->dataType == DOUBLE_KW && tItem1->dataType == INT_KW){
+                parser->token->data.dVal = (double)parser->token->data.iVal;
+                parser->token->flags = DOUBLE_KW;
+            }
+            else return ESEM2;
+        }
         debug_print("PUSH PARAM ID: %s OFFSET: %d\n", parser->token->data.sVal,var_offset);
 
         /****************parameter tItem1*****************/
@@ -1723,8 +1757,15 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
             return ESEM2;
 
-        if (tableItem->dataType != INT_KW && tableItem->dataType != AUTO_KW)
-            return ESEM2;
+        if (tableItem->dataType != INT_KW && tableItem->dataType != AUTO_KW){
+            if(tableItem->dataType == DOUBLE_KW){
+                parser->token->data.dVal = (double)parser->token->data.iVal;
+                parser->token->flags = DOUBLE_KW;
+            }
+            else{
+                return ESEM2;
+            }
+        }
 
         instruction_t *i = malloc(sizeof(instruction_t));
         create_PUSH_zval_instr(i, &parser->token->data);
@@ -1737,19 +1778,26 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
             return ESEM2;
 
-        if (tableItem->dataType != DOUBLE_KW && tableItem->dataType != AUTO_KW)
-            return ESEM2;
+        if (tableItem->dataType != DOUBLE_KW && tableItem->dataType != AUTO_KW){
+            if(tableItem->dataType == INT_KW){
+                parser->token->data.iVal = (int)parser->token->data.dVal;
+                parser->token->flags = INT_KW;
+            }
+            else{
+                return ESEM2;
+            }
+        }
 
         debug_print("PUSH PARAM %lf\n",parser->token->data.dVal);
         /****************************************/
     }
     else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-        if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
+        if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL){
             return ESEM2;
-
-        if (tableItem->dataType != STRING_KW && tableItem->dataType != AUTO_KW)
+        }
+        if (tableItem->dataType != STRING_KW && tableItem->dataType != AUTO_KW){
             return ESEM2;
-
+        }
         debug_print("PUSH PARAM %s\n",parser->token->data.sVal );
         /**************************************/
     }
@@ -1757,10 +1805,21 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
 
     parser->argsCounter1++;
 
-    if ((result = parser_next_token(parser)) != EOK) { return result; }
+    if ((result = parser_next_token(parser)) != EOK) {
+        debug_print(" %s\n",parser->token->data.sVal );
+        return result;
+    }
     if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, COMMA_SMBL)) {
-        if ((result = parser_next_token(parser)) != EOK) { return result; }
-        result = parse_params(parser, item);
+        if ((result = parser_next_token(parser)) != EOK) {
+            debug_print("PUSH PARAM %s\n",parser->token->data.sVal );
+            return result;
+        }
+        if(TOKEN_HAS_TFLAG(parser->token,SMBL_TYPE,RIGHT_CULUM_SMBL)){
+            debug_print("PUSH PARAM %s\n",parser->token->data.sVal );
+            return ESEM2;
+        }
+        else
+            result = parse_params(parser, item);
     }
     else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_CULUM_SMBL)) {
         return EOK;
@@ -1774,9 +1833,11 @@ result_t parse_fn_args(parser_t *parser, tItemPtr item) {
     result_t result;
 
     int varType = parser->token->flags;
+    if(varType == AUTO_KW)
+        return ESEM4;
     hTabItem *tItem;
     if (!TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW))
-        return ESEM4;
+        return ESYN;
 
     if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
