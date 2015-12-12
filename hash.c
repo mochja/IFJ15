@@ -33,19 +33,19 @@ void freeHashTable(tTable *t)
     }
 
     for (int i = 0; i < t->size; ++i) {
-        hTabItem *freeItem;
-
-        freeItem = t->array[i];
-        while (true) {
-            if (t->array[i] == NULL || t->array[i]->next == NULL) {
-                break;
-            } else {
-                freeItem = t->array[i]->next;
-                t->array[i]->next = freeItem->next;
-                free(freeItem);
+        while (t->array[i] != NULL) {
+            hTabItem *next = t->array[i]->next;
+            if (next != NULL) {
+                free(t->array[i]->name);
+                free(t->array[i]);
+                t->array[i] = next;
+                continue;
+            } else if (t->array != NULL) {
+                free(t->array[i]->name);
+                free(t->array[i]);
             }
+            break;
         }
-        free(t->array[i]);
     }
     free(t);
 }
@@ -73,6 +73,8 @@ hTabItem *createNewItem()
     newItem->dataType = -1;
     newItem->params = -1;
     newItem->paramPosition = -1;
+    newItem->sVal = NULL;
+    newItem->name = NULL;
 
     return newItem;
 }

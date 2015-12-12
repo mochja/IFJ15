@@ -57,6 +57,11 @@ result_t init_parser(parser_t *parser, char *source) {
 
 result_t parser_dispose(parser_t *parser) {
 
+    listDispose(&parser->varList);
+    listDispose(&parser->paramList);
+
+    freeHashTable(parser->table);
+
     scanner_dispose(&parser->scanner);
     token_dispose(parser->token); free(parser->token);
     kl_destroy(instruction_list, parser->code);
@@ -962,6 +967,8 @@ result_t parse_list(parser_t *parser) {
                 int offset;
 
                 if ((result = offset_of_current_token(parser, &offset)) != EOK) {
+                    free(cpy);
+                    kl_destroy(token_list, tokens);
                     debug_print("%s\n", "<");
                     return result;
                 }
@@ -973,6 +980,7 @@ result_t parse_list(parser_t *parser) {
                 token_copy(cpy, parser->token);
             } else {
                 free(cpy);
+                kl_destroy(token_list, tokens);
                 debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
                 return ELEX;
             }

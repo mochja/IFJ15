@@ -23,8 +23,6 @@
 #define uint32_t unsigned int
 
 struct hItem {
-    bool isFree;
-    char *key;
     struct hItem *next;
 
     char *name;

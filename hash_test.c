@@ -35,7 +35,8 @@ Ensure(Hash, can_hold_an_item) {
     item = createNewItem();
     assert_that(item, is_not_equal_to(NULL));
 
-    item->name = "test";
+    item->name = malloc(sizeof(char) * (10 + 1));
+    strcpy(item->name, "test");
     item->dataType = 18;
     item->sVal = malloc(sizeof(char) * (10 + 1));
     strcpy(item->sVal, "abcdabcd12");
