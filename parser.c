@@ -116,6 +116,18 @@ result_t parser_run(parser_t *parser) {
         return result;
     }
 
+    tItemPtr tmp = parser->paramList.First;
+
+    while(tmp != NULL){
+        hTabItem * tableItem;
+        if((tableItem = searchItem(parser->table, tmp->functionId)) == NULL)
+            return ESYS;
+        if(tableItem->isDefined == false)
+            return ESEM;
+        tmp=tmp->next;
+    }
+
+
     // Overime ci sme naozaj na konci
    // if (parser_next_token(parser) != EEOF) {
      //   return ESYN;
@@ -158,6 +170,7 @@ result_t parse_fn(parser_t *parser) {
             strcpy(tableItem->name, parser->fName);
             tableItem->dataType = INT_KW;
             tableItem->isDefined = false;
+            tableItem->f_label=0;
             insertHashTable(parser->table, tableItem);
         }
 
@@ -232,6 +245,8 @@ result_t parse_fn(parser_t *parser) {
             strcpy(tableItem->name, parser->fName);
             tableItem->dataType = fType;
             tableItem->isDefined = false;
+            ++parser->label;
+            tableItem->f_label=parser->label;
             insertHashTable(parser->table, tableItem);
         }
         /***ak uz je v tabulke nastavy sa fDeclared na true a pokracuje dalej*/
@@ -252,7 +267,8 @@ result_t parse_fn(parser_t *parser) {
             if ((item = calloc(1, sizeof(struct tItem))) == NULL)
                 return ESYS;
             kv_init(item->data);
-            item->functionId = parser->fName;
+            item->functionId = malloc(sizeof(char) * (strlen(parser->fName) + 1));
+            strcpy(item->functionId, parser->fName);
         }
 
         if ((result = parser_next_token(parser)) != EOK) {
@@ -306,7 +322,7 @@ result_t parse_fn(parser_t *parser) {
         if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL) && tableItem->isDefined == false) {
             tableItem->isDefined = true;
 
-            debug_print("LABEL F %s\n", fLabel);
+            debug_print("LABEL F %d\n", tableItem->f_label);
             instruction_t *label = create_LABEL_instr(parser->label);
             *kl_pushp(instruction_list, parser->code) = label;
             parser->label++;
