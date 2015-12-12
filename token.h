@@ -101,9 +101,6 @@ struct __token_t {
     zval_t data;
 };
 
-#define __token_t_free(x)
-KLIST_INIT(token_list, token_t*, __token_t_free)
-
 INLINED void token_set_type(token_t *dest, const unsigned char type) {
     dest->type = type;
 }
@@ -170,10 +167,15 @@ INLINED result_t token_copy(token_t *dest, token_t *src) {
 
 INLINED void token_dispose(token_t *t) {
 
+    if (t == NULL) return;
+
     t->type = BASIC_TYPE;
     t->flags = 0;
 
     zval_dispose(&t->data);
 }
+
+#define __token_t_free(x) do { token_dispose(kl_val((x))); free(kl_val((x))); } while(0)
+KLIST_INIT(token_list, token_t*, __token_t_free)
 
 #endif // TOKEN_H_
