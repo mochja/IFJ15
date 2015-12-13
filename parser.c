@@ -601,7 +601,7 @@ result_t parse_list(parser_t *parser) {
                 cpy.type = ID_TYPE;
                 cpy.flags = OFFSET_ID;
                 zval_set(&cpy.data, offset);
-            } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ZVAL_IS_SYMBOL) || TOKEN_IS(parser->token, CONST_TYPE)) {
+            } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SMBL_WHITELIST) || TOKEN_IS(parser->token, CONST_TYPE)) {
                 token_copy(&cpy, parser->token);
             } else {
                 debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
@@ -833,7 +833,7 @@ result_t parse_list(parser_t *parser) {
                     cpy.type = ID_TYPE;
                     cpy.flags = OFFSET_ID;
                     zval_set(&cpy.data, offset);
-                } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ZVAL_IS_SYMBOL) || TOKEN_IS(parser->token, CONST_TYPE)) {
+                } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SMBL_WHITELIST) || TOKEN_IS(parser->token, CONST_TYPE)) {
                     token_copy(&cpy, parser->token);
                 } else {
                     kl_destroy(token_list, tokens);
@@ -911,7 +911,7 @@ result_t parse_list(parser_t *parser) {
                 cpy.type = ID_TYPE;
                 cpy.flags = OFFSET_ID;
                 zval_set(&cpy.data, offset);
-            } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ZVAL_IS_SYMBOL) || TOKEN_IS(parser->token, CONST_TYPE)) {
+            } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SMBL_WHITELIST) || TOKEN_IS(parser->token, CONST_TYPE)) {
                 token_copy(&cpy, parser->token);
             } else {
                 kl_destroy(token_list, tokens);
@@ -1453,7 +1453,7 @@ result_t parse_assign(parser_t *parser) {
                     cpy.type = ID_TYPE;
                     cpy.flags = OFFSET_ID;
                     zval_set(&cpy.data, offset);
-                } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ZVAL_IS_SYMBOL) || TOKEN_IS(parser->token, CONST_TYPE)) {
+                } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SMBL_WHITELIST) || TOKEN_IS(parser->token, CONST_TYPE)) {
                     token_copy(&cpy, parser->token);
                 } else {
                     debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
@@ -1589,7 +1589,7 @@ result_t parse_assign(parser_t *parser) {
                 cpy.type = ID_TYPE;
                 cpy.flags = OFFSET_ID;
                 zval_set(&cpy.data, offset);
-            } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, ZVAL_IS_SYMBOL) || TOKEN_IS(parser->token, CONST_TYPE)) {
+            } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SMBL_WHITELIST) || TOKEN_IS(parser->token, CONST_TYPE)) {
                 token_copy(&cpy, parser->token);
             } else {
                 debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
