@@ -69,17 +69,14 @@ int main(int argc, char *argv[])
             parser_dispose(&parser);
             return res;
         }
-
         vm_t vm;
         if ((res = vm_init(&vm, parser.code)) != EOK) {
             parser_dispose(&parser);
             return res;
         }
-
         if ((res = parser_dispose(&parser)) != EOK) {
             return res;
         }
-
         if ((res = vm_exec(&vm)) != EOK) {
             vm_dispose(&vm);
             return res;

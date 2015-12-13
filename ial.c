@@ -52,6 +52,7 @@ char* concat(const char *str1 , const char *str2)
 }
 
 char *sort(const char *s) {
+
     char *result_str = malloc((strlen(s) + 1) * sizeof(char));
     strcpy(result_str, s);
 
@@ -60,16 +61,15 @@ char *sort(const char *s) {
     char tmp;
 
     while (gap > 0) {
-        for (i = gap; i < strlen(s); i++) {
-            j = i;
-            tmp = result_str[i];
+        for (i = 0; i < strlen(s)-gap; i++) {
+            j = i+gap;
+            tmp = result_str[j];
             while (result_str[j - gap] > tmp && j >= gap) {
-                result_str[i] = s[j - gap];
+                result_str[j] = result_str[j - gap];
                 j -= gap;
             }
             result_str[j] = tmp;
         }
-
         gap = (gap == 2) ? 1 : (size_t) (gap / 2.2);
     }
 
@@ -111,5 +111,5 @@ int find(const char *s, const char *search) {
         i += delta[(int) s[i]];
     }
 
-    return i;
+    return -1;
 }

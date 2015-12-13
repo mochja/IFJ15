@@ -211,7 +211,7 @@ INLINED result_t zval_add(zval_t *dest, zval_t *a, zval_t *b) {
     } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
         zval_set(dest, ZVAL_GET_INT(a) + ZVAL_GET_INT(b));
     } else {
-        return ESEM3; // TODO: Fix error code
+        return ESEM2; // TODO: Fix error code
     }
 
     return EOK;
@@ -232,7 +232,7 @@ INLINED result_t zval_sub(zval_t *dest, zval_t *a, zval_t *b) {
     } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
         zval_set(dest, ZVAL_GET_INT(a) - ZVAL_GET_INT(b));
     } else {
-        return ESEM3; // TODO: Fix error code
+        return ESEM2; // TODO: Fix error code
     }
 
     return EOK;
@@ -253,7 +253,7 @@ INLINED result_t zval_mul(zval_t *dest, zval_t *a, zval_t *b) {
     } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
         zval_set(dest, ZVAL_GET_INT(a) * ZVAL_GET_INT(b));
     } else {
-        return ESEM3; // TODO: Fix error code
+        return ESEM2; // TODO: Fix error code
     }
 
     return EOK;
@@ -277,7 +277,7 @@ INLINED result_t zval_div(zval_t *dest, zval_t *a, zval_t *b) {
     } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
         zval_set(dest, ZVAL_GET_INT(a) / ZVAL_GET_INT(b));
     } else {
-        return ESEM3; // TODO: Fix error code
+        return ESEM2; // TODO: Fix error code
     }
 
     return EOK;
@@ -307,7 +307,7 @@ INLINED result_t zval_eq(zval_t *dest, zval_t *a, zval_t *b) {
         int res = (!strcmp(zval_get_string(a), zval_get_string(b))) ? 1 : 0;
         zval_set(dest, res);
     } else {
-        return ESEM3; // TODO: Fix error code
+        return ESEM2; // TODO: Fix error code
     }
 
     return EOK;
@@ -333,7 +333,7 @@ INLINED result_t zval_nq(zval_t *dest, zval_t *a, zval_t *b) {
         int res = (strcmp(zval_get_string(a), zval_get_string(b))) ? 1 : 0;
         zval_set(dest, res);
     } else {
-        return ESEM3; // TODO: Fix error code
+        return ESEM2; // TODO: Fix error code
     }
 
     return EOK;
@@ -360,7 +360,7 @@ INLINED result_t zval_gt(zval_t *dest, zval_t *a, zval_t *b) {
         int res = (ZVAL_GET_INT(a) > ZVAL_GET_INT(b)) ? 1 : 0;
         zval_set(dest, res);
     } else {
-        return ESEM3; // TODO: Fix error code
+        return ESEM2; // TODO: Fix error code
     }
 
     return EOK;
@@ -383,7 +383,7 @@ INLINED result_t zval_lt(zval_t *dest, zval_t *a, zval_t *b) {
         int res = (ZVAL_GET_INT(a) < ZVAL_GET_INT(b)) ? 1 : 0;
         zval_set(dest, res);
     } else {
-        return ESEM3; // TODO: Fix error code
+        return ESEM2; // TODO: Fix error code
     }
 
     return EOK;
@@ -410,7 +410,7 @@ INLINED result_t zval_le(zval_t *dest, zval_t *a, zval_t *b) {
         int res = (ZVAL_GET_INT(a) <= ZVAL_GET_INT(b)) ? 1 : 0;
         zval_set(dest, res);
     } else {
-        return ESEM3; // TODO: Fix error code
+        return ESEM2; // TODO: Fix error code
     }
 
     return EOK;
@@ -437,7 +437,7 @@ INLINED result_t zval_ge(zval_t *dest, zval_t *a, zval_t *b) {
         int res = (ZVAL_GET_INT(a) >= ZVAL_GET_INT(b)) ? 1 : 0;
         zval_set(dest, res);
     } else {
-        return ESEM3; // TODO: Fix error code
+        return ESEM2; // TODO: Fix error code
     }
 
     return EOK;
