@@ -40,6 +40,9 @@
 #define ZVAL_IS_DOUBLE(x)       (((x)->type >> 2) & 1)
 #define ZVAL_IS_STRING(x)       (((x)->type >> 3) & 1)
 #define ZVAL_IS_DEFINED(x)      (!(((x)->type >> 0) & 1))
+#define ZVAL_IS_SYMBOL LEFT_CULUM_SMBL| RIGHT_CULUM_SMBL|EQUALS_SMBL|LEFT_ARROW_SMBL|  \
+                        RIGHT_ARROW_SMBL|LESS_OR_EQUAL_SMBL|MORE_OR_EQUAL_SMBL|         \
+                        NOT_EQUAL_SMBL|PLUS_SMBL|MINUS_SMBL|DEVIDE_SMBL|ASSIGN_SMBL|MULTIPLY_SMBL
 
 #define ZVAL_INIT_INT(x, v)                                 \
     (x) = malloc(sizeof(zval_t));                           \

@@ -56,4 +56,9 @@ result_t parse_params(parser_t *parser, tItemPtr item);
 
 result_t parser_next_token(parser_t *parser);
 
+/*int allowed_sym_in_exp[11] ={LEFT_CULUM_SMBL, RIGHT_CULUM_SMBL,EQUALS_SMBL,LEFT_ARROW_SMBL,
+    RIGHT_ARROW_SMBL,LESS_OR_EQUAL_SMBL,MORE_OR_EQUAL_SMBL,
+    NOT_EQUAL_SMBL,PLUS_SMBL,MINUS_SMBL,DEVIDE_SMBL,ASSIGN_SMBL};
+int allowed_sym_in_exp1[6] = {LEFT_CULUM_SMBL, RIGHT_CULUM_SMBL,PLUS_SMBL,MINUS_SMBL,DEVIDE_SMBL,ASSIGN_SMBL};
+*/
 #endif // PARSER_H_
