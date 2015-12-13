@@ -214,3 +214,12 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+# Sublime Text
+*.sublime-workspace
+
+# C
+*.o
+*.a
+*.out
+/ifj15
