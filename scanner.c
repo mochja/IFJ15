@@ -512,6 +512,9 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
         return ELEX;
     }
 
+    ddest->type = EOF_TYPE;
+    ddest->flags = 0x00;
+
     debug_print("%s\n", "EOF<");
     return EEOF;
 }

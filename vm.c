@@ -69,6 +69,33 @@ result_t vm_init(vm_t *vm, klist_t(instruction_list) *code) {
     return EOK;
 }
 
+
+
+INLINED result_t vm_ctx_init(ctx_t *ctx, size_t ip, unsigned int nargs) {
+
+    kv_init(ctx->locals);
+    kv_resize(zval_t, ctx->locals, 5);
+
+    ctx->nargs = nargs;
+    ctx->returnip = ip;
+    return EOK;
+}
+
+
+
+INLINED result_t vm_ctx_dispose(ctx_t *ctx) {
+
+    for (size_t i = 0; i < kv_size(ctx->locals); ++i) {
+        zval_dispose(&kv_A(ctx->locals, i));
+    }
+
+    kv_destroy(ctx->locals);
+
+    return EOK;
+}
+
+
+
 result_t vm_dispose(vm_t *vm) {
 
     for (size_t i = 0; i < kv_size(vm->code); i++) {
@@ -81,10 +108,17 @@ result_t vm_dispose(vm_t *vm) {
 
     kv_destroy(vm->code);
     kv_destroy(vm->stack);
+
+    for (size_t i = 0; i < kv_size(vm->call_stack); ++i) {
+        vm_ctx_dispose(&kv_A(vm->call_stack, i));
+    }
+
     kv_destroy(vm->call_stack);
 
     return EOK;
 }
+
+
 
 static inline void process_PUSH_instr(vm_t *vm, const int offset) {
     zval_t val;
@@ -92,15 +126,7 @@ static inline void process_PUSH_instr(vm_t *vm, const int offset) {
     kv_push(zval_t, vm->stack, val);
 }
 
-INLINED result_t vm_ctx_init(ctx_t *ctx, size_t ip, unsigned int nargs) {
 
-    kv_init(ctx->locals);
-    kv_resize(zval_t, ctx->locals, 5);
-
-    ctx->nargs = nargs;
-    ctx->returnip = ip;
-    return EOK;
-}
 
 result_t vm_exec(vm_t *vm) {
 
