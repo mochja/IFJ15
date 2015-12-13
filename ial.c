@@ -23,16 +23,14 @@ char* substr(const char *str, int pos, int count)
     size_t str_len = length(str);
 
     if (pos < 0 || count < 0 || pos > str_len) {
-        // TODO: proper error handling
-        exit(1);
+        return NULL;
     }
 
     size_t result_len = (count > str_len - pos) ? str_len - pos : (size_t) count;
     result_str = malloc((result_len + 1) * sizeof(char));
 
     if (result_str == NULL) {
-        // TODO: proper error handling
-        exit(1);
+        return NULL;
     }
 
     if (pos < str_len) {
@@ -54,8 +52,7 @@ char* concat(const char *str1 , const char *str2)
     result_str = malloc((str1_len + str2_len + 1) * sizeof(char));
 
     if (result_str == NULL) {
-        // TODO: proper error handling
-        exit(1);
+        return NULL;
     }
 
     memcpy(result_str, str1, str1_len);

@@ -308,6 +308,11 @@ result_t vm_exec(vm_t *vm) {
                     if (!ZVAL_IS_DEFINED(&pos)) return ERUN1;
                     if (!ZVAL_IS_DEFINED(&s)) return ERUN1;
                     char *r = substr(zval_get_string(&s), zval_get_int(&pos), zval_get_int(&count));
+                    if (r == NULL) {
+                        ret = ERUN3;
+                        running = false;
+                        break;
+                    }
                     zval_set(&res, r);
                     free(r);
                     zval_dispose(&s);
@@ -321,6 +326,11 @@ result_t vm_exec(vm_t *vm) {
                     if (!ZVAL_IS_DEFINED(&s1)) return ERUN1;
                     zval_t res;
                     char *r = concat(zval_get_string(&s1), zval_get_string(&s2));
+                    if (r == NULL) {
+                        ret = ERUN3;
+                        running = false;
+                        break;
+                    }
                     zval_set(&res, r);
                     free(r);
                     zval_dispose(&s1);
@@ -341,6 +351,11 @@ result_t vm_exec(vm_t *vm) {
                     if (!ZVAL_IS_DEFINED(&s1)) return ERUN1;
                     zval_t res;
                     char *r = sort(zval_get_string(&s1));
+                    if (r == NULL) {
+                        ret = ERUN3;
+                        running = false;
+                        break;
+                    }
                     zval_set(&res, r);
                     free(r);
                     zval_dispose(&s1);
