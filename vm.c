@@ -110,9 +110,9 @@ result_t vm_dispose(vm_t *vm) {
     kv_destroy(vm->code);
     kv_destroy(vm->stack);
 
-    for (size_t i = 0; i < kv_size(vm->call_stack); ++i) {
-        vm_ctx_dispose(&kv_A(vm->call_stack, i));
-    }
+//    for (size_t i = 0; i < kv_size(vm->call_stack); ++i) {
+//        vm_ctx_dispose(&kv_A(vm->call_stack, i));
+//    }
 
     kv_destroy(vm->call_stack);
 

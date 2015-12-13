@@ -303,6 +303,9 @@ INLINED result_t zval_eq(zval_t *dest, zval_t *a, zval_t *b) {
     } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
         int res = (ZVAL_GET_INT(a) == ZVAL_GET_INT(b)) ? 1 : 0;
         zval_set(dest, res);
+    } else if (ZVAL_IS_STRING(b) && ZVAL_IS_STRING(a)) {
+        int res = (!strcmp(zval_get_string(a), zval_get_string(b))) ? 1 : 0;
+        zval_set(dest, res);
     } else {
         return ESEM3; // TODO: Fix error code
     }
@@ -325,6 +328,9 @@ INLINED result_t zval_nq(zval_t *dest, zval_t *a, zval_t *b) {
         zval_set(dest, res);
     } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
         int res = (ZVAL_GET_INT(a) != ZVAL_GET_INT(b)) ? 1 : 0;
+        zval_set(dest, res);
+    } else if (ZVAL_IS_STRING(b) && ZVAL_IS_STRING(a)) {
+        int res = (strcmp(zval_get_string(a), zval_get_string(b))) ? 1 : 0;
         zval_set(dest, res);
     } else {
         return ESEM3; // TODO: Fix error code

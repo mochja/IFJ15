@@ -482,7 +482,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     }
                     else {//ak bol znak spravny prida sa do pola ascii[];
                         ascii[counter] = *cx;
-                        *cx = (unsigned char) *(scanner->source + ++scanner->pos);
+                        *cx = (unsigned char) *(scanner->source + scanner->pos++);
                     }
                 }
 
