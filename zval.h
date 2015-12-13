@@ -449,11 +449,11 @@ INLINED void zval_print(zval_t *val) {
 
     if (ZVAL_IS_DEFINED(val)) {
         if (ZVAL_IS_INT(val)) {
-            printf("%d\n", zval_get_int(val));
+            printf("%d", zval_get_int(val));
         } else if (ZVAL_IS_DOUBLE(val)) {
-            printf("%f\n", zval_get_double(val));
+            printf("%g", zval_get_double(val));
         } else if (ZVAL_IS_STRING(val)) {
-            printf("%s\n", zval_get_string(val));
+            printf("%s", zval_get_string(val));
         }
     } else {
         printf("[null]\n");

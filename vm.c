@@ -265,7 +265,9 @@ result_t vm_exec(vm_t *vm) {
                     zval_t pos = kv_pop(vm->stack);
                     zval_t s = kv_pop(vm->stack);
                     zval_t res;
-                    zval_set(&res, substr(zval_get_string(&s), zval_get_int(&pos), zval_get_int(&count)));
+                    char *r = substr(zval_get_string(&s), zval_get_int(&pos), zval_get_int(&count));
+                    zval_set(&res, r);
+                    free(r);
                     zval_dispose(&s);
                     zval_dispose(&count);
                     zval_dispose(&pos);
@@ -274,7 +276,9 @@ result_t vm_exec(vm_t *vm) {
                     zval_t s2 = kv_pop(vm->stack);
                     zval_t s1 = kv_pop(vm->stack);
                     zval_t res;
-                    zval_set(&res, concat(zval_get_string(&s1), zval_get_string(&s2)));
+                    char *r = concat(zval_get_string(&s1), zval_get_string(&s2));
+                    zval_set(&res, r);
+                    free(r);
                     zval_dispose(&s1);
                     zval_dispose(&s2);
                     kv_push(zval_t, vm->stack, res);
@@ -289,7 +293,9 @@ result_t vm_exec(vm_t *vm) {
                 } else if (!strcmp("sort", fn)) {
                     zval_t s1 = kv_pop(vm->stack);
                     zval_t res;
-                    zval_set(&res, sort(zval_get_string(&s1)));
+                    char *r = sort(zval_get_string(&s1));
+                    zval_set(&res, r);
+                    free(r);
                     zval_dispose(&s1);
                     kv_push(zval_t, vm->stack, res);
                 } else {
