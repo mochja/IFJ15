@@ -307,7 +307,7 @@ INLINED result_t zval_div(zval_t *dest, zval_t *a, zval_t *b) {
     } else if (ZVAL_IS_DOUBLE(b) && ZVAL_IS_DOUBLE(a)) {
         zval_set(dest, ZVAL_GET_DOUBLE(a) / ZVAL_GET_DOUBLE(b));
     } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
-        zval_set(dest, ZVAL_GET_INT(a) / ZVAL_GET_INT(b));
+        zval_set(dest, (double) ZVAL_GET_INT(a) / ZVAL_GET_INT(b));
     } else {
         return ESEM2; // TODO: Fix error code
     }
