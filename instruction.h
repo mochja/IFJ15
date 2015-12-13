@@ -39,18 +39,100 @@ enum __instruction_type {
     I_COUT_offset,
     I_JMPE,
 
-    I_GT,
-
     I_CALL,
     I_RETURN,
     I_EXIT,
 
-    I_ADD_zval,
     I_ADD_pop,
-    I_ADD_zval_pop,
     I_ADD_pop_zval,
-
+    I_ADD_pop_offset,
     I_ADD_offset,
+    I_ADD_offset_zval,
+    I_ADD_offset_pop,
+    I_ADD_zval,
+    I_ADD_zval_pop,
+    I_ADD_zval_offset,
+    I_SUB_pop,
+    I_SUB_pop_zval,
+    I_SUB_pop_offset,
+    I_SUB_offset,
+    I_SUB_offset_zval,
+    I_SUB_offset_pop,
+    I_SUB_zval,
+    I_SUB_zval_pop,
+    I_SUB_zval_offset,
+    I_MUL_pop,
+    I_MUL_pop_zval,
+    I_MUL_pop_offset,
+    I_MUL_offset,
+    I_MUL_offset_zval,
+    I_MUL_offset_pop,
+    I_MUL_zval,
+    I_MUL_zval_pop,
+    I_MUL_zval_offset,
+    I_DIV_pop,
+    I_DIV_pop_zval,
+    I_DIV_pop_offset,
+    I_DIV_offset,
+    I_DIV_offset_zval,
+    I_DIV_offset_pop,
+    I_DIV_zval,
+    I_DIV_zval_pop,
+    I_DIV_zval_offset,
+    I_LT_pop,
+    I_LT_pop_zval,
+    I_LT_pop_offset,
+    I_LT_offset,
+    I_LT_offset_zval,
+    I_LT_offset_pop,
+    I_LT_zval,
+    I_LT_zval_pop,
+    I_LT_zval_offset,
+    I_GT_pop,
+    I_GT_pop_zval,
+    I_GT_pop_offset,
+    I_GT_offset,
+    I_GT_offset_zval,
+    I_GT_offset_pop,
+    I_GT_zval,
+    I_GT_zval_pop,
+    I_GT_zval_offset,
+    I_LE_pop,
+    I_LE_pop_zval,
+    I_LE_pop_offset,
+    I_LE_offset,
+    I_LE_offset_zval,
+    I_LE_offset_pop,
+    I_LE_zval,
+    I_LE_zval_pop,
+    I_LE_zval_offset,
+    I_GE_pop,
+    I_GE_pop_zval,
+    I_GE_pop_offset,
+    I_GE_offset,
+    I_GE_offset_zval,
+    I_GE_offset_pop,
+    I_GE_zval,
+    I_GE_zval_pop,
+    I_GE_zval_offset,
+    I_EQ_pop,
+    I_EQ_pop_zval,
+    I_EQ_pop_offset,
+    I_EQ_offset,
+    I_EQ_offset_zval,
+    I_EQ_offset_pop,
+    I_EQ_zval,
+    I_EQ_zval_pop,
+    I_EQ_zval_offset,
+    I_NQ_pop,
+    I_NQ_pop_zval,
+    I_NQ_pop_offset,
+    I_NQ_offset,
+    I_NQ_offset_zval,
+    I_NQ_offset_pop,
+    I_NQ_zval,
+    I_NQ_zval_pop,
+    I_NQ_zval_offset
 };
 
 struct __instruction_t {
@@ -106,9 +188,6 @@ INLINED void instruction_print(char *dest, instruction_t *i) {
         case I_JMPE:
             strcat(buff, "JMPE");
             break;
-        case I_GT:
-            strcat(buff, "GT");
-            break;
         case I_CALL:
             strcat(buff, "CALL");
             break;
@@ -135,6 +214,9 @@ INLINED void instruction_print(char *dest, instruction_t *i) {
             break;
         case I_LOAD:
             strcat(buff, "LOAD");
+            break;
+        default:
+            sprintf(buff, "[%d]", i->type);
             break;
     }
 
@@ -460,132 +542,6 @@ INLINED result_t create_LOAD_instr(instruction_t *i, zval_t *a) {
     return EOK;
 }
 
+#include "hugo.h"
 
-
-INLINED result_t create_GT_instr(instruction_t *i, zval_t *a, zval_t *b) {
-
-    i->type = I_GT;
-
-    i->first = malloc(sizeof(zval_t));
-    i->second = malloc(sizeof(zval_t));
-    zval_copy(i->first, a);
-    zval_copy(i->second, b);
-
-    i->third = NULL;
-
-    return EOK;
-}
-
-
-
-/**
- * ADD zval
- * param can be int or double
- */
-INLINED result_t create_ADD_zval_instr(instruction_t *i, zval_t *a, zval_t *b) {
-
-    i->type = I_ADD_zval;
-
-    if (!zval_is_numeric(a) || !zval_is_numeric(b)) {
-        return ESEM4; // TODO: proper error code
-    }
-
-    if ((i->first = malloc(sizeof(zval_t))) == NULL) {
-        return ESYS;
-    }
-
-    if ((i->second = malloc(sizeof(zval_t))) == NULL) {
-        return ESYS;
-    }
-
-    zval_copy(i->first, a);
-    zval_copy(i->second, b);
-
-    i->third = NULL;
-
-    return EOK;
-}
-
-
-
-
-/**
- * ADD
- * use first as constant and pop the 2nd param
- */
-INLINED result_t create_ADD_zval_pop_instr(instruction_t *i, zval_t *a) {
-
-    i->type = I_ADD_zval_pop;
-
-    if (!zval_is_numeric(a)) {
-        return ESEM4; // TODO: proper error code
-    }
-
-    if ((i->first = malloc(sizeof(zval_t))) == NULL) {
-        free(i);
-        return ESYS;
-    }
-
-    zval_copy(i->first, a);
-    i->second = NULL;
-    i->third = NULL;
-
-    return EOK;
-}
-
-
-
-/**
- * ADD
- * use first as constant and pop the 2nd param
- */
-INLINED result_t create_ADD_pop_zval_instr(instruction_t *i, zval_t *b) {
-
-    i->type = I_ADD_pop_zval;
-
-    if (!zval_is_numeric(b)) {
-        return ESEM4; // TODO: proper error code
-    }
-
-    if ((i->first = malloc(sizeof(zval_t))) == NULL) {
-        free(i);
-        return ESYS;
-    }
-
-    zval_copy(i->first, b);
-    i->second = NULL;
-    i->third = NULL;
-
-    return EOK;
-}
-
-
-
-/**
- * ADD
- * use first as constant and pop the 2nd param
- */
-INLINED result_t create_ADD_pop_instr(instruction_t *i) {
-
-    i->type = I_ADD_pop;
-
-    i->first = NULL;
-    i->second = NULL;
-    i->third = NULL;
-
-    return EOK;
-}
-
-
-
-INLINED result_t create_ADD_offset_instr(instruction_t *i, zval_t *a, zval_t *b) {
-
-    i->type = I_ADD_offset;
-
-    zval_copy(i->first, a);
-    zval_copy(i->second, b);
-    i->third = NULL;
-
-    return EOK;
-}
 #endif // INSTRUCTION_H

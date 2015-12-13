@@ -257,76 +257,76 @@ result_t vm_exec(vm_t *vm) {
             }
 
 
-            case I_GT: {
-                zval_t res;
-                if ((ret = zval_gt(&res, i->first, i->second)) != EOK) {
-                    zval_dispose(&res);
-                    return ret;
-                }
-                kv_push(zval_t, vm->stack, res);
-                vm->ip++;
-                break;
-            }
+//            case I_GT: {
+//                zval_t res;
+//                if ((ret = zval_gt(&res, i->first, i->second)) != EOK) {
+//                    zval_dispose(&res);
+//                    return ret;
+//                }
+//                kv_push(zval_t, vm->stack, res);
+//                vm->ip++;
+//                break;
+//            }
 
-            case I_ADD_zval: {
-                zval_t res;
-                if ((ret = zval_add(&res, i->first, i->second)) != EOK) {
-                    zval_dispose(&res);
-                    return ret;
-                }
-                kv_push(zval_t, vm->stack, res);
-                vm->ip++;
-                break;
-            }
-            case I_ADD_zval_pop: {
-                zval_t res;
-                zval_t b = kv_pop(vm->stack);
-                if ((ret = zval_add(&res, i->first, &b)) != EOK) {
-                    zval_dispose(&res);
-                    return ret;
-                }
-                zval_dispose(&b);
-                kv_push(zval_t, vm->stack, res);
-                vm->ip++;
-                break;
-            }
-            case I_ADD_pop_zval: {
-                zval_t res;
-                zval_t a = kv_pop(vm->stack);
-                if ((ret = zval_add(&res, i->first, &a)) != EOK) {
-                    zval_dispose(&res);
-                    return ret;
-                }
-                zval_dispose(&a);
-                kv_push(zval_t, vm->stack, res);
-                vm->ip++;
-                break;
-            }
-            case I_ADD_pop: {
-                zval_t res;
-                zval_t a = kv_pop(vm->stack);
-                zval_t b = kv_pop(vm->stack);
-                if ((ret = zval_add(&res, &a, &b)) != EOK) {
-                    zval_dispose(&res);
-                    return ret;
-                }
-                zval_dispose(&a); zval_dispose(&b);
-                kv_push(zval_t, vm->stack, res);
-                vm->ip++;
-                break;
-            }
-            case I_ADD_offset: {
-                zval_t res;
-                ctx_t *ctx = &kv_top(vm->call_stack);
-                if ((ret = zval_add(&res, &kv_A(ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first)),
-                                    &kv_A(ctx->locals, ctx->nargs + ZVAL_GET_INT(i->second)))) != EOK) {
-                    zval_dispose(&res);
-                    return ret;
-                }
-                kv_push(zval_t, vm->stack, res);
-                vm->ip++;
-                break;
-            }
+//            case I_ADD_zval: {
+//                zval_t res;
+//                if ((ret = zval_add(&res, i->first, i->second)) != EOK) {
+//                    zval_dispose(&res);
+//                    return ret;
+//                }
+//                kv_push(zval_t, vm->stack, res);
+//                vm->ip++;
+//                break;
+//            }
+//            case I_ADD_zval_pop: {
+//                zval_t res;
+//                zval_t b = kv_pop(vm->stack);
+//                if ((ret = zval_add(&res, i->first, &b)) != EOK) {
+//                    zval_dispose(&res);
+//                    return ret;
+//                }
+//                zval_dispose(&b);
+//                kv_push(zval_t, vm->stack, res);
+//                vm->ip++;
+//                break;
+//            }
+//            case I_ADD_pop_zval: {
+//                zval_t res;
+//                zval_t a = kv_pop(vm->stack);
+//                if ((ret = zval_add(&res, i->first, &a)) != EOK) {
+//                    zval_dispose(&res);
+//                    return ret;
+//                }
+//                zval_dispose(&a);
+//                kv_push(zval_t, vm->stack, res);
+//                vm->ip++;
+//                break;
+//            }
+//            case I_ADD_pop: {
+//                zval_t res;
+//                zval_t a = kv_pop(vm->stack);
+//                zval_t b = kv_pop(vm->stack);
+//                if ((ret = zval_add(&res, &a, &b)) != EOK) {
+//                    zval_dispose(&res);
+//                    return ret;
+//                }
+//                zval_dispose(&a); zval_dispose(&b);
+//                kv_push(zval_t, vm->stack, res);
+//                vm->ip++;
+//                break;
+//            }
+//            case I_ADD_offset: {
+//                zval_t res;
+//                ctx_t *ctx = &kv_top(vm->call_stack);
+//                if ((ret = zval_add(&res, &kv_A(ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first)),
+//                                    &kv_A(ctx->locals, ctx->nargs + ZVAL_GET_INT(i->second)))) != EOK) {
+//                    zval_dispose(&res);
+//                    return ret;
+//                }
+//                kv_push(zval_t, vm->stack, res);
+//                vm->ip++;
+//                break;
+//            }
             default:
                 debug_print("%s [%d]\n", "Not implemented yet.", i->type);
                 return ESYS;
