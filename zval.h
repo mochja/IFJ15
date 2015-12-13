@@ -174,6 +174,32 @@ INLINED void zval_dispose(zval_t *val) {
 
 
 
+INLINED result_t zval_cast(zval_t *dest, zval_t *src) {
+
+    if (dest == NULL || src == NULL) {
+        return ESYS;
+    }
+
+    if (ZVAL_IS_STRING(dest) && ZVAL_IS_STRING(src)) {
+        zval_dispose(dest);
+        return zval_set_string(dest, ZVAL_GET_STRING(src));
+    } else if (!ZVAL_IS_DOUBLE(dest)) {
+        if (ZVAL_IS_INT(src)) {
+            return zval_set(dest, zval_get_int(src));
+        } else if (ZVAL_IS_DOUBLE(src)) {
+            return zval_set(dest, (int) zval_get_double(src));
+        } else return ESEM2;
+    } else {
+        if (ZVAL_IS_INT(src)) {
+            return zval_set(dest, (double) zval_get_int(src));
+        } else if (ZVAL_IS_DOUBLE(src)) {
+            return zval_set(dest, zval_get_double(src));
+        } else return ESEM2;
+    }
+}
+
+
+
 INLINED result_t zval_copy(zval_t *dest, zval_t *src) {
 
     if (dest == NULL || src == NULL) {
