@@ -1170,12 +1170,13 @@ result_t parse_list(parser_t *parser) {
 
         /**cout |<< term |*n  ---- term==ID || TEXT || INT || DOUBLE**/
     else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, COUT_KW)) {
-        int var_offset=0;
+        int var_offset = 0;
 
         if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
             return result;
         }
+
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, DBL_ARR_LEFT_SMBL))
             return ESYN;
 

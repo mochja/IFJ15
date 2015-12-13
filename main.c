@@ -30,8 +30,7 @@ char* read_source_file(const char *filename) {
     fseek(f, 0, SEEK_SET);
 
     char *source;
-    if ((source = malloc((size + 1) * sizeof(char))) != NULL) {
-        fread(source, 1, size, f);
+    if ((source = malloc((size + 1) * sizeof(char))) != NULL && fread(source, 1, size, f) > 0) {
         source[size] = '\0';
     } else {
         fprintf(stderr, "Nou mor memory.\n");

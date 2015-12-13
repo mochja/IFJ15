@@ -264,7 +264,7 @@ INLINED void instruction_print(char *dest, instruction_t *i) {
         strcat(buff, " [NULL]");
     }
 
-    buff[256] = '\0';
+    buff[255] = '\0';
 
     strcpy(dest, buff);
 }

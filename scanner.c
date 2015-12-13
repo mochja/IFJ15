@@ -490,9 +490,9 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     scanner->line--;
                 }
                 --scanner->pos;
-                if (ascii[0] == '0' && ascii[1] == '0') {
-                    return ELEX;
-                }
+//                if (ascii[0] == '0' && ascii[1] == '0') {
+//                    return ELEX;
+//                }
                 *cx = (unsigned char) strtol(ascii, NULL, 16);
 
                 strcat(buff, c);
