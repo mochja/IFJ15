@@ -111,10 +111,6 @@ INLINED result_t zval_set_undefined(zval_t *val) {
 
     val->type |= T_UNDEFINED;
 
-    if (ZVAL_IS_DEFINED(val) && ZVAL_IS_STRING(val)) {
-        free(val->sVal);
-    }
-
     return EOK;
 }
 
@@ -186,11 +182,19 @@ INLINED result_t zval_copy(zval_t *dest, zval_t *src) {
         if (ZVAL_IS_STRING(dest)) {
             zval_dispose(dest);
         }
-        return zval_set_string(dest, ZVAL_GET_STRING(src));
+        result_t r = zval_set_string(dest, ZVAL_GET_STRING(src));
+        if (!ZVAL_IS_DEFINED(src)) {
+            zval_set_undefined(dest);
+        }
+        return r;
     } else if (!ZVAL_IS_DOUBLE(src)) {
         dest->iVal = src->iVal;
     } else {
         dest->dVal = src->dVal;
+    }
+
+    if (!ZVAL_IS_DEFINED(src)) {
+        return zval_set_undefined(dest);
     }
 
     return EOK;
@@ -232,7 +236,7 @@ INLINED result_t zval_cast(zval_t *dest, zval_t *src) {
 
 INLINED result_t zval_add(zval_t *dest, zval_t *a, zval_t *b) {
 
-    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ESYS; // TODO: Fix Error code
+    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ERUN1; // TODO: Fix Error code
 
     if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
         zval_set(dest, ZVAL_GET_DOUBLE(a) + (double) ZVAL_GET_INT(b));
@@ -253,7 +257,7 @@ INLINED result_t zval_add(zval_t *dest, zval_t *a, zval_t *b) {
 
 INLINED result_t zval_sub(zval_t *dest, zval_t *a, zval_t *b) {
 
-    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ESYS; // TODO: Fix Error code
+    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ERUN1; // TODO: Fix Error code
 
     if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
         zval_set(dest, ZVAL_GET_DOUBLE(a) - (double) ZVAL_GET_INT(b));
@@ -274,7 +278,7 @@ INLINED result_t zval_sub(zval_t *dest, zval_t *a, zval_t *b) {
 
 INLINED result_t zval_mul(zval_t *dest, zval_t *a, zval_t *b) {
 
-    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ESYS; // TODO: Fix Error code
+    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ERUN1; // TODO: Fix Error code
 
     if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
         zval_set(dest, ZVAL_GET_DOUBLE(a) * (double) ZVAL_GET_INT(b));
@@ -294,7 +298,7 @@ INLINED result_t zval_mul(zval_t *dest, zval_t *a, zval_t *b) {
 
 
 INLINED result_t zval_div(zval_t *dest, zval_t *a, zval_t *b) {
-    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ESYS; // TODO: Fix Error code if (a == NULL || b == NULL) return ESYS; // TODO: Fix Error code
+    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ERUN1; // TODO: Fix Error code if (a == NULL || b == NULL) return ESYS; // TODO: Fix Error code
 
     if (((ZVAL_IS_INT(b)) && (ZVAL_GET_INT(b) == 0)) || ((ZVAL_IS_DOUBLE(b)) && (ZVAL_GET_DOUBLE(b) == 0.0))) {
         return ERUN2;
@@ -321,7 +325,7 @@ INLINED result_t zval_div(zval_t *dest, zval_t *a, zval_t *b) {
  * set dest value to 1 when a and b are equal, 0 otherwise
  */
 INLINED result_t zval_eq(zval_t *dest, zval_t *a, zval_t *b) {
-    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ESYS; // TODO: Fix Error code
+    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ERUN1; // TODO: Fix Error code
 
     if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
         int res = (ZVAL_GET_DOUBLE(a) == (double) ZVAL_GET_INT(b)) ? 1 : 0;
@@ -347,7 +351,7 @@ INLINED result_t zval_eq(zval_t *dest, zval_t *a, zval_t *b) {
 
 
 INLINED result_t zval_nq(zval_t *dest, zval_t *a, zval_t *b) {
-    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ESYS; // TODO: Fix Error code
+    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ERUN1; // TODO: Fix Error code
 
     if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
         int res = (ZVAL_GET_DOUBLE(a) != (double) ZVAL_GET_INT(b)) ? 1 : 0;
@@ -377,7 +381,7 @@ INLINED result_t zval_nq(zval_t *dest, zval_t *a, zval_t *b) {
  * set dest value to 1 when a is greater than b, 0 otherwise
  */
 INLINED result_t zval_gt(zval_t *dest, zval_t *a, zval_t *b) {
-    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ESYS; // TODO: Fix Error code
+    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ERUN1; // TODO: Fix Error code
 
     if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
         int res = (ZVAL_GET_DOUBLE(a) > (double) ZVAL_GET_INT(b)) ? 1 : 0;
@@ -391,6 +395,9 @@ INLINED result_t zval_gt(zval_t *dest, zval_t *a, zval_t *b) {
     } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
         int res = (ZVAL_GET_INT(a) > ZVAL_GET_INT(b)) ? 1 : 0;
         zval_set(dest, res);
+    } else if (ZVAL_IS_STRING(b) && ZVAL_IS_STRING(a)) {
+        int res = (strcmp(zval_get_string(a), zval_get_string(b)) > 0) ? 1 : 0;
+        zval_set(dest, res);
     } else {
         return ESEM2; // TODO: Fix error code
     }
@@ -400,7 +407,7 @@ INLINED result_t zval_gt(zval_t *dest, zval_t *a, zval_t *b) {
 
 
 INLINED result_t zval_lt(zval_t *dest, zval_t *a, zval_t *b) {
-    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ESYS; // TODO: Fix Error code
+    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ERUN1; // TODO: Fix Error code
 
     if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
         int res = (ZVAL_GET_DOUBLE(a) < (double) ZVAL_GET_INT(b)) ? 1 : 0;
@@ -413,6 +420,9 @@ INLINED result_t zval_lt(zval_t *dest, zval_t *a, zval_t *b) {
         zval_set(dest, res);
     } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
         int res = (ZVAL_GET_INT(a) < ZVAL_GET_INT(b)) ? 1 : 0;
+        zval_set(dest, res);
+    } else if (ZVAL_IS_STRING(b) && ZVAL_IS_STRING(a)) {
+        int res = (strcmp(zval_get_string(a), zval_get_string(b)) < 0) ? 1 : 0;
         zval_set(dest, res);
     } else {
         return ESEM2; // TODO: Fix error code
@@ -427,7 +437,7 @@ INLINED result_t zval_lt(zval_t *dest, zval_t *a, zval_t *b) {
  * set dest value to 1 when a is less or equals b, 0 otherwise
  */
 INLINED result_t zval_le(zval_t *dest, zval_t *a, zval_t *b) {
-    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ESYS; // TODO: Fix Error code
+    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ERUN1; // TODO: Fix Error code
 
     if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
         int res = (ZVAL_GET_DOUBLE(a) <= (double) ZVAL_GET_INT(b)) ? 1 : 0;
@@ -440,6 +450,9 @@ INLINED result_t zval_le(zval_t *dest, zval_t *a, zval_t *b) {
         zval_set(dest, res);
     } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
         int res = (ZVAL_GET_INT(a) <= ZVAL_GET_INT(b)) ? 1 : 0;
+        zval_set(dest, res);
+    } else if (ZVAL_IS_STRING(b) && ZVAL_IS_STRING(a)) {
+        int res = (strcmp(zval_get_string(a), zval_get_string(b)) <= 0) ? 1 : 0;
         zval_set(dest, res);
     } else {
         return ESEM2; // TODO: Fix error code
@@ -454,7 +467,7 @@ INLINED result_t zval_le(zval_t *dest, zval_t *a, zval_t *b) {
  * set dest value to 1 when a is greater or equals b, 0 otherwise
  */
 INLINED result_t zval_ge(zval_t *dest, zval_t *a, zval_t *b) {
-    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ESYS; // TODO: Fix Error code
+    if (a == NULL || b == NULL || !ZVAL_IS_DEFINED(a) || !ZVAL_IS_DEFINED(b)) return ERUN1; // TODO: Fix Error code
 
     if (ZVAL_IS_DOUBLE(a) && ZVAL_IS_INT(b)) {
         int res = (ZVAL_GET_DOUBLE(a) >= (double) ZVAL_GET_INT(b)) ? 1 : 0;
@@ -467,6 +480,9 @@ INLINED result_t zval_ge(zval_t *dest, zval_t *a, zval_t *b) {
         zval_set(dest, res);
     } else if (ZVAL_IS_INT(b) && ZVAL_IS_INT(a)) {
         int res = (ZVAL_GET_INT(a) >= ZVAL_GET_INT(b)) ? 1 : 0;
+        zval_set(dest, res);
+    } else if (ZVAL_IS_STRING(b) && ZVAL_IS_STRING(a)) {
+        int res = (strcmp(zval_get_string(a), zval_get_string(b)) >= 0) ? 1 : 0;
         zval_set(dest, res);
     } else {
         return ESEM2; // TODO: Fix error code

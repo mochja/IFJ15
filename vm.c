@@ -161,6 +161,9 @@ result_t vm_exec(vm_t *vm) {
                 zval_eq(&res, &top, i->second);
                 if (ZVAL_IS_DEFINED(&res) && ZVAL_IS_INT(&res) && (zval_get_int(&res) == 1)) {
                     vm->ip = (size_t) zval_get_int(i->first);
+                } else if (ZVAL_IS_STRING(&top)) {
+                    ret = ESEM2;
+                    running = false;
                 } else {
                     vm->ip++;
                 }
@@ -261,6 +264,7 @@ result_t vm_exec(vm_t *vm) {
                 if (!strcmp("length", fn)) {
                     zval_t s = kv_pop(vm->stack);
                     zval_t res;
+                    if (!ZVAL_IS_DEFINED(&s)) return ERUN1;
                     zval_set(&res, (int) length(zval_get_string(&s)));
                     zval_dispose(&s);
                     kv_push(zval_t, vm->stack, res);
@@ -269,6 +273,9 @@ result_t vm_exec(vm_t *vm) {
                     zval_t pos = kv_pop(vm->stack);
                     zval_t s = kv_pop(vm->stack);
                     zval_t res;
+                    if (!ZVAL_IS_DEFINED(&count)) return ERUN1;
+                    if (!ZVAL_IS_DEFINED(&pos)) return ERUN1;
+                    if (!ZVAL_IS_DEFINED(&s)) return ERUN1;
                     char *r = substr(zval_get_string(&s), zval_get_int(&pos), zval_get_int(&count));
                     zval_set(&res, r);
                     free(r);
@@ -279,6 +286,8 @@ result_t vm_exec(vm_t *vm) {
                 } else if (!strcmp("concat", fn)) {
                     zval_t s2 = kv_pop(vm->stack);
                     zval_t s1 = kv_pop(vm->stack);
+                    if (!ZVAL_IS_DEFINED(&s2)) return ERUN1;
+                    if (!ZVAL_IS_DEFINED(&s1)) return ERUN1;
                     zval_t res;
                     char *r = concat(zval_get_string(&s1), zval_get_string(&s2));
                     zval_set(&res, r);
@@ -289,6 +298,8 @@ result_t vm_exec(vm_t *vm) {
                 } else if (!strcmp("find", fn)) {
                     zval_t s2 = kv_pop(vm->stack);
                     zval_t s1 = kv_pop(vm->stack);
+                    if (!ZVAL_IS_DEFINED(&s1)) return ERUN1;
+                    if (!ZVAL_IS_DEFINED(&s2)) return ERUN1;
                     zval_t res;
                     zval_set(&res, find(zval_get_string(&s1), zval_get_string(&s2)));
                     zval_dispose(&s1);
@@ -296,6 +307,7 @@ result_t vm_exec(vm_t *vm) {
                     kv_push(zval_t, vm->stack, res);
                 } else if (!strcmp("sort", fn)) {
                     zval_t s1 = kv_pop(vm->stack);
+                    if (!ZVAL_IS_DEFINED(&s1)) return ERUN1;
                     zval_t res;
                     char *r = sort(zval_get_string(&s1));
                     zval_set(&res, r);
@@ -310,6 +322,7 @@ result_t vm_exec(vm_t *vm) {
                 break;
             }
             case I_RETURN: {
+                if (!ZVAL_IS_DEFINED(&kv_top(vm->stack))) return ERUN1;
                 ctx_t ctx = kv_pop(vm->call_stack);
                 vm->ip = ctx.returnip;
                 vm_ctx_dispose(&ctx);

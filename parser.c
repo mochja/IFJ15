@@ -1343,7 +1343,6 @@ result_t parse_adv_declaration(parser_t *parser) {
 
     // add loc variable to stack
     zval_t val;
-
     if (varType == INT_KW) {
         zval_set(&val, 0);
         zval_set_undefined(&val);
@@ -1351,7 +1350,7 @@ result_t parse_adv_declaration(parser_t *parser) {
         zval_set(&val, 0.0);
         zval_set_undefined(&val);
     } else if (varType == STRING_KW) {
-        zval_set(&val, "undefined.");
+        zval_set(&val, "");
         zval_set_undefined(&val);
     } else {
         zval_init(&val); // auto
@@ -1387,7 +1386,7 @@ result_t parse_adv_declaration(parser_t *parser) {
         strncpy(parser->assignVarName, hName, sizeof(parser->assignVarName));
         result = parse_assign(parser);
 
-        if (result != EOK){
+        if (result != EOK) {
             debug_print("%s\n", "<");
             return result;
         }

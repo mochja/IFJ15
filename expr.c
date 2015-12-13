@@ -101,6 +101,8 @@ result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens
 
         if (get_operation(t->type, t->flags) == Op_VAR) {
 
+            if (!ZVAL_IS_DEFINED(&t->data)) return ERUN1;
+
             if (TOKEN_HAS_TFLAG(t, CONST_TYPE, INT_CONST)) {
                 EXPR_SET_INT(&exp, ZVAL_GET_INT(&t->data));
             } else if (TOKEN_HAS_TFLAG(t, CONST_TYPE, DOUBLE_CONST)) {
@@ -126,13 +128,13 @@ result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens
             if (op == Op_LB) {
                 lbracket++;
             } else if (op == Op_RB && lbracket <= 0) {
-                return ESEM2; // zatvorky opacne
+                return ESYN; // zatvorky opacne
             } else if (op == Op_RB) {
                 lbracket--;
             } else if (counter-- != 1) {
                 debug_print("%s\n", "invalid expression");
                 kl_destroy(expr_stack, op_stack);
-                return ESEM2; // TODO: asdf
+                return ESYN;
             }
 
             EXPR_SET_OPERAND(&exp, op);
@@ -156,11 +158,11 @@ result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens
     if (lbracket != 0) {
         debug_print("%s\n", "Invalid bracket count");
         kl_destroy(expr_stack, op_stack);
-        return ESEM2;
+        return ESYN;
     } else if (counter != 1) {
         debug_print("%s\n", "Invalid expression");
         kl_destroy(expr_stack, op_stack);
-        return ESEM2;
+        return ESYN;
     }
 
     for (kliter_t(expr_stack) *it = kl_begin(op_stack); it != kl_end(op_stack); it = kl_next(it)) {
