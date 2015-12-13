@@ -236,7 +236,14 @@ result_t vm_exec(vm_t *vm) {
                 vm_ctx_init(&ctx, vm->ip + 1, (unsigned int) ZVAL_GET_INT(i->second));
 
                 for (int j = ZVAL_GET_INT(i->second); j > 0; j--) {
-                    kv_a(zval_t, ctx.locals, j - 1) = kv_pop(vm->stack);
+                    zval_t tmp = kv_pop(vm->stack);
+                    if (!ZVAL_IS_DEFINED(&tmp)) {
+                        debug_print("%s", "undefined variable passed as param.");
+                        ret = ERUN2;
+                        running = false;
+                        break;
+                    }
+                    kv_a(zval_t, ctx.locals, j - 1) = tmp;
                 }
 
                 zval_t val;

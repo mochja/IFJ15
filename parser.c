@@ -1390,7 +1390,12 @@ result_t parse_adv_declaration(parser_t *parser) {
         if (result != EOK){
             debug_print("%s\n", "<");
             return result;
-        }/*******3AK , MV , #1 ,NULL, hName******/
+        }
+
+        instruction_t mv;
+        create_STORE_instr(&mv, parser->offset_counter);
+        *kl_pushp(instruction_list, parser->code) = mv;
+        debug_print("MV to offset AUTO %d\n", parser->offset_counter);
 
     } else {
         if ((result = parser_next_token(parser)) != EOK) {
