@@ -605,7 +605,7 @@ result_t parse_list(parser_t *parser) {
                 token_copy(&cpy, parser->token);
             } else {
                 debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
-                return ELEX;
+                return ESYN;
             }
 
             *kl_pushp(token_list, tokens) = cpy;
@@ -616,7 +616,7 @@ result_t parse_list(parser_t *parser) {
 
             if (TOKEN_IS(parser->token, ID_TYPE) && (searchItem(parser->table, parser->token->data.sVal) != NULL)) {
                 debug_print("%s\n", "Undefined variable.");
-                return ELEX;
+                return ESEM;
             }
         }
 
@@ -838,7 +838,7 @@ result_t parse_list(parser_t *parser) {
                 } else {
                     kl_destroy(token_list, tokens);
                     debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
-                    return ELEX;
+                    return ESYN;
                 }
 
                 *kl_pushp(token_list, tokens) = cpy;
@@ -849,7 +849,7 @@ result_t parse_list(parser_t *parser) {
 
                 if (TOKEN_IS(parser->token, ID_TYPE) && (searchItem(parser->table, parser->token->data.sVal) != NULL)) {
                     debug_print("%s\n", "Undefined variable");
-                    return ELEX;
+                    return ESEM;
                 }
             }
 
@@ -1550,7 +1550,7 @@ result_t parse_assign(parser_t *parser) {
             hTabItem *fnItem = searchItem(parser->table, item->functionId);
 
             if (fnItem == NULL)
-                return ELEX;
+                return ESYS;
 
             debug_print("f call: %d\n", fnItem->f_label);
 
