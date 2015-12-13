@@ -227,8 +227,8 @@ result_t parse_fn(parser_t *parser) {
         parser->fDeclared = false;
         /********MISSSING: kontrola ts**********************/
 
-        hTabItem *tableItem;
-        if ((tableItem = searchItem(parser->table, parser->fName)) != NULL) {
+        hTabItem *tableItem = searchItem(parser->table, parser->fName);
+        if (tableItem != NULL) {
             parser->fDeclared = true;
         }
         else {
@@ -237,8 +237,7 @@ result_t parse_fn(parser_t *parser) {
             strcpy(tableItem->name, parser->fName);
             tableItem->dataType = fType;
             tableItem->isDefined = false;
-            ++parser->label;
-            tableItem->f_label=parser->label;
+            tableItem->f_label = ++parser->label;
             insertHashTable(parser->table, tableItem);
         }
         /***ak uz je v tabulke nastavy sa fDeclared na true a pokracuje dalej*/
@@ -315,7 +314,7 @@ result_t parse_fn(parser_t *parser) {
             tableItem->isDefined = true;
 
             debug_print("LABEL F %d\n", tableItem->f_label);
-            instruction_t *label = create_LABEL_instr(parser->label);
+            instruction_t *label = create_LABEL_instr(tableItem->f_label);
             *kl_pushp(instruction_list, parser->code) = label;
             parser->label++;
 
@@ -343,7 +342,7 @@ result_t parse_fn(parser_t *parser) {
             debug_print("%s\n", "<");
             return result;
         }
-        if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW | DOUBLE_KW | STRING_KW))    ///mala by nasledovat dalsia funkcia
+        if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW))    ///mala by nasledovat dalsia funkcia
             result = parse_fn(parser);        //rekurzivne volanie pre spracovanie dalsej funkcie
         else if (TOKEN_IS(parser->token, EOF_TYPE))
             return EEOF;
@@ -476,15 +475,19 @@ result_t parse_list(parser_t *parser) {
         /*************** } <parse_list> ***********************/
     else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, RIGHT_VINCULUM_SMBL)) {
         debug_print("%s\n","....END BLOCK....\n");
+
         tItemPtr item = parser->varList.Last;
+        // Move this on call stack
+        if (kv_size(item->data) > 0) {
+//            instruction_t *pop = malloc(sizeof(instruction_t));
+//            create_POP_N_instr(pop, (int) kv_size(item->data));
+//            *kl_pushp(instruction_list, parser->code) = pop;
+//
+//            debug_print("BLOCK POPN: %lu\n", kv_size(item->data));
 
-        instruction_t *pop = malloc(sizeof(instruction_t));
-        create_POP_N_instr(pop, (int) kv_size(item->data));
-        *kl_pushp(instruction_list, parser->code) = pop;
+            parser->offset_counter -= kv_size(item->data);
+        }
 
-        debug_print("BLOCK POPN: %lu\n", kv_size(item->data));
-
-        parser->offset_counter -= kv_size(item->data);
         deleteLast(&parser->varList);
         return EOK;
     }
@@ -1068,7 +1071,7 @@ result_t parse_adv_declaration(parser_t *parser) {
     if ((hName = paramSearch(&parser->paramList, parser->fName, parser->token->data.sVal)) != NULL)
         return ESEM;
 
-    if((tItem = searchItem(parser->table, parser->token->data.sVal)) != NULL)
+    if ((tItem = searchItem(parser->table, parser->token->data.sVal)) != NULL)
         return ESEM;
 
     hName = generate_var_name(parser->hInt++);
@@ -1156,10 +1159,9 @@ result_t parse_adv_declaration(parser_t *parser) {
             instruction_t *mv = malloc(sizeof(instruction_t));
             create_STORE_instr(mv, parser->offset_counter);
             *kl_pushp(instruction_list, parser->code) = mv;
+            debug_print("MV to offset %d\n", parser->offset_counter);
 
             return EOK;
-
-            /*******3AK , MV , #1 ,NULL, hName******/
         } else return ESYN;
     }
     return result;
@@ -1250,14 +1252,14 @@ result_t parse_assign(parser_t *parser) {
 
             if ((tItem = searchItem(parser->table, parser->assignVarName)) == NULL)
                 return ESYS;
-            if (tItem->dataType != tableItem->dataType && tItem->dataType != AUTO_KW){
-                if(tItem->dataType == STRING_KW || tableItem->dataType == STRING_KW)
+            if (tItem->dataType != tableItem->dataType && tItem->dataType != AUTO_KW) {
+                if (tItem->dataType == STRING_KW || tableItem->dataType == STRING_KW)
                     return ESEM2;
-                else{
-                    if(tItem->dataType == DOUBLE_KW && tableItem->dataType == INT_KW){
+                else {
+                    if (tItem->dataType == DOUBLE_KW && tableItem->dataType == INT_KW) {
                         tItem->dataType = INT_KW;
                         tItem->iVal = (int)tItem->dVal;
-                    }else if(tItem->dataType == INT_KW && tableItem->dataType == DOUBLE_KW){
+                    } else if (tItem->dataType == INT_KW && tableItem->dataType == DOUBLE_KW) {
                         tItem->dataType = DOUBLE_KW;
                         tItem->dVal = (double)tItem->iVal;
                     }
@@ -1286,8 +1288,15 @@ result_t parse_assign(parser_t *parser) {
             if (kv_size(item->data) != parser->argsCounter1)
                 return ESEM2;
 
+            hTabItem *fnItem = searchItem(parser->table, item->functionId);
+
+            if (fnItem == NULL)
+                return ELEX;
+
+            debug_print("f call: %d\n", fnItem->f_label);
+
             instruction_t *call = malloc(sizeof(instruction_t));
-            create_CALL_instr(call, 1, (int) kv_size(item->data));
+            create_CALL_instr(call, fnItem->f_label, (int) kv_size(item->data));
             *kl_pushp(instruction_list, parser->code) = call;
 
             parser->argsCounter1 = 0;

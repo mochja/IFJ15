@@ -105,9 +105,16 @@ result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_st
 
     for (kliter_t(expr_stack) *it = kl_begin(buff); it != kl_end(buff); it = kl_next(it)) {
         instruction_t *i = malloc(sizeof(instruction_t));
+        expr_t *exp = kl_val(it);
 
-        if ((ret = create_PUSH_zval_instr(i, &kl_val(it)->val)) != EOK) {
-            free(i); return ret;
+        if (EXPR_IS_OFFSET(exp)) {
+            if ((ret = create_LOAD_instr(i, &exp->val)) != EOK) {
+                free(i); return ret;
+            }
+        } else if (!EXPR_IS_OPERAND(exp)){
+            if ((ret = create_PUSH_zval_instr(i, &exp->val)) != EOK) {
+                free(i); return ret;
+            }
         }
 
         *kl_pushp(instruction_list, dest) = i;
