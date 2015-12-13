@@ -85,10 +85,10 @@ char *generate_var_name(int number) {
 void init_ht_buildin(parser_t *parser){
 
     char* build_in[5]= {"length","find","concat","substr", "sort" };
-    for (int i = 1; i < 6; ++i)
+    for (int i = 0; i < 5; ++i)
     {
         // adding functions to TS
-        parser->fName = build_in[i-1];
+        parser->fName = build_in[i];
         hTabItem *tableItem = createNewItem();
         tableItem->name = malloc(sizeof(char) * (strlen(parser->fName) + 1));
 
@@ -99,7 +99,7 @@ void init_ht_buildin(parser_t *parser){
             tableItem->dataType = STRING_KW;
         }
         tableItem->isDefined = true;
-        tableItem->f_label = i ;
+        tableItem->f_label = i+1 ;
         insertHashTable(parser->table, tableItem);
 
         // adding function parameters to TS
@@ -111,6 +111,7 @@ void init_ht_buildin(parser_t *parser){
             case 0:
             case 4:
             {
+                printf("-%d\n",i );
                 /*inserts parameter to TS name type and order*/
                 tItem = createNewItem();
                 tItem->name = calloc(1, strlen(hName) + 1);//
@@ -123,8 +124,10 @@ void init_ht_buildin(parser_t *parser){
             case 1:
             case 2:
             {
+                printf("-%d\n",i );
                 for (int i = 0; i < 2; ++i)
                 {
+                    printf("%d\n",i );
                     if ( i == 1 ){
                         hName = generate_var_name(parser->hInt++);
                     }
@@ -138,8 +141,10 @@ void init_ht_buildin(parser_t *parser){
             }break;
             case 3:
             {
+                printf("-%d\n",i );
                 for (int i = 0; i < 3; ++i)
                 {
+                    printf("%d\n",i );
                     if ( i > 0 ){
                         hName = generate_var_name(parser->hInt++);
                         varType=INT_KW;
