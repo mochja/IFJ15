@@ -601,7 +601,7 @@ result_t parse_list(parser_t *parser) {
                 cpy.type = ID_TYPE;
                 cpy.flags = OFFSET_ID;
                 zval_set(&cpy.data, offset);
-            } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
+            } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SMBL_WHITELIST) || TOKEN_IS(parser->token, CONST_TYPE)) {
                 token_copy(&cpy, parser->token);
             } else {
                 debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
@@ -833,7 +833,7 @@ result_t parse_list(parser_t *parser) {
                     cpy.type = ID_TYPE;
                     cpy.flags = OFFSET_ID;
                     zval_set(&cpy.data, offset);
-                } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
+                } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SMBL_WHITELIST) || TOKEN_IS(parser->token, CONST_TYPE)) {
                     token_copy(&cpy, parser->token);
                 } else {
                     kl_destroy(token_list, tokens);
@@ -911,7 +911,7 @@ result_t parse_list(parser_t *parser) {
                 cpy.type = ID_TYPE;
                 cpy.flags = OFFSET_ID;
                 zval_set(&cpy.data, offset);
-            } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
+            } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SMBL_WHITELIST) || TOKEN_IS(parser->token, CONST_TYPE)) {
                 token_copy(&cpy, parser->token);
             } else {
                 kl_destroy(token_list, tokens);
@@ -1413,7 +1413,7 @@ result_t parse_adv_declaration(parser_t *parser) {
             result = parse_assign(parser);
 
             if (result != EOK){
-                debug_print("%s\n", "<");
+                debug_print("%d %s\n",result, "<");
                 return result;
             }
 
@@ -1435,7 +1435,7 @@ result_t parse_adv_declaration(parser_t *parser) {
 
 result_t parse_assign(parser_t *parser) {
     result_t result;
-
+    debug_print("ass %s\n", "<");
     if (TOKEN_IS(parser->token, ID_TYPE) || TOKEN_IS(parser->token, FN_TYPE)) {
 
         hTabItem *tableItem;
@@ -1457,7 +1457,7 @@ result_t parse_assign(parser_t *parser) {
                     cpy.type = ID_TYPE;
                     cpy.flags = OFFSET_ID;
                     zval_set(&cpy.data, offset);
-                } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
+                } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SMBL_WHITELIST) || TOKEN_IS(parser->token, CONST_TYPE)) {
                     token_copy(&cpy, parser->token);
                 } else {
                     debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
@@ -1480,16 +1480,18 @@ result_t parse_assign(parser_t *parser) {
             if ((result = expr_from_tokens(expr, tokens)) != EOK) {
                 kl_destroy(expr_stack, expr);
                 kl_destroy(token_list, tokens);
+                debug_print("%d %s\n",result, "<");
                 return result;
             }
             kl_destroy(token_list, tokens);
-
+            debug_print("%d %s\n",result, "<");
             if ((result = append_instr_from_expr(parser->code, expr)) != EOK) {
                 kl_destroy(expr_stack, expr);
+                debug_print("%d %s\n",result, "<");
                 return result;
             }
             kl_destroy(expr_stack, expr);
-
+            debug_print("%d %s\n",result, "<");
         } else {
 
             bool is_native = TOKEN_IS(parser->token, FN_TYPE);
@@ -1591,7 +1593,7 @@ result_t parse_assign(parser_t *parser) {
                 cpy.type = ID_TYPE;
                 cpy.flags = OFFSET_ID;
                 zval_set(&cpy.data, offset);
-            } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
+            } else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SMBL_WHITELIST) || TOKEN_IS(parser->token, CONST_TYPE)) {
                 token_copy(&cpy, parser->token);
             } else {
                 debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
@@ -1614,16 +1616,18 @@ result_t parse_assign(parser_t *parser) {
         if ((result = expr_from_tokens(expr, tokens)) != EOK) {
             kl_destroy(token_list, tokens);
             kl_destroy(expr_stack, expr);
+            debug_print("%d %s\n",result, "<");
             return result;
         }
         kl_destroy(token_list, tokens);
 
         if ((result = append_instr_from_expr(parser->code, expr)) != EOK) {
             kl_destroy(expr_stack, expr);
+            debug_print("%d %s\n",result, "<");
             return result;
         }
         kl_destroy(expr_stack, expr);
-
+        debug_print("ok%d %s\n",result, "<");
         /*********************/
     } else return ESYN;
     return EOK;
