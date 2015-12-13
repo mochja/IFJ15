@@ -12,7 +12,7 @@
  */
 
 #include <cgreen/cgreen.h>
-#include "hash.h"
+#include "ial.h"
 
 Describe(Hash)
 BeforeEach(Hash) {}
