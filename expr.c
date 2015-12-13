@@ -105,6 +105,8 @@ result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens
                 EXPR_SET_INT(&exp, ZVAL_GET_INT(&t->data));
             } else if (TOKEN_HAS_TFLAG(t, CONST_TYPE, DOUBLE_CONST)) {
                 EXPR_SET_DOUBLE(&exp, ZVAL_GET_DOUBLE(&t->data));
+            } else if (TOKEN_HAS_TFLAG(t, CONST_TYPE, TEXT_CONST)) {
+                EXPR_SET_STRING(&exp, zval_get_string(&t->data));
             } else if (TOKEN_HAS_TFLAG(t, ID_TYPE, OFFSET_ID)) {
                 EXPR_SET_OFFSET(&exp, ZVAL_GET_INT(&t->data));
             } else {

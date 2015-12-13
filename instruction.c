@@ -21,8 +21,9 @@ result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_st
     for (kliter_t(expr_stack) *it = kl_begin(expr); it != kl_end(expr); it = kl_next(it)) {
         expr_t *curr = &kl_val(it);
 
-        if (EXPR_IS_INT(curr) || EXPR_IS_DOUBLE(curr) || EXPR_IS_OFFSET(curr)) {
+        if (EXPR_IS_INT(curr) || EXPR_IS_DOUBLE(curr) || EXPR_IS_STRING(curr) || EXPR_IS_OFFSET(curr)) {
             expr_t copy;
+            expr_init(&copy);
             if ((ret = expr_copy(&copy, curr)) != EOK) {
                 debug_print("%s\n", "<");
                 return ret;
@@ -874,13 +875,13 @@ result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_st
                 // >>>>>>GENERATED
             }
 
-            if (a != NULL) {
-                expr_dispose(a);
-            }
-
-            if (b != NULL) {
-                expr_dispose(b);
-            }
+//            if (a != NULL) {
+//                expr_dispose(a);
+//            }
+//
+//            if (b != NULL) {
+//                expr_dispose(b);
+//            }
         }
     }
 

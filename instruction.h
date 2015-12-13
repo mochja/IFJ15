@@ -37,6 +37,7 @@ enum __instruction_type {
     I_JMP,
     I_COUT_pop,
     I_COUT_offset,
+    I_COUT_zval,
     I_JMPE,
 
     I_CALL,
@@ -263,7 +264,7 @@ INLINED void instruction_print(char *dest, instruction_t *i) {
         strcat(buff, " [NULL]");
     }
 
-    buff[256] = '\0';
+    buff[255] = '\0';
 
     strcpy(dest, buff);
 }
@@ -295,6 +296,7 @@ INLINED void instruction_dispose(instruction_t *i) {
 #define __copy_if_src_exists(name, dest, src)        \
     if ((src)->name) {                               \
         (dest)->name = malloc(sizeof(zval_t));       \
+        zval_init((dest)->name);                     \
         zval_copy((dest)->name, (src)->name);        \
     } else (dest)->name = 0;
 
@@ -412,11 +414,10 @@ INLINED result_t create_PUSH_zval_instr(instruction_t *i, zval_t *val) {
     i->type = I_PUSH_zval;
 
     i->first = malloc(sizeof(zval_t));
+    zval_init(i->first);
 
     if (val != NULL) {
         zval_copy(i->first, val);
-    } else {
-        zval_init(i->first);
     }
 
     i->second = NULL;
@@ -444,11 +445,10 @@ INLINED result_t create_STORE_zval_instr(instruction_t *i, zval_t *val) {
     i->type = I_STORE_zval;
 
     i->first = malloc(sizeof(zval_t));
+    zval_init(i->first);
 
     if (val != NULL) {
         zval_copy(i->first, val);
-    } else {
-        zval_init(i->first);
     }
 
     i->second = NULL;
@@ -511,12 +511,27 @@ INLINED result_t create_COUT_offset_instr(instruction_t *i, const int offset) {
 
 
 
+INLINED result_t create_COUT_zval_instr(instruction_t *i, zval_t *val) {
+
+    i->type = I_COUT_zval;
+    i->first = malloc(sizeof(zval_t));
+    zval_init(i->first);
+    zval_copy(i->first, val);
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
 INLINED result_t create_JMPE_instr(instruction_t *i, const int label_id, zval_t *equals_to) {
 
     i->type = I_JMPE;
 
     ZVAL_INIT_INT(i->first, label_id);
     i->second = malloc(sizeof(zval_t));
+    zval_init(i->second);
     zval_copy(i->second, equals_to);
     i->third = NULL;
 
@@ -530,6 +545,7 @@ INLINED result_t create_LOAD_instr(instruction_t *i, zval_t *a) {
     i->type = I_LOAD;
 
     i->first = malloc(sizeof(zval_t));
+    zval_init(i->first);
     zval_copy(i->first, a); // offset
     i->second = NULL;
     i->third = NULL;

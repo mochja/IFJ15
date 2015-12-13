@@ -48,6 +48,9 @@ void deleteLast(tvarList *L) {
         }
         L->Last = L->Last->prev;
         free(tmp);
+        if (L->Last != NULL) {
+            L->Last->next = NULL;
+        }
     }
 }
 
