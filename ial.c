@@ -110,6 +110,6 @@ int find(const char *s, const char *search) {
 
         i += delta[(int) s[i]];
     }
-
+    // returns -1 when search is not in s
     return -1;
 }
