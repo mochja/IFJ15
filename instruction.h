@@ -33,6 +33,7 @@ enum __instruction_type {
     I_PUSH_zval,
     I_STORE_zval, // store on top of call stack
     I_STORE,      // store to callstack offset
+    I_LOAD,
     I_JMP,
     I_COUT_pop,
     I_COUT_offset,
@@ -59,6 +60,130 @@ struct __instruction_t {
     zval_t *second;
     zval_t *third;
 };
+
+INLINED void instruction_print(char *dest, instruction_t *i) {
+
+    char buff[256];
+    buff[0] = '\0';
+
+    switch (i->type) {
+        case I_NOOP:
+            strcat(buff, "NOOP");
+            break;
+        case I_LABEL:
+            strcat(buff, "LABEL");
+            break;
+        case I_POP:
+            strcat(buff, "POP");
+            break;
+        case I_POP_N:
+            strcat(buff, "POP_N");
+            break;
+        case I_POP_to:
+            strcat(buff, "POP_to");
+            break;
+        case I_PUSH:
+            strcat(buff, "PUSH");
+            break;
+        case I_PUSH_zval:
+            strcat(buff, "PUSH ZVAL");
+            break;
+        case I_STORE_zval:
+            strcat(buff, "STORE ZVAL");
+            break;
+        case I_STORE:
+            strcat(buff, "STORE");
+            break;
+        case I_JMP:
+            strcat(buff, "JMP");
+            break;
+        case I_COUT_pop:
+            strcat(buff, "COUT POP");
+            break;
+        case I_COUT_offset:
+            strcat(buff, "COUT OFFSET");
+            break;
+        case I_JMPE:
+            strcat(buff, "JMPE");
+            break;
+        case I_GT:
+            strcat(buff, "GT");
+            break;
+        case I_CALL:
+            strcat(buff, "CALL");
+            break;
+        case I_RETURN:
+            strcat(buff, "RETURN");
+            break;
+        case I_EXIT:
+            strcat(buff, "EXIT");
+            break;
+        case I_ADD_zval:
+            strcat(buff, "ADD ZVAL");
+            break;
+        case I_ADD_pop:
+            strcat(buff, "ADD POP");
+            break;
+        case I_ADD_zval_pop:
+            strcat(buff, "ZVAL_POP");
+            break;
+        case I_ADD_pop_zval:
+            strcat(buff, "POP_ZVAL");
+            break;
+        case I_ADD_offset:
+            strcat(buff, "ADD OFFSET");
+            break;
+        case I_LOAD:
+            strcat(buff, "LOAD");
+            break;
+    }
+
+    if (i->first != NULL && ZVAL_IS_DEFINED(i->first)) {
+        if (ZVAL_IS_INT(i->first)) {
+            sprintf(buff, "%s %d", buff, ZVAL_GET_INT(i->first));
+        } else if (ZVAL_IS_DOUBLE(i->first)) {
+            sprintf(buff, "%s %f", buff, ZVAL_GET_DOUBLE(i->first));
+        } else if (ZVAL_IS_STRING(i->first)) {
+            sprintf(buff, "%s %s", buff, ZVAL_GET_STRING(i->first));
+        } else {
+            strcat(buff, " [?!?!?!]");
+        }
+    } else {
+        strcat(buff, " [NULL]");
+    }
+
+    if (i->second != NULL && ZVAL_IS_DEFINED(i->second)) {
+        if (ZVAL_IS_INT(i->second)) {
+            sprintf(buff, "%s %d", buff, ZVAL_GET_INT(i->second));
+        } else if (ZVAL_IS_DOUBLE(i->second)) {
+            sprintf(buff, "%s %f", buff, ZVAL_GET_DOUBLE(i->second));
+        } else if (ZVAL_IS_STRING(i->second)) {
+            sprintf(buff, "%s %s", buff, ZVAL_GET_STRING(i->second));
+        } else {
+            strcat(buff, " [?!?!?!]");
+        }
+    } else {
+        strcat(buff, " [NULL]");
+    }
+
+    if (i->third != NULL && ZVAL_IS_DEFINED(i->third)) {
+        if (ZVAL_IS_INT(i->third)) {
+            sprintf(buff, "%s %d", buff, ZVAL_GET_INT(i->third));
+        } else if (ZVAL_IS_DOUBLE(i->third)) {
+            sprintf(buff, "%s %f", buff, ZVAL_GET_DOUBLE(i->third));
+        } else if (ZVAL_IS_STRING(i->third)) {
+            sprintf(buff, "%s %s", buff, ZVAL_GET_STRING(i->third));
+        } else {
+            strcat(buff, " [?!?!?!]");
+        }
+    } else {
+        strcat(buff, " [NULL]");
+    }
+
+    buff[256] = '\0';
+
+    strcpy(dest, buff);
+}
 
 INLINED void instruction_init(instruction_t *i) {
 
@@ -316,6 +441,20 @@ INLINED result_t create_JMPE_instr(instruction_t *i, const int label_id, zval_t 
     ZVAL_INIT_INT(i->first, label_id);
     i->second = malloc(sizeof(zval_t));
     zval_copy(i->second, equals_to);
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+
+INLINED result_t create_LOAD_instr(instruction_t *i, zval_t *a) {
+
+    i->type = I_LOAD;
+
+    i->first = malloc(sizeof(zval_t));
+    zval_copy(i->first, a); // offset
+    i->second = NULL;
     i->third = NULL;
 
     return EOK;

@@ -142,7 +142,9 @@ result_t vm_exec(vm_t *vm) {
         }
 
         instruction_t *i = &kv_A(vm->code, vm->ip);
-        debug_print("[0x%.8lu]: [%d]\n", vm->ip, i->type);
+        char bufr[256];
+        instruction_print(bufr, i);
+        debug_print("[0x%.8lu]: %s\n", vm->ip, bufr);
 
         switch (i->type) {
             case I_PUSH:
@@ -210,6 +212,15 @@ result_t vm_exec(vm_t *vm) {
                 zval_t val = kv_pop(vm->stack);
                 ctx_t *ctx = &kv_top(vm->call_stack);
                 kv_a(zval_t, ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first)) = val;
+                vm->ip++;
+                break;
+            }
+            case I_LOAD: {
+                ctx_t *ctx = &kv_top(vm->call_stack);
+                zval_t *a = &kv_a(zval_t, ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first));
+                zval_t copy;
+                zval_copy(&copy, a);
+                kv_push(zval_t, vm->stack, copy);
                 vm->ip++;
                 break;
             }
