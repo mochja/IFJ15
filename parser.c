@@ -47,6 +47,8 @@ result_t init_parser(parser_t *parser, char *source) {
 
     result_t res = init_scanner(&parser->scanner, source);
 
+    init_ht_buildin(parser);
+
     if (res != EOK) {
         fprintf(stderr, "Could not initialize scanner.");
         return res;
@@ -80,7 +82,80 @@ char *generate_var_name(int number) {
     return __nbuffer;
 }
 
+void init_ht_buildin(parser_t *parser){
 
+    char* build_in[5]= {"length","find","concat","substr", "sort" };
+    for (int i = 1; i < 6; ++i)
+    {
+        // adding functions to TS
+        parser->fName = build_in[i-1];
+        hTabItem *tableItem = createNewItem();
+        tableItem->name = malloc(sizeof(char) * (strlen(parser->fName) + 1));
+
+        strcpy(tableItem->name, parser->fName);
+        if (i < 3){
+            tableItem->dataType = INT_KW;
+        } else {
+            tableItem->dataType = STRING_KW;
+        }
+        tableItem->isDefined = true;
+        tableItem->f_label = i ;
+        insertHashTable(parser->table, tableItem);
+
+        // adding function parameters to TS
+        char *hName = generate_var_name(parser->hInt++);
+        int varType=STRING_KW;
+        hTabItem *tItem;
+        switch (i)
+        {
+            case 0:
+            case 4:
+            {
+                /*inserts parameter to TS name type and order*/
+                tItem = createNewItem();
+                tItem->name = calloc(1, strlen(hName) + 1);//
+                strcpy(tItem->name, hName);
+                tItem->dataType = varType;
+                tItem->paramPosition = 1; // tuto vlozim poziciu
+                insertHashTable(parser->table, tItem); //tuto vlozim
+
+            }break;
+            case 1:
+            case 2:
+            {
+                for (int i = 0; i < 2; ++i)
+                {
+                    if ( i == 1 ){
+                        hName = generate_var_name(parser->hInt++);
+                    }
+                    tItem = createNewItem();
+                    tItem->name = calloc(1, strlen(hName) + 1);//
+                    strcpy(tItem->name, hName);
+                    tItem->dataType = varType;
+                    tItem->paramPosition = i+1; // tuto vlozim poziciu
+                    insertHashTable(parser->table, tItem); //tuto vlozim
+                }
+            }break;
+            case 3:
+            {
+                for (int i = 0; i < 3; ++i)
+                {
+                    if ( i > 0 ){
+                        hName = generate_var_name(parser->hInt++);
+                        varType=INT_KW;
+                    }
+                    tItem = createNewItem();
+                    tItem->name = calloc(1, strlen(hName) + 1);//
+                    strcpy(tItem->name, hName);
+                    tItem->dataType = varType;
+                    tItem->paramPosition = i+1; // tuto vlozim poziciu
+                    insertHashTable(parser->table, tItem); //tuto vlozim
+                }
+            }break;
+        }
+    }
+    return 0;
+}
 
 INLINED result_t offset_of_current_token(parser_t *parser, int *offset) {
 

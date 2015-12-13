@@ -40,6 +40,8 @@ typedef struct {
     klist_t(instruction_list) *code;
 } parser_t;
 
+void init_ht_buildin(parser_t *parser);
+
 result_t init_parser(parser_t *parser, char *source);
 result_t parser_dispose(parser_t *parser);
 result_t parser_run(parser_t *parser);
