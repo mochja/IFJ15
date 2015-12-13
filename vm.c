@@ -217,10 +217,7 @@ result_t vm_exec(vm_t *vm) {
             case I_STORE: {
                 zval_t val = kv_pop(vm->stack);
                 ctx_t *ctx = &kv_top(vm->call_stack);
-                if (ctx->nargs + ZVAL_GET_INT(i->first) < kv_size(ctx->locals)) {
-                    zval_dispose(&kv_A(ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first)));
-                }
-                kv_a(zval_t, ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first)) = val;
+                zval_cast(&kv_a(zval_t, ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first)), &val);
                 vm->ip++;
                 break;
             }
