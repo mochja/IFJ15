@@ -117,23 +117,16 @@ result_t parser_run(parser_t *parser) {
     }
 
     tItemPtr tmp = parser->paramList.First;
-
-    while(tmp != NULL){
+    while (tmp != NULL) {
         hTabItem * tableItem;
-        if((tableItem = searchItem(parser->table, tmp->functionId)) == NULL)
+        if ((tableItem = searchItem(parser->table, tmp->functionId)) == NULL)
             return ESYS;
-        if(tableItem->isDefined == false)
+        if (tableItem->isDefined == false)
             return ESEM;
-        tmp=tmp->next;
+        tmp = tmp->next;
     }
 
-
-    // Overime ci sme naozaj na konci
-   // if (parser_next_token(parser) != EEOF) {
-     //   return ESYN;
-    //}
-     hTabItem *tableItem;
-    if ((tableItem = searchItem(parser->table, "main")) == NULL) {
+    if (searchItem(parser->table, "main") == NULL) {
         return ESEM;
     }
 
@@ -160,17 +153,16 @@ result_t parse_fn(parser_t *parser) {
             return result;
         }
 
-        hTabItem *tableItem;
-        if ((tableItem = searchItem(parser->table, parser->fName)) != NULL) {
+        if (searchItem(parser->table, parser->fName) != NULL) {
             return ESEM;
         }
         else {
-            tableItem = createNewItem();
+            hTabItem *tableItem = createNewItem();
             tableItem->name = malloc(sizeof(char) * (strlen(parser->fName) + 1));
             strcpy(tableItem->name, parser->fName);
             tableItem->dataType = INT_KW;
-            tableItem->isDefined = false;
-            tableItem->f_label=0;
+            tableItem->isDefined = true;
+            tableItem->f_label = 0;
             insertHashTable(parser->table, tableItem);
         }
 
@@ -211,10 +203,10 @@ result_t parse_fn(parser_t *parser) {
 
         result = parse_fn_body(parser);
 
-        if(result != EOK)
+        if (result != EOK)
             return result;
 
-        if ((result = parser_next_token(parser)) != EOK) {
+        if ((result = parser_next_token(parser)) != EOK && result != EEOF) {
             debug_print("%s\n", "<");
             return result;
         }
@@ -387,17 +379,17 @@ result_t parse_fn_body(parser_t *parser) {
     parser->argsCounter = 0;
 
     result = parse_list(parser);
-    if(result != EOK && result != EEOF)
-        return  result;
+    if (result != EOK && result != EEOF)
+        return result;
 
-    if(!parser->has_return){
+    if (!parser->has_return){
         debug_print("%s\n","<");
         return ERUN1;
     }
 
-    parser->has_return =false;
+    parser->has_return = false;
 
-    if(parser->varList.First != NULL)
+    if (parser->varList.First != NULL)
         return ESYN;
 
     return result;
@@ -1049,7 +1041,7 @@ result_t parse_list(parser_t *parser) {
         return result;
     }
 
-    return parse_list(parser);;
+    return parse_list(parser);
 }
 
 
