@@ -40,6 +40,7 @@ enum __instruction_type {
     I_JMPE,
 
     I_CALL,
+    I_CALLN,
     I_RETURN,
     I_EXIT,
 
@@ -424,6 +425,18 @@ INLINED result_t create_PUSH_zval_instr(instruction_t *i, zval_t *val) {
     return EOK;
 }
 
+
+
+INLINED result_t create_CALLN_instr(instruction_t *i, const char *name) {
+
+    i->type = I_CALLN;
+    i->first = malloc(sizeof(zval_t));
+    zval_set(i->first, name);
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
 
 
 INLINED result_t create_STORE_zval_instr(instruction_t *i, zval_t *val) {

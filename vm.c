@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include "vm.h"
+#include "ial.h"
 
 result_t vm_init(vm_t *vm, klist_t(instruction_list) *code) {
 
@@ -238,6 +239,55 @@ result_t vm_exec(vm_t *vm) {
 
                 kv_push(ctx_t, vm->call_stack, ctx);
                 vm->ip = (size_t) ZVAL_GET_INT(i->first);
+                break;
+            }
+            case I_CALLN: {
+
+                char *fn = zval_get_string(i->first);
+
+                if (!strcmp("length", fn)) {
+                    zval_t s = kv_pop(vm->stack);
+                    zval_t res;
+                    zval_set(&res, (int) length(zval_get_string(&s)));
+                    zval_dispose(&s);
+                    kv_push(zval_t, vm->stack, res);
+                } else if (!strcmp("substr", fn)) {
+                    zval_t count = kv_pop(vm->stack);
+                    zval_t pos = kv_pop(vm->stack);
+                    zval_t s = kv_pop(vm->stack);
+                    zval_t res;
+                    zval_set(&res, substr(zval_get_string(&s), zval_get_int(&pos), zval_get_int(&count)));
+                    zval_dispose(&s);
+                    zval_dispose(&count);
+                    zval_dispose(&pos);
+                    kv_push(zval_t, vm->stack, res);
+                } else if (!strcmp("concat", fn)) {
+                    zval_t s2 = kv_pop(vm->stack);
+                    zval_t s1 = kv_pop(vm->stack);
+                    zval_t res;
+                    zval_set(&res, concat(zval_get_string(&s1), zval_get_string(&s2)));
+                    zval_dispose(&s1);
+                    zval_dispose(&s2);
+                    kv_push(zval_t, vm->stack, res);
+                } else if (!strcmp("find", fn)) {
+                    zval_t s2 = kv_pop(vm->stack);
+                    zval_t s1 = kv_pop(vm->stack);
+                    zval_t res;
+                    zval_set(&res, find(zval_get_string(&s1), zval_get_string(&s2)));
+                    zval_dispose(&s1);
+                    zval_dispose(&s2);
+                    kv_push(zval_t, vm->stack, res);
+                } else if (!strcmp("sort", fn)) {
+                    zval_t s1 = kv_pop(vm->stack);
+                    zval_t res;
+                    zval_set(&res, sort(zval_get_string(&s1)));
+                    zval_dispose(&s1);
+                    kv_push(zval_t, vm->stack, res);
+                } else {
+                    debug_print("%s: [%s]\n", "Unknown native fn", fn);
+                }
+
+                vm->ip++;
                 break;
             }
             case I_RETURN: {

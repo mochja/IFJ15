@@ -7,14 +7,14 @@
 char* substr(const char *str, int pos, int count)
 {
     char *result_str;
-    const int str_len = length(str);
+    size_t str_len = length(str);
 
     if (pos < 0 || count < 0 || pos > str_len) {
         // TODO: proper error handling
         exit(1);
     }
 
-    const int result_len = (count > str_len - pos) ? str_len - pos : count;
+    size_t result_len = (count > str_len - pos) ? str_len - pos : (size_t) count;
     result_str = malloc((result_len + 1) * sizeof(char));
 
     if (result_str == NULL) {
@@ -35,8 +35,8 @@ char* concat(const char *str1 , const char *str2)
 {
     char *result_str;
 
-    const int str1_len = length(str1);
-    const int str2_len = length(str2);
+    size_t str1_len = length(str1);
+    size_t str2_len = length(str2);
 
     result_str = malloc((str1_len + str2_len + 1) * sizeof(char));
 
@@ -49,4 +49,67 @@ char* concat(const char *str1 , const char *str2)
     memcpy(result_str + str1_len, str2, str2_len + 1);
 
     return result_str;
+}
+
+char *sort(const char *s) {
+    char *result_str = malloc((strlen(s) + 1) * sizeof(char));
+    strcpy(result_str, s);
+
+    size_t gap = strlen(s) / 2;
+    size_t i, j;
+    char tmp;
+
+    while (gap > 0) {
+        for (i = gap; i < strlen(s); i++) {
+            j = i;
+            tmp = result_str[i];
+            while (result_str[j - gap] > tmp && j >= gap) {
+                result_str[i] = s[j - gap];
+                j -= gap;
+            }
+            result_str[j] = tmp;
+        }
+
+        gap = (gap == 2) ? 1 : (size_t) (gap / 2.2);
+    }
+
+    return result_str;
+}
+
+#define ALBHABETH_LENGTH 256
+
+static inline void do_delta(int delta[], const char *search, int searchLen) {
+    int i;
+
+    for (i = 0; i < ALBHABETH_LENGTH; i++) {
+        delta[i] = searchLen;
+    }
+
+    for (i = 0; i <= searchLen - 1; i++) {
+        delta[(int) search[i]] = searchLen - i - 1;
+    }
+}
+
+int find(const char *s, const char *search) {
+    int i, sLen = (int) strlen(s), searchLen = (int) strlen(search);
+    if (searchLen == 0) return 0;
+
+    int delta[ALBHABETH_LENGTH];
+    do_delta(delta, search, searchLen);
+
+    i = searchLen - 1;
+    while (i < sLen) {
+        int j = searchLen - 1;
+
+        while (j >= 0 && s[i] == search[j]) {
+            j--;
+            i--;
+        }
+
+        if (j < 0) return i + 1;
+
+        i += delta[(int) s[i]];
+    }
+
+    return i;
 }

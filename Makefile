@@ -6,7 +6,7 @@ ifeq ($(DEBUG), 1)
 	CFLAGS += -g -DDEBUG
 endif
 
-SOURCES=main.c scanner.c parser.c list.c hash.c token.h zval.h expr.c instruction.c vm.c
+SOURCES=main.c scanner.c parser.c list.c hash.c token.h zval.h expr.c instruction.c vm.c ial.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=ifj15
 
