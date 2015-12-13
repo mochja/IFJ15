@@ -106,55 +106,47 @@ void init_ht_buildin(parser_t *parser){
         char *hName = generate_var_name(parser->hInt++);
         int varType=STRING_KW;
         hTabItem *tItem;
+        /*inserts parameter to TS name type and order*/
         switch (i)
         {
             case 0:
             case 4:
             {
-                printf("-%d\n",i );
-                /*inserts parameter to TS name type and order*/
                 tItem = createNewItem();
                 tItem->name = calloc(1, strlen(hName) + 1);//
                 strcpy(tItem->name, hName);
                 tItem->dataType = varType;
-                tItem->paramPosition = 1; // tuto vlozim poziciu
-                insertHashTable(parser->table, tItem); //tuto vlozim
-
+                tItem->paramPosition = 1;
+                insertHashTable(parser->table, tItem);
             }break;
             case 1:
             case 2:
             {
-                printf("-%d\n",i );
-                for (int i = 0; i < 2; ++i)
-                {
-                    printf("%d\n",i );
+                for (int i = 0; i < 2; ++i){
                     if ( i == 1 ){
                         hName = generate_var_name(parser->hInt++);
                     }
                     tItem = createNewItem();
-                    tItem->name = calloc(1, strlen(hName) + 1);//
+                    tItem->name = calloc(1, strlen(hName) + 1);
                     strcpy(tItem->name, hName);
                     tItem->dataType = varType;
-                    tItem->paramPosition = i+1; // tuto vlozim poziciu
-                    insertHashTable(parser->table, tItem); //tuto vlozim
+                    tItem->paramPosition = i+1;
+                    insertHashTable(parser->table, tItem);
                 }
             }break;
             case 3:
             {
-                printf("-%d\n",i );
-                for (int i = 0; i < 3; ++i)
-                {
-                    printf("%d\n",i );
+                for (int i = 0; i < 3; ++i){
                     if ( i > 0 ){
                         hName = generate_var_name(parser->hInt++);
                         varType=INT_KW;
                     }
                     tItem = createNewItem();
-                    tItem->name = calloc(1, strlen(hName) + 1);//
+                    tItem->name = calloc(1, strlen(hName) + 1);
                     strcpy(tItem->name, hName);
                     tItem->dataType = varType;
-                    tItem->paramPosition = i+1; // tuto vlozim poziciu
-                    insertHashTable(parser->table, tItem); //tuto vlozim
+                    tItem->paramPosition = i+1; // inserting position
+                    insertHashTable(parser->table, tItem); //insert to HT
                 }
             }break;
         }
