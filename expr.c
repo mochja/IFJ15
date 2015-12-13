@@ -90,6 +90,8 @@ result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens
     klist_t(expr_stack) *op_stack = kl_init(expr_stack);
     kliter_t(token_list) *p;
 
+    int lbracket = 0;
+
     for (p = kl_begin(tokens); p != kl_end(tokens); p = kl_next(p)) {
         token_t *t = kl_val(p);
 
@@ -118,6 +120,15 @@ result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens
                 free(exp);
                 return ESYN;
             }
+
+            if (op == Op_LB) {
+                lbracket++;
+            } else if (op == Op_RB && lbracket <= 0) {
+                return ESEM2; // zatvorky opacne
+            } else if (op == Op_RB) {
+                lbracket--;
+            }
+
             EXPR_SET_OPERAND(exp, op);
 
             while (kl_begin(op_stack) != kl_end(op_stack)) {
@@ -134,6 +145,12 @@ result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens
 
             *kl_push(expr_stack, op_stack) = exp;
         }
+    }
+
+    if (lbracket != 0) {
+        debug_print("%s\n", "Invalid bracket count");
+        kl_destroy(expr_stack, op_stack);
+        return ESEM2;
     }
 
     for (kliter_t(expr_stack) *it = kl_begin(op_stack); it != kl_end(op_stack); it = kl_next(it)) {
