@@ -475,8 +475,7 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                 char ascii[3]; //pole o 2 prvkoch do ktoreho ulozime 2 nacitane znaky
                 ascii[2] = '\0';
 
-                *cx = (unsigned char) *(scanner->source + --scanner->pos); //mozno je to rozbite, in case of emergency delete
-                for(int counter = 0 ; counter < 2 ; counter++){ //nacitaju sa 2 znaky
+                for (int counter = 0 ; counter < 2 ; counter++){ //nacitaju sa 2 znaky
                     if ((*cx < 30 && *cx > 39) && (*cx < 41 && *cx > 46) && (*cx < 61 && *cx > 66)){ // kontorla podmienky znaku
                         fprintf(stderr, "LEX Error: Line: %lu, Unknown token: '%c'\n", scanner->line, *cx);
                         return ELEX;

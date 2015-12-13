@@ -181,6 +181,11 @@ result_t vm_exec(vm_t *vm) {
                 vm->ip++;
                 break;
             }
+            case I_COUT_zval: {
+                zval_print(i->first);
+                vm->ip++;
+                break;
+            }
             case I_PUSH_zval: {
                 zval_t val;
                 zval_init(&val);
@@ -212,6 +217,9 @@ result_t vm_exec(vm_t *vm) {
             case I_STORE: {
                 zval_t val = kv_pop(vm->stack);
                 ctx_t *ctx = &kv_top(vm->call_stack);
+                if (ctx->nargs + ZVAL_GET_INT(i->first) <= kv_size(ctx->locals)) {
+                    zval_dispose(&kv_A(ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first)));
+                }
                 kv_a(zval_t, ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first)) = val;
                 vm->ip++;
                 break;
@@ -220,6 +228,7 @@ result_t vm_exec(vm_t *vm) {
                 ctx_t *ctx = &kv_top(vm->call_stack);
                 zval_t *a = &kv_a(zval_t, ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first));
                 zval_t copy;
+                zval_init(&copy);
                 zval_copy(&copy, a);
                 kv_push(zval_t, vm->stack, copy);
                 vm->ip++;
@@ -291,14 +300,9 @@ result_t vm_exec(vm_t *vm) {
                 break;
             }
             case I_RETURN: {
-                if (kv_size(vm->call_stack) == 0) {
-                    ret = ERUN3;
-                    running = false;
-                    break;
-                }
                 ctx_t ctx = kv_pop(vm->call_stack);
                 vm->ip = ctx.returnip;
-                kv_destroy(ctx.locals);
+                vm_ctx_dispose(&ctx);
                 break;
             }
             case I_EXIT: {
@@ -1555,12 +1559,8 @@ result_t vm_exec(vm_t *vm) {
         }
     };
 
-    if (kv_size(vm->stack) > 1) {
-        debug_print("\n\nStack is not cleaned properly %lu items left there\n", kv_size(vm->stack));
-
-        for (int i = 0; i < kv_size(vm->stack); ++i) {
-            zval_print(&kv_A(vm->stack, i));
-        }
+    for (int i = 0; i < kv_size(vm->stack); ++i) {
+        zval_dispose(&kv_A(vm->stack, i));
     }
 
     return ret;

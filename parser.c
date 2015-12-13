@@ -595,6 +595,7 @@ result_t parse_list(parser_t *parser) {
             }
 
             token_t cpy;
+            token_init(&cpy);
 
             if (TOKEN_IS(parser->token, ID_TYPE)) {
                 int offset;
@@ -998,10 +999,12 @@ result_t parse_list(parser_t *parser) {
             return ESYN;
 
         while (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, DBL_ARR_LEFT_SMBL)) {
+
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");
                 return result;
             }
+
             if (TOKEN_IS(parser->token, ID_TYPE)) {
                 if ((var_offset = get_var_offset(&parser->varList, parser->token->data.sVal)) == 0) {
                     if ((var_offset = get_param_offset(&parser->paramList, parser->fName, parser->token->data.sVal)) == 0)
@@ -1014,15 +1017,13 @@ result_t parse_list(parser_t *parser) {
                 /**vlozenie 3AK - vypis na STDOUT z premennej hName**/
                 debug_print("\tCOUNT STDOUT OFFSET:%d\n", var_offset);
             }
-            else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST)) {
-                debug_print("\tCOUNT STDOUT CONST:%d\n", parser->token->data.iVal);
-            }/**vlozenie 3AK - vypis na STDOUT cislo parser->token->data.i**/
-            else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, DOUBLE_CONST)) {
-                debug_print("\tCOUNT STDOUT CONST:%f\n", parser->token->data.dVal);
-            }/**vlozenie 3AK - vypis na STDOUT cislo parser->token->data.d**/
-            else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, TEXT_CONST)) {
-                debug_print("\tCOUNT STDOUT CONST:%s\n", parser->token->data.sVal);
-            }/**vlozenie 3AK - vypis na STDOUT retazec parser->token->data.s**/
+            else if (TOKEN_HAS_TFLAG(parser->token, CONST_TYPE, INT_CONST|DOUBLE_CONST|TEXT_CONST)) {
+                instruction_t cout;
+                create_COUT_zval_instr(&cout, &parser->token->data);
+                *kl_pushp(instruction_list, parser->code) = cout;
+
+                debug_print("\tCOUNT STDOUT CONST:%s\n", "");
+            }
             else return ESYN;
 
             if ((result = parser_next_token(parser)) != EOK) {
@@ -1046,6 +1047,7 @@ result_t parse_list(parser_t *parser) {
         klist_t(token_list) *tokens = kl_init(token_list);
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
             token_t cpy;
+            token_init(&cpy);
 
             if (TOKEN_IS(parser->token, ID_TYPE)) {
                 int offset;
@@ -1248,14 +1250,6 @@ result_t parse_adv_declaration(parser_t *parser) {
 result_t parse_assign(parser_t *parser) {
     result_t result;
 
-//    if (TOKEN_HAS_TFLAG(parser->token, FN_TYPE, LENGTH_FN|SUBSTR_FN|CONCAT_FN|FIND_FN|SORT_FN)) {
-//        result = parse_build_in_fn(parser);
-//        if(result != EOK){
-//            debug_print("%s\n", "<");
-//            return result;
-//        }
-//    }
-//    else
     if (TOKEN_IS(parser->token, ID_TYPE) || TOKEN_IS(parser->token, FN_TYPE)) {
 
         hTabItem *tableItem;
@@ -1397,6 +1391,7 @@ result_t parse_assign(parser_t *parser) {
         klist_t(token_list) *tokens = kl_init(token_list);
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
             token_t cpy;
+            token_init(&cpy);
 
             if (TOKEN_IS(parser->token, ID_TYPE)) {
                 int offset;
