@@ -33,7 +33,7 @@ result_t vm_init(vm_t *vm, klist_t(instruction_list) *code) {
     for (kliter_t(instruction_list) *it = kl_begin(code);
             it != kl_end(code); it = kl_next(it)) {
 
-        instruction_t *instr = kl_val(it);
+        instruction_t *instr = &kl_val(it);
 
         if (instr->type == I_LABEL) {
             kv_a(size_t, labels, ZVAL_GET_INT(instr->first)) = i;
@@ -46,7 +46,7 @@ result_t vm_init(vm_t *vm, klist_t(instruction_list) *code) {
     for (kliter_t(instruction_list) *it = kl_begin(code);
          it != kl_end(code); it = kl_next(it)) {
 
-        instruction_t *instr = kl_val(it);
+        instruction_t *instr = &kl_val(it);
 
         if (instr->type == I_JMP || instr->type == I_CALL || instr->type == I_JMPE) {
             instruction_t tmp;

@@ -17,7 +17,7 @@ typedef struct tItem {
 	struct tItem *next;
 	struct tItem *prev;
 	kvec_t(tData) data;
-	char *functionId;
+	char functionId[256];
 } *tItemPtr;
 
 typedef struct {
@@ -34,14 +34,13 @@ char * paramSearch(tvarList *L, char * fid, char *name);
 int get_var_offset(tvarList *L, char * name);
 int get_param_offset(tvarList *L, char * fid, char *name);
 
-
-static inline result_t init_data_var(tData *dest, const char *id, const char *hid,const int offset) {
+static inline result_t init_data_var(tData *dest, const char *id, const char *hid, const int offset) {
 
     dest->id = malloc((strlen(id) + 1) * sizeof(char));
 
     strcpy(dest->id, id);
-    strcpy(dest->hid, hid);
-    dest->offset=offset;
+    strncpy(dest->hid, hid, sizeof(dest->hid));
+    dest->offset = offset;
 
     return EOK;
 }

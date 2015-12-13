@@ -19,13 +19,13 @@ BeforeEach(Instruction) {}
 AfterEach(Instruction) {}
 
 Ensure(Instruction, should_create_POP_instruction) {
-    instruction_t *pop = create_POP_instr(5);
+    instruction_t pop;
+    create_POP_instr(&pop, 5);
 
-    assert_true(ZVAL_IS_INT(pop->first));
-    assert_equal(ZVAL_GET_INT(pop->first), 5);
+    assert_true(ZVAL_IS_INT(pop.first));
+    assert_equal(ZVAL_GET_INT(pop.first), 5);
 
-    instruction_dispose(pop);
-    free(pop);
+    instruction_dispose(&pop);
 }
 
 //Ensure(Instruction, should_create_instruction_list_from_expression) {
