@@ -154,7 +154,6 @@ void init_ht_buildin(parser_t *parser){
             }break;
         }
     }
-    return 0;
 }
 
 INLINED result_t offset_of_current_token(parser_t *parser, int *offset) {
