@@ -1012,6 +1012,8 @@ result_t parse_list(parser_t *parser) {
         if ((result = expr_from_tokens(expr, tokens)) != EOK) {
             kl_destroy(token_list, tokens);
             kl_destroy(expr_stack, expr);
+            if(result == ESEM2)
+                return ESEM4;
             return result;
         }
         kl_destroy(token_list, tokens);

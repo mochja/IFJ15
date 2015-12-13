@@ -107,7 +107,7 @@ result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens
             } else {
                 kl_destroy(expr_stack, op_stack);
                 free(exp);
-                return ESYN;
+                return ESEM2;
             }
 
             *kl_pushp(expr_stack, expr) = exp;
