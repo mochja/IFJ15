@@ -1157,6 +1157,11 @@ result_t parse_list(parser_t *parser) {
             }
             /**vygenerovanie 3AK - nacitanie zo SV do premennej hName**/
             debug_print("\tCIN STDIN %d\n", var_offset);
+            instruction_t cin;
+            zval_t offset;
+            zval_set(&offset, var_offset);
+            create_CIN_offset_instr(&cin, &offset);
+            *kl_pushp(instruction_list, parser->code) = cin;
 
             if ((result = parser_next_token(parser)) != EOK) {
                 debug_print("%s\n", "<");

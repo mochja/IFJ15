@@ -257,6 +257,37 @@ result_t vm_exec(vm_t *vm) {
                 vm->ip = (size_t) ZVAL_GET_INT(i->first);
                 break;
             }
+            case I_CIN_offset: {
+
+                ctx_t *ctx = &kv_top(vm->call_stack);
+                zval_t *a = &kv_a(zval_t, ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first));
+
+                if (ZVAL_IS_INT(a)) {
+                    int t;
+                    if (scanf("%d", &t) != EOF) {
+                        zval_dispose(a);
+                        zval_set(a, t);
+                    }
+                } else if (ZVAL_IS_DOUBLE(a)) {
+                    float t;
+                    if (scanf("%g", &t) != EOF) {
+                        zval_dispose(a);
+                        zval_set(a, (double) t);
+                    }
+                } else if (ZVAL_IS_STRING(a)) {
+                    char buff[512];
+                    if (scanf("%s", buff) != EOF) {
+                        zval_dispose(a);
+                        zval_set(a, buff);
+                    }
+                } else {
+                    ret = ERUN1;
+                    running = false;
+                }
+
+                vm->ip++;
+                break;
+            }
             case I_CALLN: {
 
                 char *fn = zval_get_string(i->first);

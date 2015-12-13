@@ -38,6 +38,7 @@ enum __instruction_type {
     I_COUT_pop,
     I_COUT_offset,
     I_COUT_zval,
+    I_CIN_offset,
     I_JMPE,
 
     I_CALL,
@@ -543,6 +544,20 @@ INLINED result_t create_JMPE_instr(instruction_t *i, const int label_id, zval_t 
 INLINED result_t create_LOAD_instr(instruction_t *i, zval_t *a) {
 
     i->type = I_LOAD;
+
+    i->first = malloc(sizeof(zval_t));
+    zval_init(i->first);
+    zval_copy(i->first, a); // offset
+    i->second = NULL;
+    i->third = NULL;
+
+    return EOK;
+}
+
+
+INLINED result_t create_CIN_offset_instr(instruction_t *i, zval_t *a) {
+
+    i->type = I_CIN_offset;
 
     i->first = malloc(sizeof(zval_t));
     zval_init(i->first);
