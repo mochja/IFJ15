@@ -994,7 +994,7 @@ result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_st
     for (kliter_t(expr_stack) *it = kl_begin(buff); it != kl_end(buff); it = kl_next(it)) {
 
         if (it != kl_begin(buff)) {
-            return ELEX; // TODO: fix code, nesedi pocet operandov a premennych
+            return ESYN; // TODO: fix code, nesedi pocet operandov a premennych
         }
 
         instruction_t *i = malloc(sizeof(instruction_t));
