@@ -90,41 +90,56 @@ result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens
     klist_t(expr_stack) *op_stack = kl_init(expr_stack);
     kliter_t(token_list) *p;
 
-    for (p = kl_begin(tokens); p != kl_end(tokens); p = kl_next(p)) {
-        token_t *t = kl_val(p);
+    int lbracket = 0;
+    int counter = 0;
 
-        expr_t *exp = calloc(1, sizeof(expr_t));
-        expr_init(exp);
+    for (p = kl_begin(tokens); p != kl_end(tokens); p = kl_next(p)) {
+        token_t *t = &kl_val(p);
+
+        expr_t exp;
+        expr_init(&exp);
 
         if (get_operation(t->type, t->flags) == Op_VAR) {
 
             if (TOKEN_HAS_TFLAG(t, CONST_TYPE, INT_CONST)) {
-                EXPR_SET_INT(exp, ZVAL_GET_INT(&t->data));
+                EXPR_SET_INT(&exp, ZVAL_GET_INT(&t->data));
             } else if (TOKEN_HAS_TFLAG(t, CONST_TYPE, DOUBLE_CONST)) {
-                EXPR_SET_DOUBLE(exp, ZVAL_GET_DOUBLE(&t->data));
+                EXPR_SET_DOUBLE(&exp, ZVAL_GET_DOUBLE(&t->data));
             } else if (TOKEN_HAS_TFLAG(t, ID_TYPE, OFFSET_ID)) {
-                EXPR_SET_OFFSET(exp, ZVAL_GET_INT(&t->data));
+                EXPR_SET_OFFSET(&exp, ZVAL_GET_INT(&t->data));
             } else {
+                debug_print("%s", "<");
                 kl_destroy(expr_stack, op_stack);
-                free(exp);
-                return ESYN;
+                return ESEM2;
             }
-
+            counter++;
             *kl_pushp(expr_stack, expr) = exp;
         } else {
             unsigned int op = get_operation(t->type, t->flags);
             if (op == Op_ERR) {
                 kl_destroy(expr_stack, op_stack);
-                free(exp);
                 return ESYN;
             }
-            EXPR_SET_OPERAND(exp, op);
+
+            if (op == Op_LB) {
+                lbracket++;
+            } else if (op == Op_RB && lbracket <= 0) {
+                return ESEM2; // zatvorky opacne
+            } else if (op == Op_RB) {
+                lbracket--;
+            } else if (counter-- != 1) {
+                debug_print("%s\n", "invalid expression");
+                kl_destroy(expr_stack, op_stack);
+                return ESEM2; // TODO: asdf
+            }
+
+            EXPR_SET_OPERAND(&exp, op);
 
             while (kl_begin(op_stack) != kl_end(op_stack)) {
-                expr_t *top = kl_val(kl_begin(op_stack));
+                expr_t *top = &kl_val(kl_begin(op_stack));
 
                 if (get_rule((unsigned int) EXPR_GET_OPERAND(top), op) == M) {
-                    expr_t *a;
+                    expr_t a;
                     kl_shift(expr_stack, op_stack, &a);
                     *kl_pushp(expr_stack, expr) = a;
                 } else {
@@ -136,11 +151,21 @@ result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens
         }
     }
 
+    if (lbracket != 0) {
+        debug_print("%s\n", "Invalid bracket count");
+        kl_destroy(expr_stack, op_stack);
+        return ESEM2;
+    } else if (counter != 1) {
+        debug_print("%s\n", "Invalid expression");
+        kl_destroy(expr_stack, op_stack);
+        return ESEM2;
+    }
+
     for (kliter_t(expr_stack) *it = kl_begin(op_stack); it != kl_end(op_stack); it = kl_next(it)) {
-        expr_t *exp;
+        expr_t exp;
         if (kl_shift(expr_stack, op_stack, &exp) != -1) {
-            expr_t *copy = malloc(sizeof(expr_t));
-            expr_copy(copy, exp);
+            expr_t copy;
+            expr_copy(&copy, &exp);
             *kl_pushp(expr_stack, expr) = copy;
         }
     }

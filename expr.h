@@ -89,8 +89,8 @@ result_t expr_init(expr_t *expr);
 result_t expr_dispose(expr_t *expr);
 result_t expr_copy(expr_t *dest, expr_t *src);
 
-#define __expr_t_free(x) do {expr_dispose(kl_val(x)); free(kl_val(x));} while(0);
-KLIST_INIT(expr_stack, expr_t*, __expr_t_free)
+#define __expr_t_free(x) do {expr_dispose(&kl_val(x));} while(0);
+KLIST_INIT(expr_stack, expr_t, __expr_t_free)
 
 result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens);
 

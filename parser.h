@@ -25,13 +25,13 @@
 typedef struct {
 	tvarList varList;
 	tvarList paramList;
-	char *fName;
-	int argsCounter;
+	char fName[256];
+    char assignVarName[256];
+    int argsCounter;
 	int argsCounter1;
 	bool fDeclared;
 	int hInt;
 	int label;
-	char *assignVarName;
 	tTable *table;
     token_t *token;
     scanner_t scanner;

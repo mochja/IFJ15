@@ -19,16 +19,27 @@ BeforeEach(VM) {}
 AfterEach(VM) {}
 
 Ensure(VM, should_replace_labels_with_addresses_on_initialize) {
-    klist_t(instruction_list) *sl;
-    sl = kl_init(instruction_list);
+    klist_t(instruction_list) *sl = kl_init(instruction_list);
 
-    *kl_pushp(instruction_list, sl) = create_JMP_instr(8);   // 0
-    *kl_pushp(instruction_list, sl) = create_LABEL_instr(2);
-    *kl_pushp(instruction_list, sl) = create_JMP_instr(1);   // 1
-    *kl_pushp(instruction_list, sl) = create_LABEL_instr(8);
-    *kl_pushp(instruction_list, sl) = create_JMP_instr(2);   // 2
-    *kl_pushp(instruction_list, sl) = create_LABEL_instr(1);
-    *kl_pushp(instruction_list, sl) = create_POP_instr(100); // 3
+    instruction_t jmp, lbl;
+
+    create_JMP_instr(&jmp, 8);
+    create_LABEL_instr(&lbl, 2);
+    *kl_pushp(instruction_list, sl) = jmp;   // 0
+    *kl_pushp(instruction_list, sl) = lbl;
+
+    create_JMP_instr(&jmp, 1);
+    create_LABEL_instr(&lbl, 8);
+    *kl_pushp(instruction_list, sl) = jmp;   // 1
+    *kl_pushp(instruction_list, sl) = lbl;
+
+    create_JMP_instr(&jmp, 2);
+    create_LABEL_instr(&lbl, 1);
+    *kl_pushp(instruction_list, sl) = jmp;   // 2
+    *kl_pushp(instruction_list, sl) = lbl;
+
+    create_POP_instr(&lbl, 100);
+    *kl_pushp(instruction_list, sl) = lbl; // 3
 
     vm_t vm;
     vm_init(&vm, sl);
@@ -58,18 +69,16 @@ Ensure(VM, should_add_two_integers) {
     klist_t(instruction_list) *sl = kl_init(instruction_list);
     zval_t a, b;
 
-    instruction_t *i = malloc(sizeof(instruction_t));
+    instruction_t i;
 
     zval_set(&a, 5); zval_set(&b, 2);
-    create_ADD_zval_instr(i, &a, &b);
+    create_ADD_zval_instr(&i, &a, &b);
     *kl_pushp(instruction_list, sl) = i;
 
-    i = malloc(sizeof(instruction_t));
-    create_ADD_zval_instr(i, &a, &b);
+    create_ADD_zval_instr(&i, &a, &b);
     *kl_pushp(instruction_list, sl) = i;
 
-    i = malloc(sizeof(instruction_t));
-    create_ADD_pop_instr(i);
+    create_ADD_pop_instr(&i);
     *kl_pushp(instruction_list, sl) = i;
 
     vm_t vm;

@@ -184,7 +184,7 @@ INLINED result_t zval_copy(zval_t *dest, zval_t *src) {
 
     if (ZVAL_IS_STRING(dest)) {
         return zval_set_string(dest, ZVAL_GET_STRING(src));
-    } else if (ZVAL_IS_DOUBLE(src)) {
+    } else if (!ZVAL_IS_DOUBLE(src)) {
         dest->iVal = src->iVal;
     } else {
         dest->dVal = src->dVal;

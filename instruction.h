@@ -313,8 +313,8 @@ INLINED void instruction_copy(instruction_t *dest, instruction_t *src) {
     __copy_if_src_exists(third, dest, src);
 }
 
-#define __instruction_free(x) do { instruction_dispose(kl_val(x)); free(kl_val(x)); } while (0);
-KLIST_INIT(instruction_list, instruction_t*, __instruction_free)
+#define __instruction_free(x) do { instruction_dispose(&kl_val(x)); } while (0);
+KLIST_INIT(instruction_list, instruction_t, __instruction_free)
 
 
 /**
@@ -331,29 +331,27 @@ result_t append_instr_from_expr(klist_t(instruction_list) *dest, klist_t(expr_st
 /**
  * Move first element from stack to [addr_offset]
  */
-INSTR_T create_POP_instr(int addr_offset) {
-    instruction_t *i = calloc(1, sizeof(instruction_t));
+INLINED result_t create_POP_instr(instruction_t *i, int addr_offset) {
 
     i->type = I_POP;
     ZVAL_INIT_INT(i->first, addr_offset);
     i->second = NULL;
     i->third = NULL;
 
-    return i;
+    return EOK;
 }
 
 
 
 
-INSTR_T create_LABEL_instr(int key) {
-    instruction_t *i = calloc(1, sizeof(instruction_t));
+INLINED result_t create_LABEL_instr(instruction_t *i, int key) {
 
     i->type = I_LABEL;
     ZVAL_INIT_INT(i->first, key);
     i->second = NULL;
     i->third = NULL;
 
-    return i;
+    return EOK;
 }
 
 
@@ -371,15 +369,14 @@ INLINED result_t create_RETURN_instr(instruction_t *i) {
 
 
 
-INSTR_T create_JMP_instr(int label_key) {
-    instruction_t *i = calloc(1, sizeof(instruction_t));
+INLINED result_t create_JMP_instr(instruction_t *i, int label_key) {
 
     i->type = I_JMP;
     ZVAL_INIT_INT(i->first, label_key);
     i->second = NULL;
     i->third = NULL;
 
-    return i;
+    return EOK;
 }
 
 
@@ -397,15 +394,14 @@ INLINED result_t create_POP_N_instr(instruction_t *i, const int n) {
 
 
 
-INSTR_T create_PUSH_int_instr(const int store_offset) {
-    instruction_t *i = calloc(1, sizeof(instruction_t));
+INLINED result_t create_PUSH_int_instr(instruction_t *i, const int store_offset) {
 
     i->type = I_PUSH;
     ZVAL_INIT_INT(i->first, store_offset);
     i->second = NULL;
     i->third = NULL;
 
-    return i;
+    return EOK;
 }
 
 
@@ -486,20 +482,6 @@ INLINED result_t create_EXIT_instr(instruction_t *i) {
     i->third = NULL;
 
     return EOK;
-}
-
-
-
-
-INSTR_T create_COUT_pop_instr() {
-    instruction_t *i = calloc(1, sizeof(instruction_t));
-
-    i->type = I_COUT_pop;
-    i->first = NULL;
-    i->second = NULL;
-    i->third = NULL;
-
-    return i;
 }
 
 

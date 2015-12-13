@@ -175,7 +175,7 @@ INLINED void token_dispose(token_t *t) {
     zval_dispose(&t->data);
 }
 
-#define __token_t_free(x) do { token_dispose(kl_val((x))); free(kl_val((x))); } while(0)
-KLIST_INIT(token_list, token_t*, __token_t_free)
+#define __token_t_free(x) do { token_dispose(&kl_val((x))); } while(0)
+KLIST_INIT(token_list, token_t, __token_t_free)
 
 #endif // TOKEN_H_

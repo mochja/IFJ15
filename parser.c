@@ -18,13 +18,13 @@ result_t init_parser(parser_t *parser, char *source) {
     listInit(&parser->varList);
     listInit(&parser->paramList);
 
-    parser->fName = NULL;
+    parser->fName[0] = '\0';
     parser->argsCounter = 0;
     parser->argsCounter1 = 0;
     parser->fDeclared = false;
     parser->hInt = 0;
     parser->label = 1;
-    parser->assignVarName = NULL;
+    parser->assignVarName[0] = '\0';
     parser->offset_counter = 0;
     parser->has_return = false;
 
@@ -32,12 +32,12 @@ result_t init_parser(parser_t *parser, char *source) {
     parser->code = kl_init(instruction_list);
 
     // Call main function
-    instruction_t *call = malloc(sizeof(instruction_t));
-    create_CALL_instr(call, 0, 0);
+    instruction_t call;
+    create_CALL_instr(&call, 0, 0);
     *kl_pushp(instruction_list, parser->code) = call;
 
-    instruction_t *exit = malloc(sizeof(instruction_t));
-    create_EXIT_instr(exit);
+    instruction_t exit;
+    create_EXIT_instr(&exit);
     *kl_pushp(instruction_list, parser->code) = exit;
 
     if ((parser->table = initHashTable(MAX_HTSIZE)) == NULL) {
@@ -70,7 +70,7 @@ result_t parser_dispose(parser_t *parser) {
 }
 
 result_t parser_next_token(parser_t *parser) {
-//    token_dispose(parser->token);
+    token_dispose(parser->token);
     return scanner_get_next_token(&parser->scanner, parser->token);
 }
 
@@ -129,7 +129,6 @@ result_t parser_run(parser_t *parser) {
     if (searchItem(parser->table, "main") == NULL) {
         return ESEM;
     }
-
     return EOK;
 }
 
@@ -146,7 +145,7 @@ result_t parse_fn(parser_t *parser) {
 
     if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, MAIN_KW) && fType == INT_KW) {
         /***********telo funkcie main**************/
-        parser->fName = "main";
+        strncpy(parser->fName, "main", sizeof(parser->fName));
 
         if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
@@ -183,7 +182,7 @@ result_t parse_fn(parser_t *parser) {
         }
         kv_init(item->data);
 
-        item->functionId = parser->fName;
+        strncpy(item->functionId, parser->fName, sizeof(item->functionId));
         insertLast(item, &parser->paramList);
 
         if ((result = parser_next_token(parser)) != EOK) {
@@ -194,7 +193,9 @@ result_t parse_fn(parser_t *parser) {
         if (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL))// {
             return ESYN;
 
-        *kl_pushp(instruction_list, parser->code) = create_LABEL_instr(0);
+        instruction_t lbl;
+        create_LABEL_instr(&lbl, 0);
+        *kl_pushp(instruction_list, parser->code) = lbl;
 
         if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
@@ -222,8 +223,7 @@ result_t parse_fn(parser_t *parser) {
     }
     else if (TOKEN_IS(parser->token, ID_TYPE)) {
         /*****************telo funkcie*************/
-        parser->fName = ZVAL_GET_STRING(&parser->token->data);
-        char *fLabel = parser->token->data.sVal;
+        strncpy(parser->fName, ZVAL_GET_STRING(&parser->token->data), sizeof(parser->fName));
         parser->fDeclared = false;
         /********MISSSING: kontrola ts**********************/
 
@@ -258,8 +258,7 @@ result_t parse_fn(parser_t *parser) {
             if ((item = calloc(1, sizeof(struct tItem))) == NULL)
                 return ESYS;
             kv_init(item->data);
-            item->functionId = malloc(sizeof(char) * (strlen(parser->fName) + 1));
-            strcpy(item->functionId, parser->fName);
+            strncpy(item->functionId, parser->fName, sizeof(item->functionId));
         }
 
         if ((result = parser_next_token(parser)) != EOK) {
@@ -314,8 +313,9 @@ result_t parse_fn(parser_t *parser) {
             tableItem->isDefined = true;
 
             debug_print("LABEL F %d\n", tableItem->f_label);
-            instruction_t *label = create_LABEL_instr(tableItem->f_label);
-            *kl_pushp(instruction_list, parser->code) = label;
+            instruction_t lbl;
+            create_LABEL_instr(&lbl, tableItem->f_label);
+            *kl_pushp(instruction_list, parser->code) = lbl;
             parser->label++;
 
             if ((result = parser_next_token(parser)) != EOK) {
@@ -329,7 +329,7 @@ result_t parse_fn(parser_t *parser) {
                 return result;
 
             /********MISSING: vlozenie 3AK -- navrat z funkcie*******/
-            debug_print("LABEL ENDF %s\n", fLabel);
+            debug_print("LABEL ENDF %d\n", tableItem->f_label);
         }
         else if (TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, LEFT_VINCULUM_SMBL) && tableItem->isDefined == true)
             return ESEM;
@@ -425,7 +425,7 @@ result_t parse_list(parser_t *parser) {
             debug_print("%s\n", "<");
             return result;
         }
-        parser->assignVarName = hName;
+        strncpy(parser->assignVarName, hName, sizeof(parser->assignVarName));
         result = parse_assign(parser);
 
         if (result != EOK) {
@@ -435,8 +435,8 @@ result_t parse_list(parser_t *parser) {
 
         debug_print("\tMV TO OFFSET:%d VYRAZ\n", var_offset);
 
-        instruction_t *store = malloc(sizeof(instruction_t));
-        create_STORE_instr(store, var_offset);
+        instruction_t store;
+        create_STORE_instr(&store, var_offset);
         *kl_pushp(instruction_list, parser->code) = store;
 
         /*vlozenie 3AK na priradenie vysledku z funkcie parse_assign do hName*/
@@ -454,7 +454,7 @@ result_t parse_list(parser_t *parser) {
             debug_print("%s\n", "<");
             return result;
         }
-        //result = parse_fn_declaration(parser, varBlock);
+
         parser->argsCounter = 0;
 
         if (result != EOK){
@@ -526,7 +526,7 @@ result_t parse_list(parser_t *parser) {
                 break;
             }
 
-            token_t *cpy = calloc(1, sizeof(token_t));
+            token_t cpy;
 
             if (TOKEN_IS(parser->token, ID_TYPE)) {
                 int offset;
@@ -536,13 +536,12 @@ result_t parse_list(parser_t *parser) {
                     return result;
                 }
 
-                cpy->type = ID_TYPE;
-                cpy->flags = OFFSET_ID;
-                zval_set(&cpy->data, offset);
+                cpy.type = ID_TYPE;
+                cpy.flags = OFFSET_ID;
+                zval_set(&cpy.data, offset);
             } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
-                token_copy(cpy, parser->token);
+                token_copy(&cpy, parser->token);
             } else {
-                free(cpy);
                 debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
                 return ELEX;
             }
@@ -583,10 +582,10 @@ result_t parse_list(parser_t *parser) {
         debug_print("JMPF %d\n", elseLabel);
 
         // jmp nq
-        instruction_t *jmp = malloc(sizeof(instruction_t));
+        instruction_t jmp;
         zval_t zero;
         zval_set_int(&zero, 0);
-        create_JMPE_instr(jmp, elseLabel, &zero);
+        create_JMPE_instr(&jmp, elseLabel, &zero);
         *kl_pushp(instruction_list, parser->code) = jmp;
 
         if ((result = parser_next_token(parser)) != EOK) {
@@ -620,7 +619,9 @@ result_t parse_list(parser_t *parser) {
             return result;
 
         debug_print("JMP %d\n", endLabel);
-        *kl_pushp(instruction_list, parser->code) = create_JMP_instr(endLabel);
+        instruction_t jmpend;
+        create_JMP_instr(&jmpend, endLabel);
+        *kl_pushp(instruction_list, parser->code) = jmpend;
         /*vlozenie 3AK - skok na endLabel*/
 
         if ((result = parser_next_token(parser)) != EOK) {
@@ -633,7 +634,9 @@ result_t parse_list(parser_t *parser) {
 
         /******vlozenie 3AK - elseLabel*******/
         debug_print("LABEL ELSE %d\n", elseLabel);
-        *kl_pushp(instruction_list, parser->code) = create_LABEL_instr(elseLabel);
+        instruction_t lblelse;
+        create_LABEL_instr(&lblelse, elseLabel);
+        *kl_pushp(instruction_list, parser->code) = lblelse;
 
         if ((result = parser_next_token(parser)) != EOK) {
             debug_print("%s\n", "<");
@@ -667,7 +670,9 @@ result_t parse_list(parser_t *parser) {
 
         /**vlozenie 3AK - endLabel***/
         debug_print("LABEL END %d\n", endLabel);
-        *kl_pushp(instruction_list, parser->code) = create_LABEL_instr(endLabel);
+        instruction_t lblend;
+        create_LABEL_instr(&lblend, endLabel);
+        *kl_pushp(instruction_list, parser->code) = lblend;
     }
 
         /** for ( <deklaracia> ; <vyraz> ; priradenie) <parse_list>**/
@@ -935,8 +940,8 @@ result_t parse_list(parser_t *parser) {
                         return ESEM;
                 }
 
-                instruction_t *cout = malloc(sizeof(instruction_t));
-                create_COUT_offset_instr(cout, var_offset);
+                instruction_t cout;
+                create_COUT_offset_instr(&cout, var_offset);
                 *kl_pushp(instruction_list, parser->code) = cout;
                 /**vlozenie 3AK - vypis na STDOUT z premennej hName**/
                 debug_print("\tCOUNT STDOUT OFFSET:%d\n", var_offset);
@@ -972,25 +977,23 @@ result_t parse_list(parser_t *parser) {
 
         klist_t(token_list) *tokens = kl_init(token_list);
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
-            token_t *cpy = calloc(1, sizeof(token_t));
+            token_t cpy;
 
             if (TOKEN_IS(parser->token, ID_TYPE)) {
                 int offset;
 
                 if ((result = offset_of_current_token(parser, &offset)) != EOK) {
-                    free(cpy);
                     kl_destroy(token_list, tokens);
                     debug_print("%s\n", "<");
                     return result;
                 }
 
-                cpy->type = ID_TYPE;
-                cpy->flags = OFFSET_ID;
-                zval_set(&cpy->data, offset);
+                cpy.type = ID_TYPE;
+                cpy.flags = OFFSET_ID;
+                zval_set(&cpy.data, offset);
             } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
-                token_copy(cpy, parser->token);
+                token_copy(&cpy, parser->token);
             } else {
-                free(cpy);
                 kl_destroy(token_list, tokens);
                 debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
                 return ELEX;
@@ -1012,6 +1015,8 @@ result_t parse_list(parser_t *parser) {
         if ((result = expr_from_tokens(expr, tokens)) != EOK) {
             kl_destroy(token_list, tokens);
             kl_destroy(expr_stack, expr);
+            if(result == ESEM2)
+                return ESEM4;
             return result;
         }
         kl_destroy(token_list, tokens);
@@ -1027,8 +1032,8 @@ result_t parse_list(parser_t *parser) {
 
         debug_print("%s\n","RETURN\n");
 
-        instruction_t *ret = malloc(sizeof(instruction_t));
-        create_RETURN_instr(ret);
+        instruction_t ret;
+        create_RETURN_instr(&ret);
         *kl_pushp(instruction_list, parser->code) = ret;
     }
     else if (TOKEN_HAS_TFLAG(parser->token, KW_TYPE, INT_KW|DOUBLE_KW|STRING_KW|AUTO_KW)) {
@@ -1085,7 +1090,6 @@ result_t parse_adv_declaration(parser_t *parser) {
     debug_print("Variable Push %s...offset:%d\n", parser->token->data.sVal, data.offset);
 
     // add loc variable to stack
-    instruction_t *store = malloc(sizeof(instruction_t));
     zval_t val;
 
     if (varType == INT_KW) {
@@ -1101,7 +1105,8 @@ result_t parse_adv_declaration(parser_t *parser) {
         zval_init(&val); // auto
     }
 
-    create_STORE_zval_instr(store, &val);
+    instruction_t store;
+    create_STORE_zval_instr(&store, &val);
     zval_dispose(&val);
     *kl_pushp(instruction_list, parser->code) = store;
     // End add variable to stack
@@ -1127,7 +1132,7 @@ result_t parse_adv_declaration(parser_t *parser) {
             debug_print("%s\n", "<");
             return result;
         }
-        parser->assignVarName = hName;
+        strncpy(parser->assignVarName, hName, sizeof(parser->assignVarName));
         result = parse_assign(parser);
 
         if (result != EOK){
@@ -1148,7 +1153,7 @@ result_t parse_adv_declaration(parser_t *parser) {
                 debug_print("%s\n", "<");
                 return result;
             }
-            parser->assignVarName = hName;
+            strncpy(parser->assignVarName, hName, sizeof(parser->assignVarName));
             result = parse_assign(parser);
 
             if (result != EOK){
@@ -1156,8 +1161,8 @@ result_t parse_adv_declaration(parser_t *parser) {
                 return result;
             }
 
-            instruction_t *mv = malloc(sizeof(instruction_t));
-            create_STORE_instr(mv, parser->offset_counter);
+            instruction_t mv;
+            create_STORE_instr(&mv, parser->offset_counter);
             *kl_pushp(instruction_list, parser->code) = mv;
             debug_print("MV to offset %d\n", parser->offset_counter);
 
@@ -1189,7 +1194,7 @@ result_t parse_assign(parser_t *parser) {
 
             klist_t(token_list) *tokens = kl_init(token_list);
             while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
-                token_t *cpy = calloc(1, sizeof(token_t));
+                token_t cpy;
 
                 if (TOKEN_IS(parser->token, ID_TYPE)) {
                     int offset;
@@ -1199,13 +1204,12 @@ result_t parse_assign(parser_t *parser) {
                         return result;
                     }
 
-                    cpy->type = ID_TYPE;
-                    cpy->flags = OFFSET_ID;
-                    zval_set(&cpy->data, offset);
+                    cpy.type = ID_TYPE;
+                    cpy.flags = OFFSET_ID;
+                    zval_set(&cpy.data, offset);
                 } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
-                    token_copy(cpy, parser->token);
+                    token_copy(&cpy, parser->token);
                 } else {
-                    free(cpy);
                     debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
                     return ESYN;
                 }
@@ -1295,8 +1299,8 @@ result_t parse_assign(parser_t *parser) {
 
             debug_print("f call: %d\n", fnItem->f_label);
 
-            instruction_t *call = malloc(sizeof(instruction_t));
-            create_CALL_instr(call, fnItem->f_label, (int) kv_size(item->data));
+            instruction_t call;
+            create_CALL_instr(&call, fnItem->f_label, (int) kv_size(item->data));
             *kl_pushp(instruction_list, parser->code) = call;
 
             parser->argsCounter1 = 0;
@@ -1315,7 +1319,7 @@ result_t parse_assign(parser_t *parser) {
 
         klist_t(token_list) *tokens = kl_init(token_list);
         while (!TOKEN_HAS_TFLAG(parser->token, SMBL_TYPE, SEMICOLON_SMBL)) {
-            token_t *cpy = calloc(1, sizeof(token_t));
+            token_t cpy;
 
             if (TOKEN_IS(parser->token, ID_TYPE)) {
                 int offset;
@@ -1325,13 +1329,12 @@ result_t parse_assign(parser_t *parser) {
                     return result;
                 }
 
-                cpy->type = ID_TYPE;
-                cpy->flags = OFFSET_ID;
-                zval_set(&cpy->data, offset);
+                cpy.type = ID_TYPE;
+                cpy.flags = OFFSET_ID;
+                zval_set(&cpy.data, offset);
             } else if (TOKEN_IS(parser->token, SMBL_TYPE) || TOKEN_IS(parser->token, CONST_TYPE)) {
-                token_copy(cpy, parser->token);
+                token_copy(&cpy, parser->token);
             } else {
-                free(cpy);
                 debug_print("%s [%d]\n", "< UNKNOWN TOKEN FOR EXPRESSION", parser->token->type);
                 return ESYN;
             }
@@ -1810,8 +1813,8 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
 
         zval_t a;
         zval_set(&a, var_offset);
-        instruction_t *i = malloc(sizeof(instruction_t));
-        create_LOAD_instr(i, &a);
+        instruction_t i;
+        create_LOAD_instr(&i, &a);
         *kl_pushp(instruction_list, parser->code) = i;
 
         /****************parameter tItem1*****************/
@@ -1831,8 +1834,8 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
             }
         }
 
-        instruction_t *i = malloc(sizeof(instruction_t));
-        create_PUSH_zval_instr(i, &parser->token->data);
+        instruction_t i;
+        create_PUSH_zval_instr(&i, &parser->token->data);
         *kl_pushp(instruction_list, parser->code) = i;
         debug_print("PUSH PARAM %d\n",parser->token->data.iVal);
         /**************************************/
@@ -1852,8 +1855,8 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
             }
         }
 
-        instruction_t *i = malloc(sizeof(instruction_t));
-        create_PUSH_zval_instr(i, &parser->token->data);
+        instruction_t i;
+        create_PUSH_zval_instr(&i, &parser->token->data);
         *kl_pushp(instruction_list, parser->code) = i;
         debug_print("PUSH PARAM %lf\n",parser->token->data.dVal);
         /****************************************/
@@ -1866,10 +1869,10 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
             return ESEM2;
         }
 
-        instruction_t *i = malloc(sizeof(instruction_t));
-        create_PUSH_zval_instr(i, &parser->token->data);
+        instruction_t i;
+        create_PUSH_zval_instr(&i, &parser->token->data);
         *kl_pushp(instruction_list, parser->code) = i;
-        debug_print("PUSH PARAM %s\n",parser->token->data.sVal );
+        debug_print("PUSH PARAM %s\n",parser->token->data.sVal);
         /**************************************/
     }
     else return ESYN;
