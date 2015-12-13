@@ -123,7 +123,7 @@ result_t expr_from_tokens(klist_t(expr_stack) *expr, klist_t(token_list) *tokens
             while (kl_begin(op_stack) != kl_end(op_stack)) {
                 expr_t *top = kl_val(kl_begin(op_stack));
 
-                if (get_rule(EXPR_GET_OPERAND(top), op) == M) {
+                if (get_rule((unsigned int) EXPR_GET_OPERAND(top), op) == M) {
                     expr_t *a;
                     kl_shift(expr_stack, op_stack, &a);
                     *kl_pushp(expr_stack, expr) = a;

@@ -1782,7 +1782,7 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
 
     if (TOKEN_IS(parser->token, ID_TYPE)) {
         hTabItem *tItem1;
-        debug_print("token ID %d\n",parser->token->data.iVal);
+        debug_print("token ID %d\n", parser->token->data.iVal);
         if ((tableItem = searchItem(parser->table, kv_A(item->data, parser->argsCounter1).hid)) == NULL)
             return ESEM2;
         if ((hName = varSearch(&parser->varList, parser->token->data.sVal)) == NULL) {
@@ -1806,7 +1806,13 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
             }
             else return ESEM2;
         }
-        debug_print("PUSH PARAM ID: %s OFFSET: %d\n", parser->token->data.sVal,var_offset);
+        debug_print("PUSH PARAM ID: %s OFFSET: %d\n", parser->token->data.sVal, var_offset);
+
+        zval_t a;
+        zval_set(&a, var_offset);
+        instruction_t *i = malloc(sizeof(instruction_t));
+        create_LOAD_instr(i, &a);
+        *kl_pushp(instruction_list, parser->code) = i;
 
         /****************parameter tItem1*****************/
     }
@@ -1846,6 +1852,9 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
             }
         }
 
+        instruction_t *i = malloc(sizeof(instruction_t));
+        create_PUSH_zval_instr(i, &parser->token->data);
+        *kl_pushp(instruction_list, parser->code) = i;
         debug_print("PUSH PARAM %lf\n",parser->token->data.dVal);
         /****************************************/
     }
@@ -1856,6 +1865,10 @@ result_t parse_params(parser_t *parser, tItemPtr item) {
         if (tableItem->dataType != STRING_KW && tableItem->dataType != AUTO_KW){
             return ESEM2;
         }
+
+        instruction_t *i = malloc(sizeof(instruction_t));
+        create_PUSH_zval_instr(i, &parser->token->data);
+        *kl_pushp(instruction_list, parser->code) = i;
         debug_print("PUSH PARAM %s\n",parser->token->data.sVal );
         /**************************************/
     }
