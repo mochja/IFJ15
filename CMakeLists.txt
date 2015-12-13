@@ -4,12 +4,12 @@ project(IFJ15 C)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -pedantic -Wall -Werror")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
 
-add_executable(ifj15 main.c scanner.c parser.c list.c hash.c token.h zval.h expr.c instruction.c vm.c ial.c)
+add_executable(ifj15 main.c scanner.c parser.c list.c token.h zval.h expr.c instruction.c vm.c ial.c)
 
 enable_testing()
 find_library(cgreen cgreen)
 
-add_library(hash_test hash_test.c hash.c)
+add_library(hash_test hash_test.c ial.c)
 add_library(ial_test ial_test.c ial.c)
 add_library(vm_test vm_test.c vm.c instruction.c)
 add_library(expression_test expr_test.c expr.c)
