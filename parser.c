@@ -129,7 +129,6 @@ result_t parser_run(parser_t *parser) {
     if (searchItem(parser->table, "main") == NULL) {
         return ESEM;
     }
-
     return EOK;
 }
 
