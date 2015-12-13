@@ -228,8 +228,8 @@ result_t vm_exec(vm_t *vm) {
                 ctx_t ctx;
                 vm_ctx_init(&ctx, vm->ip + 1, (unsigned int) ZVAL_GET_INT(i->second));
 
-                for (int j = 0; j < ZVAL_GET_INT(i->second); j++) {
-                    kv_push(zval_t, ctx.locals, kv_pop(vm->stack));
+                for (int j = ZVAL_GET_INT(i->second); j > 0; j--) {
+                    kv_a(zval_t, ctx.locals, j - 1) = kv_pop(vm->stack);
                 }
 
                 zval_t val;
