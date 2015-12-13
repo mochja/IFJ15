@@ -17,7 +17,7 @@
 #include <stdbool.h>
 #include "scanner.h"
 #include "list.h"
-#include "hash.h"
+#include "ial.h"
 #include "token.h"
 #include "zval.h"
 #include "instruction.h"
