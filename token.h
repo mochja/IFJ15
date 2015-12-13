@@ -117,10 +117,10 @@ INLINED void token_set_kw(token_t *dest, const unsigned int flags) {
     zval_init(&dest->data);
 }
 
-INLINED void token_set_fn(token_t *dest, const unsigned int flags) {
+INLINED void token_set_fn(token_t *dest, const unsigned int flags, const char *name) {
     dest->type = FN_TYPE;
     dest->flags = flags;
-    zval_init(&dest->data);
+    zval_set(&dest->data, name);
 }
 
 INLINED void token_set_var(token_t *dest, const char *name) {

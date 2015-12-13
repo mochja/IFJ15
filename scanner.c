@@ -194,11 +194,11 @@ result_t scanner_get_next_token(scanner_t *scanner, token_t *ddest)
                     if(!strcmp(buff, "return"))  { token_set_kw(dest, RETURN_KW); } else
                     if(!strcmp(buff, "string"))  { token_set_kw(dest, STRING_KW); } else
                     if(!strcmp(buff, "main"))    { token_set_kw(dest, MAIN_KW);   } else
-                    if(!strcmp(buff, "length"))  { token_set_fn(dest, LENGTH_FN); } else
-                    if(!strcmp(buff, "substr"))  { token_set_fn(dest, SUBSTR_FN); } else
-                    if(!strcmp(buff, "concat"))  { token_set_fn(dest, CONCAT_FN); } else
-                    if(!strcmp(buff, "find"))    { token_set_fn(dest, FIND_FN);   } else
-                    if(!strcmp(buff, "sort"))    { token_set_fn(dest, SORT_FN);   } else
+                    if(!strcmp(buff, "length"))  { token_set_fn(dest, LENGTH_FN, buff); } else
+                    if(!strcmp(buff, "substr"))  { token_set_fn(dest, SUBSTR_FN, buff); } else
+                    if(!strcmp(buff, "concat"))  { token_set_fn(dest, CONCAT_FN, buff); } else
+                    if(!strcmp(buff, "find"))    { token_set_fn(dest, FIND_FN, buff);   } else
+                    if(!strcmp(buff, "sort"))    { token_set_fn(dest, SORT_FN, buff);   } else
                     {
                         token_set_var(dest, buff);
                     }
