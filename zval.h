@@ -496,7 +496,7 @@ INLINED result_t zval_ge(zval_t *dest, zval_t *a, zval_t *b) {
 
 
 
-INLINED void zval_print(zval_t *val) {
+INLINED result_t zval_print(zval_t *val) {
 
     if (ZVAL_IS_DEFINED(val)) {
         if (ZVAL_IS_INT(val)) {
@@ -507,8 +507,10 @@ INLINED void zval_print(zval_t *val) {
             printf("%s", zval_get_string(val));
         }
     } else {
-        printf("[null]\n");
+        return ERUN1;
     }
+
+    return EOK;
 }
 
 #endif // ZVAL_H_

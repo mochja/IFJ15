@@ -172,7 +172,9 @@ result_t vm_exec(vm_t *vm) {
             }
             case I_COUT_pop: {
                 zval_t val = kv_A(vm->stack, kv_size(vm->stack) - 1);
-                zval_print(&val);
+                if ((ret = zval_print(&val)) != EOK) {
+                    running = false;
+                }
                 zval_dispose(&val);
                 vm->ip++;
                 break;
@@ -180,12 +182,16 @@ result_t vm_exec(vm_t *vm) {
             case I_COUT_offset: {
                 ctx_t *ctx = &kv_top(vm->call_stack);
                 zval_t val = kv_A(ctx->locals, ctx->nargs + ZVAL_GET_INT(i->first));
-                zval_print(&val);
+                if ((ret = zval_print(&val)) != EOK) {
+                    running = false;
+                }
                 vm->ip++;
                 break;
             }
             case I_COUT_zval: {
-                zval_print(i->first);
+                if ((ret = zval_print(i->first)) != EOK) {
+                    running = false;
+                }
                 vm->ip++;
                 break;
             }
