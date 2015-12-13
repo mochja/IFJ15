@@ -9,7 +9,7 @@ add_executable(ifj15 main.c scanner.c parser.c list.c token.h zval.h expr.c inst
 enable_testing()
 find_library(cgreen cgreen)
 
-add_library(hash_test hash_test.c hash.c)
+add_library(hash_test hash_test.c ial.c)
 add_library(ial_test ial_test.c ial.c)
 add_library(vm_test vm_test.c vm.c instruction.c)
 add_library(expression_test expr_test.c expr.c)
